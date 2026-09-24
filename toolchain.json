@@ -1,0 +1,7 @@
+{
+  "moonbit_install_version": "0.10.14+7d59c7ec9",
+  "moon": "0.1.20260920 (914d7da 2026-09-20)",
+  "moonc": "v0.10.14+7d59c7ec9 (2026-09-18)",
+  "node_tested": "24.14.0",
+  "backend": "js"
+}

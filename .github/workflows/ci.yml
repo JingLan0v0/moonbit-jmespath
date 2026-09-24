@@ -1,0 +1,44 @@
+name: Verify MoonJMES
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+      - name: Install pinned MoonBit on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.cn/install/unix.sh -o "$RUNNER_TEMP/install-moonbit.sh"
+          bash "$RUNNER_TEMP/install-moonbit.sh" '0.10.14+7d59c7ec9'
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Install pinned MoonBit on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/install-moonbit-ci.ps1
+      - name: Record environment
+        run: moon version --all
+      - name: Verify project
+        run: node scripts/verify.mjs
+      - name: Run official JMESPath compliance suite
+        run: node scripts/conformance.mjs
+      - name: Check generated interfaces
+        run: git diff --exit-code -- '*.mbti'
