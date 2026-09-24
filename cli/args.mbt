@@ -3,6 +3,7 @@ pub(all) enum Command {
   Help
   Version
   Query(expression~ : String, path~ : String, compact~ : Bool)
+  Batch(path~ : String, compact~ : Bool)
 } derive(Eq, Debug)
 
 ///|
@@ -25,6 +26,7 @@ pub fn parse_args(args : Array[String]) -> Command raise CliError {
   }
   let positional : Array[String] = []
   let mut compact = false
+  let mut batch = false
   let mut options = true
   for arg in args {
     if options && arg == "--" {
@@ -34,11 +36,25 @@ pub fn parse_args(args : Array[String]) -> Command raise CliError {
         usage_error("--compact may only appear once")
       }
       compact = true
+    } else if options && arg == "--batch" {
+      if batch {
+        usage_error("--batch may only appear once")
+      }
+      batch = true
     } else if options && arg.has_prefix("-") && arg != "-" {
       usage_error("unknown option: " + arg)
     } else {
       positional.push(arg)
     }
+  }
+  if batch {
+    if positional.length() > 1 {
+      usage_error("batch mode accepts at most one FILE")
+    }
+    return Batch(
+      path=if positional.is_empty() { "-" } else { positional[0] },
+      compact~,
+    )
   }
   if positional.length() < 1 || positional.length() > 2 {
     usage_error("provide EXPRESSION and optionally FILE")
@@ -52,5 +68,5 @@ pub fn parse_args(args : Array[String]) -> Command raise CliError {
 
 ///|
 pub fn help() -> String {
-  "moon-jmes \{@lib.version()} - query JSON with JMESPath\n\nUsage:\n  moon-jmes [--compact] EXPRESSION [FILE]\n\nArguments:\n  EXPRESSION       JMESPath expression\n  FILE             UTF-8 JSON file; omit or use - for stdin\n\nOptions:\n  --compact        Emit compact JSON instead of indented JSON\n  --help, -h       Show this help\n  --version        Show the version\n\nExit codes: 0 success, 2 invalid expression/input or I/O error.\n"
+  "moon-jmes \{@lib.version()} - query JSON with JMESPath\n\nUsage:\n  moon-jmes [--compact] EXPRESSION [FILE]\n  moon-jmes --batch [--compact] [FILE]\n\nArguments:\n  EXPRESSION       JMESPath expression\n  FILE             UTF-8 JSON file; omit or use - for stdin\n\nOptions:\n  --batch          Process [{expression, data}, ...] with per-item errors\n  --compact        Emit compact JSON instead of indented JSON\n  --help, -h       Show this help\n  --version        Show the version\n\nExit codes: 0 success, 2 invalid expression/input or I/O error.\n"
 }

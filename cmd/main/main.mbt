@@ -28,6 +28,17 @@ fn run() -> Int raise {
       write_stdout(result.stringify(indent=if compact { 0 } else { 2 }) + "\n")
       0
     }
+    Batch(path~, compact~) => {
+      let read = read_utf8(path)
+      if read[0] != "" {
+        write_stderr("moon-jmes: io: " + read[0] + "\n")
+        return 2
+      }
+      let input = @json.parse(read[1])
+      let result = @lib.search_batch(input)
+      write_stdout(result.stringify(indent=if compact { 0 } else { 2 }) + "\n")
+      0
+    }
   }
 }
 

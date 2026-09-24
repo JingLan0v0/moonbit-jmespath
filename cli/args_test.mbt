@@ -12,6 +12,10 @@ test "CLI accepts stdin, files, compact output, and option terminator" {
     parse_args(["--", "-expression", "data.json"]),
     Query(expression="-expression", path="data.json", compact=false),
   )
+  assert_eq(
+    parse_args(["--batch", "requests.json"]),
+    Batch(path="requests.json", compact=false),
+  )
 }
 
 ///|
