@@ -85,5 +85,5 @@ pub fn Compiled::source(self : Compiled) -> String {
 
 ///|
 pub fn version() -> String {
-  "0.1.0"
+  "0.1.1"
 }
