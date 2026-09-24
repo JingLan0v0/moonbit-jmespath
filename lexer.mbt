@@ -169,14 +169,24 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
             i += 1
             break
           }
-          if chars[i] == '\\' && i + 1 < chars.length() && chars[i + 1] == '\'' {
-            b.write_char('\'')
-            i += 2
-          } else if chars[i] == '\\' &&
-            i + 1 < chars.length() &&
-            chars[i + 1] == '\\' {
-            b.write_char('\\')
-            i += 2
+          if chars[i] == '\\' {
+            let mut end = i
+            while end < chars.length() && chars[end] == '\\' {
+              end += 1
+            }
+            let count = end - i
+            if end < chars.length() && chars[end] == '\'' && count % 2 == 1 {
+              for j = 0; j < count - 1; j = j + 1 {
+                b.write_char('\\')
+              }
+              b.write_char('\'')
+              i = end + 1
+            } else {
+              for j = 0; j < count; j = j + 1 {
+                b.write_char('\\')
+              }
+              i = end
+            }
           } else {
             b.write_char(chars[i])
             i += 1

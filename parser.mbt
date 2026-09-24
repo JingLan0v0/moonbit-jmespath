@@ -49,10 +49,34 @@ fn precedence(kind : TokenKind) -> Int {
 }
 
 ///|
+fn has_projection(expr : Expr) -> Bool {
+  match expr {
+    Projection(_, _) => true
+    Subexpression(_, right) => has_projection(right)
+    _ => false
+  }
+}
+
+///|
 fn attach_projection(expr : Expr, rhs : Expr) -> Expr {
   match expr {
-    Projection(source, tail) => Projection(source, Subexpression(tail, rhs))
+    Projection(source, tail) => Projection(source, attach_projection(tail, rhs))
+    Subexpression(left, right) if has_projection(right) =>
+      Subexpression(left, attach_projection(right, rhs))
     _ => Subexpression(expr, rhs)
+  }
+}
+
+///|
+fn Parser::attach_bracket(
+  self : Parser,
+  expr : Expr,
+) -> Expr raise JmesPathError {
+  match expr {
+    Projection(source, tail) => Projection(source, self.attach_bracket(tail))
+    Subexpression(left, right) if has_projection(right) =>
+      Subexpression(left, self.attach_bracket(right))
+    _ => self.parse_bracket_postfix(expr)
   }
 }
 
@@ -149,9 +173,6 @@ fn Parser::parse_bracket_postfix(
   self : Parser,
   base : Expr,
 ) -> Expr raise JmesPathError {
-  if self.accept(RBracket) {
-    return Projection(Flatten(base), Current)
-  }
   if self.accept(Star) {
     self.expect(RBracket, "]")
     return Projection(ListWildcard(base), Current)
@@ -188,7 +209,11 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
     }
     LBrace => self.parse_multi_hash()
     LBracket =>
-      if self.accept(Star) {
+      if self.accept(RBracket) {
+        Projection(Flatten(Current), Current)
+      } else if self.peek().kind is Star &&
+        self.tokens[self.pos + 1].kind is RBracket {
+        self.advance() |> ignore
         self.expect(RBracket, "]")
         Projection(ListWildcard(Current), Current)
       } else if self.accept(Question) {
@@ -238,11 +263,20 @@ fn Parser::parse_expression(
       left = attach_projection(left, self.parse_dot_rhs())
       continue
     }
-    if self.accept(LBracket) {
-      left = match left {
-        Projection(source, tail) =>
-          Projection(source, self.parse_bracket_postfix(tail))
-        _ => self.parse_bracket_postfix(left)
+    if self.peek().kind is LBracket {
+      let bracket = self.advance()
+      if self.peek().kind is Question &&
+        self.peek().offset != bracket.offset + 1 {
+        fail(
+          "syntax",
+          self.peek().offset,
+          "whitespace is not allowed before filter marker",
+        )
+      }
+      if self.accept(RBracket) {
+        left = Projection(Flatten(left), Current)
+      } else {
+        left = self.attach_bracket(left)
       }
       continue
     }
