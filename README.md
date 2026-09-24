@@ -139,6 +139,9 @@ The GitHub Actions matrix runs on Windows and Ubuntu with the pinned compiler.
 Architecture and trust boundaries are in
 [docs/architecture.md](docs/architecture.md).
 
+A Chinese project overview for contest information review is available in
+[docs/project-introduction.zh-CN.md](docs/project-introduction.zh-CN.md).
+
 ## Project boundary
 
 MoonJMES implements the JMESPath specification. It has no custom query

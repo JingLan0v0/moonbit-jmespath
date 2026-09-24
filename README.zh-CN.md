@@ -144,3 +144,5 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 MoonJMES 是依据 JMESPath 公开规范独立实现的项目，没有包含其他 JMESPath 实现的源代码。官方测试向量只在验证时从固定提交下载到操作系统临时目录，不进入源码包或发布产物。详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 项目采用 Apache-2.0 许可证。
+
+面向参赛信息整理的中文项目介绍见 [docs/project-introduction.zh-CN.md](docs/project-introduction.zh-CN.md)。
