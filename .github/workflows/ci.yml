@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     strategy:
@@ -25,11 +29,12 @@ jobs:
           node-version: '24.14.0'
       - name: Install pinned MoonBit on Linux
         if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          curl -fsSL https://cli.moonbitlang.cn/install/unix.sh -o "$RUNNER_TEMP/install-moonbit.sh"
-          bash "$RUNNER_TEMP/install-moonbit.sh" '0.10.14+7d59c7ec9'
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+        uses: hustcer/setup-moonbit@v1.22
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: '0.10.14+7d59c7ec9'
+          core-version: '0.10.14+7d59c7ec9'
       - name: Install pinned MoonBit on Windows
         if: runner.os == 'Windows'
         shell: pwsh
