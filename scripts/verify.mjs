@@ -35,7 +35,13 @@ for (const [name, expression] of scenarios) {
 }
 
 if (process.env.VERIFY_PUBLISH === '1') {
-  run(moon, ['publish', '--dry-run']);
+  const publish = spawnSync(moon, ['publish', '--dry-run'], { cwd: root, encoding: 'utf8' });
+  const detail = (publish.stdout || '') + (publish.stderr || '');
+  // Moon 0.1.20260920 exits non-zero after a server-confirmed 202 dry-run.
+  if (publish.status !== 0 && !detail.includes('Dry run completed successfully')) {
+    process.stderr.write(detail);
+    throw new Error('Mooncakes publish dry-run failed');
+  }
   console.log('PASS Mooncakes publish dry-run');
 }
 console.log('PASS MoonBit checks, tests, examples, interfaces, and build');
