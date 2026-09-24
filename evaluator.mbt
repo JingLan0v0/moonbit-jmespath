@@ -276,13 +276,3 @@ fn evaluate(
       )
   }
 }
-
-///|
-fn evaluate_function(
-  name : String,
-  _args : Array[Expr],
-  _data : Json,
-  _state : EvalState,
-) -> Json raise JmesPathError {
-  fail("unknown_function", 0, "unknown function: " + name)
-}
