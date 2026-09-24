@@ -1,5 +1,10 @@
-// import {
-//   "JingLan0v0/jmespath" @lib,
-// }
+import {
+  "JingLan0v0/jmespath" @lib,
+  "JingLan0v0/jmespath/cli",
+}
 
 pkgtype(kind: "executable")
+
+options(
+  link: { "js": { "format": "cjs" } },
+)
