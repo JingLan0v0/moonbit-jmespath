@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "JingLan0v0/jmespath/cli"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn help() -> String
+
+pub fn parse_args(Array[String]) -> Command raise CliError
+
+// Errors
+pub(all) suberror CliError {
+  CliError(String)
+}
+
+// Types and methods
+pub(all) enum Command {
+  Help
+  Version
+  Query(expression~ : String, path~ : String, compact~ : Bool)
+  Batch(path~ : String, compact~ : Bool)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

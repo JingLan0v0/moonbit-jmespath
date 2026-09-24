@@ -13,7 +13,7 @@ name = "JingLan0v0/jmespath"
 
 version = "0.1.0"
 
-readme = "README.mbt.md"
+readme = "README.md"
 
 repository = "https://github.com/JingLan0v0/moonbit-jmespath"
 

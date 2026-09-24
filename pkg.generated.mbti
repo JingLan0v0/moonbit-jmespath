@@ -1,0 +1,58 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "JingLan0v0/jmespath"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile(String, limits? : Limits) -> Compiled raise JmesPathError
+
+pub fn default_limits() -> Limits
+
+pub fn search(String, Json, limits? : Limits) -> Json raise JmesPathError
+
+pub fn search_batch(Json, limits? : Limits) -> Json raise JmesPathError
+
+pub fn search_json(String, String, limits? : Limits) -> Json raise JmesPathError
+
+pub fn version() -> String
+
+// Errors
+pub(all) suberror JmesPathError {
+  JmesPathError(Diagnostic)
+}
+
+// Types and methods
+type CompareOp derive(Eq, @debug.Debug)
+
+pub(all) struct Compiled {
+  source : String
+  expr : Expr
+  limits : Limits
+}
+pub fn Compiled::search(Self, Json) -> Json raise JmesPathError
+pub fn Compiled::source(Self) -> String
+
+pub(all) struct Diagnostic {
+  code : String
+  offset : Int
+  message : String
+} derive(Eq, @debug.Debug)
+
+type Expr derive(Eq, @debug.Debug)
+
+pub(all) struct Limits {
+  max_expression_chars : Int
+  max_ast_depth : Int
+  max_steps : Int
+  max_results : Int
+} derive(Eq, @debug.Debug)
+
+type Token derive(Eq, @debug.Debug)
+
+type TokenKind derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

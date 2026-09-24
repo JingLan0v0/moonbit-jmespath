@@ -1,0 +1,1 @@
+{"deployments":[{"service":"billing","decision":"allow","reasons":[]},{"service":"checkout","decision":"deny","reasons":[{"code":"IMAGE_UNSIGNED"},{"code":"HIGH_SEVERITY_CVE"}]},{"service":"search","decision":"deny","reasons":[{"code":"MISSING_OWNER"}]}]}

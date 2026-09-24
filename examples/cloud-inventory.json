@@ -1,0 +1,1 @@
+{"instances":[{"id":"i-101","zone":"cn-east-1a","environment":"prod","state":"running"},{"id":"i-102","zone":"cn-east-1b","environment":"test","state":"running"},{"id":"i-103","zone":"cn-east-1a","environment":"prod","state":"stopped"},{"id":"i-104","zone":"cn-east-1c","environment":"prod","state":"running"}]}
