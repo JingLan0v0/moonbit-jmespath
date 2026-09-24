@@ -179,12 +179,62 @@ fn json_type(value : Json) -> String {
 }
 
 ///|
+fn evaluate_expref_function(
+  name : String,
+  args : Array[Expr],
+  data : Json,
+  state : EvalState,
+) -> Json raise JmesPathError {
+  require_arity(name, args.length(), 2)
+  let (array_expr, reference) = if name == "map" {
+    guard args[0] is ExpressionRef(reference) else { return invalid_type(name) }
+    (args[1], reference)
+  } else {
+    guard args[1] is ExpressionRef(reference) else { return invalid_type(name) }
+    (args[0], reference)
+  }
+  guard evaluate(array_expr, data, state) is Array(items) else {
+    return invalid_type(name)
+  }
+  if name == "map" {
+    let mapped = items.map(item => evaluate(reference, item, state))
+    state.add_results(mapped.length())
+    return Json::array(mapped)
+  }
+  if items.is_empty() {
+    return if name == "sort_by" { Json::array([]) } else { Json::null() }
+  }
+  let pairs : Array[(Json, Json)] = []
+  for item in items {
+    pairs.push((item, evaluate(reference, item, state)))
+  }
+  let keys = pairs.map(pair => pair.1)
+  let kind = homogeneous_order(keys, name)
+  if name == "sort_by" {
+    pairs.sort_by(fn(a, b) { compare_ordered(a.1, b.1, kind) })
+    return Json::array(pairs.map(pair => pair.0))
+  }
+  let maximum = name == "max_by"
+  let mut best = pairs[0]
+  for i = 1; i < pairs.length(); i = i + 1 {
+    let order = compare_ordered(pairs[i].1, best.1, kind)
+    if (maximum && order > 0) || (!maximum && order < 0) {
+      best = pairs[i]
+    }
+  }
+  best.0
+}
+
+///|
 fn evaluate_function(
   name : String,
   args : Array[Expr],
   data : Json,
   state : EvalState,
 ) -> Json raise JmesPathError {
+  if name == "map" || name == "sort_by" || name == "max_by" || name == "min_by" {
+    return evaluate_expref_function(name, args, data, state)
+  }
   let values = evaluate_args(args, data, state)
   match name {
     "abs" => {

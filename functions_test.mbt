@@ -47,3 +47,20 @@ test "function errors are classified" {
   }
   assert_true(invalid_type && invalid_arity && unknown)
 }
+
+///|
+test "expression-reference functions map, sort, and select records" {
+  let data = @json.parse(
+    "{\"people\":[{\"name\":\"Ada\",\"age\":36},{\"name\":\"Lin\",\"age\":28},{\"name\":\"Sam\",\"age\":41}]}",
+  )
+  assert_eq(
+    search("map(&name, people)", data),
+    @json.parse("[\"Ada\",\"Lin\",\"Sam\"]"),
+  )
+  assert_eq(
+    search("sort_by(people, &age)[*].name", data),
+    @json.parse("[\"Lin\",\"Ada\",\"Sam\"]"),
+  )
+  assert_eq(search("max_by(people, &age).name", data), Json::string("Sam"))
+  assert_eq(search("min_by(people, &age).name", data), Json::string("Lin"))
+}
