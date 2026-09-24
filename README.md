@@ -37,7 +37,16 @@ definition of compatibility.
 
 ## Quick start
 
-Install MoonBit and Node.js, then run a query against a file:
+Install the published library from Mooncakes:
+
+```bash
+moon add JingLan0v0/jmespath
+```
+
+The package documentation is available at
+[mooncakes.io/docs/JingLan0v0/jmespath](https://mooncakes.io/docs/JingLan0v0/jmespath).
+
+To run this repository's CLI, install MoonBit and Node.js, then query a file:
 
 ```bash
 moon run cmd/main --target js -- "instances[?state == 'running'].{id: id, zone: zone}" inventory.json
@@ -59,6 +68,15 @@ Result:
 ```
 
 ### Library API
+
+Import the package in `moon.pkg`:
+
+```moonbit
+import {
+  "JingLan0v0/jmespath" @jmespath,
+  "moonbitlang/core/json",
+}
+```
 
 ```moonbit
 let input = @json.parse("{\"people\":[{\"name\":\"Ada\",\"age\":36}]}")
