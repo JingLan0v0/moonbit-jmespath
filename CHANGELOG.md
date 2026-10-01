@@ -2,6 +2,15 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## Unreleased
+
+- validate configurable resource limits and reject excessive parser nesting before recursion grows unchecked
+- prevent integer overflow in index parsing and large-stride slices
+- enforce result limits before building projected and function-produced arrays,
+  and bound CLI reads to 16 MiB
+- accept a UTF-8 BOM, report malformed batch JSON clearly, and isolate malformed batch entries
+- add real CLI integration checks and clarify the public API and usage examples
+
 ## 0.1.1 - 2026-09-24
 
 - add a complete Simplified Chinese README and installation guide

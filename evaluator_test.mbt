@@ -39,3 +39,70 @@ test "compiled expressions are reusable and limits stop expansion" {
   }
   assert_true(stopped)
 }
+
+///|
+test "invalid custom limits are rejected before evaluation" {
+  for
+    limits in [
+      { ..default_limits(), max_expression_chars: 0, },
+      { ..default_limits(), max_ast_depth: 257, },
+      { ..default_limits(), max_steps: 0, },
+      { ..default_limits(), max_results: -1, },
+    ] {
+    let error = try {
+      compile("@", limits~) |> ignore
+      None
+    } catch {
+      JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(error, Some("invalid_value"))
+  }
+}
+
+///|
+test "zero result and small step limits stop expansion" {
+  let data = @json.parse("[1,2]")
+  let result_limits = { ..default_limits(), max_results: 0, }
+  let result_error = try {
+    search("[*]", data, limits=result_limits) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(result_error, Some("limit_exceeded"))
+  let step_limits = { ..default_limits(), max_steps: 1, }
+  let step_error = try {
+    search("[0]", data, limits=step_limits) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(step_error, Some("limit_exceeded"))
+}
+
+///|
+test "large slice endpoints and strides are handled without overflow" {
+  let data = @json.parse("[1,2,3]")
+  assert_eq(search("[2147483647:]", data), @json.parse("[]"))
+  assert_eq(search("[:2147483647]", data), data)
+  assert_eq(search("[0:3:2147483647]", data), @json.parse("[1]"))
+}
+
+///|
+test "array-producing functions observe the result budget" {
+  let limits = { ..default_limits(), max_results: 1, }
+  for expression in ["sort(@)", "reverse(@)", "values(@)", "keys(@)"] {
+    let input = if expression == "values(@)" || expression == "keys(@)" {
+      @json.parse("{\"a\":1,\"b\":2}")
+    } else {
+      @json.parse("[2,1]")
+    }
+    let error = try {
+      search(expression, input, limits~) |> ignore
+      None
+    } catch {
+      JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(error, Some("limit_exceeded"))
+  }
+}

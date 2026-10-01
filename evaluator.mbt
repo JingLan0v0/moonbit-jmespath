@@ -7,10 +7,10 @@ priv struct EvalState {
 
 ///|
 fn EvalState::tick(self : EvalState) -> Unit raise JmesPathError {
-  self.steps += 1
-  if self.steps > self.limits.max_steps {
+  if self.steps >= self.limits.max_steps {
     fail("limit_exceeded", 0, "evaluation exceeds max_steps")
   }
+  self.steps += 1
 }
 
 ///|
@@ -18,10 +18,10 @@ fn EvalState::add_results(
   self : EvalState,
   count : Int,
 ) -> Unit raise JmesPathError {
-  self.results += count
-  if self.results > self.limits.max_results {
+  if count > self.limits.max_results - self.results {
     fail("limit_exceeded", 0, "evaluation exceeds max_results")
   }
+  self.results += count
 }
 
 ///|
@@ -40,11 +40,8 @@ fn json_bool(value : Bool) -> Json {
 }
 
 ///|
-fn normalize_positive(value : Int, length : Int, default : Int) -> Int {
-  let mut result = value
-  if value == 2147483647 {
-    result = default
-  }
+fn normalize_positive(value : Int?, length : Int, default : Int) -> Int {
+  let mut result = value.unwrap_or(default)
   if result < 0 {
     result += length
   }
@@ -63,6 +60,7 @@ fn slice_array(
   start : Int?,
   stop : Int?,
   step : Int?,
+  state : EvalState,
 ) -> Array[Json] raise JmesPathError {
   let stride = step.unwrap_or(1)
   if stride == 0 {
@@ -71,11 +69,15 @@ fn slice_array(
   let length = items.length()
   let result : Array[Json] = []
   if stride > 0 {
-    let first = normalize_positive(start.unwrap_or(2147483647), length, 0)
-    let last = normalize_positive(stop.unwrap_or(2147483647), length, length)
+    let first = normalize_positive(start, length, 0)
+    let last = normalize_positive(stop, length, length)
     let mut i = first
     while i < last {
+      state.add_results(1)
       result.push(items[i])
+      if stride > last - 1 - i {
+        break
+      }
       i += stride
     }
   } else {
@@ -102,6 +104,7 @@ fn slice_array(
     }
     let mut i = first
     while i > end {
+      state.add_results(1)
       result.push(items[i])
       i += stride
     }
@@ -168,7 +171,8 @@ fn evaluate(
       }
     Slice(base, start, stop, step) =>
       match evaluate(base, data, state) {
-        Array(items) => Json::array(slice_array(items, start, stop, step))
+        Array(items) =>
+          Json::array(slice_array(items, start, stop, step, state))
         _ => Json::null()
       }
     ListWildcard(base) =>
@@ -182,6 +186,7 @@ fn evaluate(
           let values : Array[Json] = []
           for entry in entries {
             let (_, value) = entry
+            state.add_results(1)
             values.push(value)
           }
           Json::array(values)
@@ -196,12 +201,15 @@ fn evaluate(
             match item {
               Array(children) =>
                 for child in children {
+                  state.add_results(1)
                   flattened.push(child)
                 }
-              _ => flattened.push(item)
+              _ => {
+                state.add_results(1)
+                flattened.push(item)
+              }
             }
           }
-          state.add_results(flattened.length())
           Json::array(flattened)
         }
         _ => Json::null()
@@ -213,10 +221,10 @@ fn evaluate(
           for item in items {
             let value = evaluate(rhs, item, state)
             if !(value is Null) {
+              state.add_results(1)
               projected.push(value)
             }
           }
-          state.add_results(projected.length())
           Json::array(projected)
         }
         _ => Json::null()
@@ -227,10 +235,10 @@ fn evaluate(
           let selected : Array[Json] = []
           for item in items {
             if truthy(evaluate(condition, item, state)) {
+              state.add_results(1)
               selected.push(item)
             }
           }
-          state.add_results(selected.length())
           Json::array(selected)
         }
         _ => Json::null()
@@ -256,8 +264,12 @@ fn evaluate(
     Compare(op, left, right) =>
       relation(op, evaluate(left, data, state), evaluate(right, data, state))
     MultiList(items) => {
-      let values = items.map(item => evaluate(item, data, state))
-      state.add_results(values.length())
+      let values : Array[Json] = []
+      for item in items {
+        let value = evaluate(item, data, state)
+        state.add_results(1)
+        values.push(value)
+      }
       Json::array(values)
     }
     MultiHash(entries) => {

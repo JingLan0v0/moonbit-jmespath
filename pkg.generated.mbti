@@ -26,7 +26,7 @@ pub(all) suberror JmesPathError {
 // Types and methods
 type CompareOp derive(Eq, @debug.Debug)
 
-pub(all) struct Compiled {
+pub struct Compiled {
   source : String
   expr : Expr
   limits : Limits

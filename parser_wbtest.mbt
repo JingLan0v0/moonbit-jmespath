@@ -49,3 +49,38 @@ test "parser rejects trailing punctuation" {
   }
   assert_eq(error, Some("syntax"))
 }
+
+///|
+test "parser rejects deep nesting before the runtime stack overflows" {
+  let nested = StringBuilder()
+  for i = 0; i < 300; i = i + 1 {
+    nested.write_char('(')
+  }
+  nested.write_char('@')
+  for i = 0; i < 300; i = i + 1 {
+    nested.write_char(')')
+  }
+  let error = try {
+    parse(nested.to_string(), default_limits()) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(error, Some("limit_exceeded"))
+}
+
+///|
+test "parser rejects long field chains while constructing the AST" {
+  let chain = StringBuilder()
+  chain.write_string("root")
+  for i = 0; i < 300; i = i + 1 {
+    chain.write_string(".field")
+  }
+  let error = try {
+    parse(chain.to_string(), default_limits()) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(error, Some("limit_exceeded"))
+}

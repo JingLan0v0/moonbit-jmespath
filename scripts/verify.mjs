@@ -34,6 +34,8 @@ for (const [name, expression] of scenarios) {
   console.log(`PASS scenario: ${name}`);
 }
 
+process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs']));
+
 if (process.env.VERIFY_PUBLISH === '1') {
   const publish = spawnSync(moon, ['publish', '--dry-run'], { cwd: root, encoding: 'utf8' });
   const detail = (publish.stdout || '') + (publish.stderr || '');

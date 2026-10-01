@@ -34,7 +34,14 @@ fn run() -> Int raise {
         write_stderr("moon-jmes: io: " + read[0] + "\n")
         return 2
       }
-      let input = @json.parse(read[1])
+      let input = @json.parse(read[1]) catch {
+        _ => {
+          write_stderr(
+            "moon-jmes: invalid_json at 0: input is not valid JSON\n",
+          )
+          return 2
+        }
+      }
       let result = @lib.search_batch(input)
       write_stdout(result.stringify(indent=if compact { 0 } else { 2 }) + "\n")
       0

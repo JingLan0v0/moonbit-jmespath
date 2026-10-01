@@ -43,6 +43,10 @@ jobs:
         run: moon version --all
       - name: Verify project
         run: node scripts/verify.mjs
+      - name: Verify PowerShell usage
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/powershell-smoke.ps1
       - name: Run official JMESPath compliance suite
         run: node scripts/conformance.mjs
       - name: Check generated interfaces

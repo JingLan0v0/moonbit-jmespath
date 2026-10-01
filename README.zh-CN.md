@@ -58,7 +58,7 @@ let result = query.search(input)
 
 ## PowerShell 使用方式
 
-仓库提供 `scripts/moon.ps1`，会优先使用仓库旁边的固定 MoonBit 工具链，也可以回退到系统中的 `moon`：
+仓库提供 `scripts/moon.ps1`，会优先使用本地固定版本的 MoonBit 工具链，也可以回退到系统中的 `moon`：
 
 ```powershell
 .\scripts\moon.ps1 check --target js
@@ -70,7 +70,7 @@ let result = query.search(input)
 
 ```powershell
 '{"items":[{"name":"A","price":9},{"name":"B","price":12}]}' |
-  .\scripts\moon.ps1 run cmd/main --target js -- "items[?price >= `10`].name" -
+  .\scripts\moon.ps1 run cmd/main --target js -- 'items[?price >= `10`].name' -
 ```
 
 输出为：
@@ -96,7 +96,7 @@ let result = query.search(input)
 .\scripts\moon.ps1 run cmd/main --target js -- --batch requests.json
 ```
 
-每个返回项都包含 `ok: true` 和 `result`，或者 `ok: false` 和结构化 `error`。单个错误表达式不会丢弃同批次中的其他结果。
+每个返回项都包含 `ok: true` 和 `result`，或者 `ok: false` 和结构化 `error`。错误表达式或格式错误的请求项不会丢弃同批次中的其他结果；顶层 JSON 本身无效时命令以退出码 2 结束。
 
 ## 三个可运行场景
 
@@ -123,7 +123,9 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 
 ## 限制与安全边界
 
-默认限制为：表达式 16,384 个字符、AST 深度 256、执行步数 1,000,000、投影结果 100,000 个；批量模式最多 10,000 个请求，CLI 输入最多 16 MiB 并执行严格 UTF-8 解码。
+默认限制为：表达式 16,384 个字符、AST 深度 256、执行步数 1,000,000、累计产生的结果元素 100,000 个。自定义限制须为有效值，AST 深度上限为 256；批量模式最多 10,000 个请求，CLI 最多读取 16 MiB，执行严格 UTF-8 解码并接受可选的 UTF-8 BOM。
+
+Mooncakes 当前发布版为 `0.1.1`。此后 `main` 分支的边界修复会在下一个版本发布后进入 Mooncakes。
 
 库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
 

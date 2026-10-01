@@ -33,8 +33,10 @@ tests cover this behavior.
 
 The library performs no I/O. The Node.js adapter in `cmd/main/host.mbt` is the
 only layer that reads files, stdin, process arguments, or writes output. It
-limits input size and decodes UTF-8 strictly. Query resource limits stop deeply
-nested expressions and large projections before they become unbounded work.
+reads no more than 16 MiB plus one probe byte and decodes UTF-8 strictly. Query
+limits are validated before parsing; parser recursion and AST depth are both
+bounded. The evaluation step and cumulative materialized-result counters check
+remaining capacity before incrementing or appending to an output collection.
 
 The conformance runner downloads only a pinned upstream revision into the OS
 temporary directory. Release archives contain the runner and notices, but not

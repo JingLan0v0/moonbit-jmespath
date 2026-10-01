@@ -19,3 +19,23 @@ test "lexer rejects malformed input with an offset" {
   }
   assert_eq(error, Some({ code: "syntax", offset: 4, message: "expected ==", }))
 }
+
+///|
+test "integer indexes reject overflow without wrapping" {
+  for
+    expression in [
+      "items[2147483648]", "items[-2147483649]", "items[-21474836480]",
+    ] {
+    let error = try {
+      parse(expression, default_limits()) |> ignore
+      None
+    } catch {
+      JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(error, Some("syntax"))
+  }
+  match parse("items[-2147483648]", default_limits()) {
+    Index(Field("items"), value) => assert_eq(value, -2147483647 - 1)
+    _ => assert_true(false)
+  }
+}

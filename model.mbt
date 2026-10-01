@@ -72,7 +72,7 @@ enum Expr {
 } derive(Eq, Debug)
 
 ///|
-pub(all) struct Compiled {
+pub struct Compiled {
   source : String
   expr : Expr
   limits : Limits
@@ -81,6 +81,19 @@ pub(all) struct Compiled {
 ///|
 pub fn Compiled::source(self : Compiled) -> String {
   self.source
+}
+
+///|
+fn validate_limits(limits : Limits) -> Unit raise JmesPathError {
+  if limits.max_expression_chars < 1 ||
+    limits.max_ast_depth < 1 ||
+    limits.max_ast_depth > 256 ||
+    limits.max_steps < 1 ||
+    limits.max_results < 0 {
+    fail(
+      "invalid_value", 0, "expression, depth, and step limits must be positive; AST depth must be at most 256; result limit must be nonnegative",
+    )
+  }
 }
 
 ///|

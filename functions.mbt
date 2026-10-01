@@ -54,7 +54,7 @@ fn homogeneous_order(
     Number(_, ..) => {
       for value in values {
         if !(value is Number(_, ..)) {
-          invalid_type(name) |> ignore
+          return invalid_type(name)
         }
       }
       1
@@ -62,7 +62,7 @@ fn homogeneous_order(
     String(_) => {
       for value in values {
         if !(value is String(_)) {
-          invalid_type(name) |> ignore
+          return invalid_type(name)
         }
       }
       2
@@ -156,8 +156,9 @@ fn function_extreme(
 }
 
 ///|
-fn function_sort(value : Json) -> Json raise JmesPathError {
+fn function_sort(value : Json, state : EvalState) -> Json raise JmesPathError {
   guard value is Array(items) else { return invalid_type("sort") }
+  state.add_results(items.length())
   let result = items.copy()
   let kind = homogeneous_order(result, "sort")
   if kind != 0 {
@@ -197,12 +198,19 @@ fn evaluate_expref_function(
     return invalid_type(name)
   }
   if name == "map" {
-    let mapped = items.map(item => evaluate(reference, item, state))
-    state.add_results(mapped.length())
+    let mapped : Array[Json] = []
+    for item in items {
+      let value = evaluate(reference, item, state)
+      state.add_results(1)
+      mapped.push(value)
+    }
     return Json::array(mapped)
   }
   if items.is_empty() {
     return if name == "sort_by" { Json::array([]) } else { Json::null() }
+  }
+  if name == "sort_by" {
+    state.add_results(items.length())
   }
   let pairs : Array[(Json, Json)] = []
   for item in items {
@@ -282,6 +290,7 @@ fn evaluate_function(
     "keys" => {
       require_arity(name, values.length(), 1)
       guard values[0] is Object(entries) else { return invalid_type(name) }
+      state.add_results(entries.length())
       let keys : Array[Json] = []
       for entry in entries {
         keys.push(Json::string(entry.0))
@@ -323,14 +332,17 @@ fn evaluate_function(
     "reverse" => {
       require_arity(name, values.length(), 1)
       match values[0] {
-        Array(items) => Json::array(items.rev())
+        Array(items) => {
+          state.add_results(items.length())
+          Json::array(items.rev())
+        }
         String(text) => Json::string(String::from_array(text.to_array().rev()))
         _ => invalid_type(name)
       }
     }
     "sort" => {
       require_arity(name, values.length(), 1)
-      function_sort(values[0])
+      function_sort(values[0], state)
     }
     "starts_with" => {
       require_arity(name, values.length(), 2)
@@ -347,7 +359,10 @@ fn evaluate_function(
       require_arity(name, values.length(), 1)
       match values[0] {
         Array(_) => values[0]
-        value => Json::array([value])
+        value => {
+          state.add_results(1)
+          Json::array([value])
+        }
       }
     }
     "to_number" => {
@@ -379,6 +394,7 @@ fn evaluate_function(
     "values" => {
       require_arity(name, values.length(), 1)
       guard values[0] is Object(entries) else { return invalid_type(name) }
+      state.add_results(entries.length())
       let result : Array[Json] = []
       for entry in entries {
         result.push(entry.1)

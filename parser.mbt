@@ -2,6 +2,8 @@
 priv struct Parser {
   tokens : Array[Token]
   mut pos : Int
+  max_depth : Int
+  mut recursion_depth : Int
 }
 
 ///|
@@ -257,10 +259,32 @@ fn Parser::parse_expression(
   self : Parser,
   min_precedence : Int,
 ) -> Expr raise JmesPathError {
+  self.recursion_depth += 1
+  if self.recursion_depth > self.max_depth {
+    fail(
+      "limit_exceeded",
+      self.peek().offset,
+      "expression exceeds max_ast_depth",
+    )
+  }
   let mut left = self.parse_prefix()
+  if expr_depth(left) > self.max_depth {
+    fail(
+      "limit_exceeded",
+      self.peek().offset,
+      "expression exceeds max_ast_depth",
+    )
+  }
   while true {
     if self.accept(Dot) {
       left = attach_projection(left, self.parse_dot_rhs())
+      if expr_depth(left) > self.max_depth {
+        fail(
+          "limit_exceeded",
+          self.peek().offset,
+          "expression exceeds max_ast_depth",
+        )
+      }
       continue
     }
     if self.peek().kind is LBracket {
@@ -277,6 +301,13 @@ fn Parser::parse_expression(
         left = Projection(Flatten(left), Current)
       } else {
         left = self.attach_bracket(left)
+      }
+      if expr_depth(left) > self.max_depth {
+        fail(
+          "limit_exceeded",
+          self.peek().offset,
+          "expression exceeds max_ast_depth",
+        )
       }
       continue
     }
@@ -298,7 +329,15 @@ fn Parser::parse_expression(
       GeToken => Compare(Ge, left, right)
       _ => fail("syntax", operator.offset, "invalid operator")
     }
+    if expr_depth(left) > self.max_depth {
+      fail(
+        "limit_exceeded",
+        self.peek().offset,
+        "expression exceeds max_ast_depth",
+      )
+    }
   }
+  self.recursion_depth -= 1
   left
 }
 
@@ -340,7 +379,13 @@ fn expr_depth(expr : Expr) -> Int {
 
 ///|
 fn parse(source : String, limits : Limits) -> Expr raise JmesPathError {
-  let parser = { tokens: lex(source, limits), pos: 0, }
+  validate_limits(limits)
+  let parser = {
+    tokens: lex(source, limits),
+    pos: 0,
+    max_depth: limits.max_ast_depth,
+    recursion_depth: 0,
+  }
   let expr = parser.parse_expression(1)
   if !(parser.peek().kind is Eof) {
     fail("syntax", parser.peek().offset, "unexpected token after expression")

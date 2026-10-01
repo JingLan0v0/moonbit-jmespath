@@ -58,7 +58,7 @@ Or pipe JSON through standard input:
 
 ```bash
 echo '{"items":[{"name":"A","price":9},{"name":"B","price":12}]}' \
-  | moon run cmd/main --target js -- "items[?price >= `10`].name" -
+  | moon run cmd/main --target js -- 'items[?price >= `10`].name' -
 ```
 
 Result:
@@ -105,7 +105,8 @@ moon run cmd/main --target js -- --batch requests.json
 ```
 
 Each response has `ok: true` and `result`, or `ok: false` and a structured
-`error`. A bad expression therefore does not discard other batch results.
+`error`. Invalid expressions and malformed request entries therefore do not
+discard other batch results. Invalid top-level JSON still exits with code 2.
 
 ## Three runnable scenarios
 
@@ -116,8 +117,10 @@ with `./examples/run.ps1`; the script compares each result with committed JSON.
 ## Resource limits and errors
 
 Defaults are 16,384 expression characters, AST depth 256, 1,000,000 evaluation
-steps, and 100,000 projected results. Batch input is capped at 10,000 requests;
-the CLI caps input at 16 MiB and performs strict UTF-8 decoding.
+steps, and 100,000 cumulatively materialized result elements. Custom limits
+must be valid, and AST depth cannot exceed 256. Batch input is capped at
+10,000 requests; the CLI reads at most 16 MiB and decodes UTF-8 strictly,
+accepting an optional UTF-8 BOM.
 
 Errors use stable categories: `syntax`, `invalid_json`, `invalid_type`,
 `invalid_arity`, `invalid_value`, `unknown_function`, `invalid_batch`, and
@@ -144,9 +147,10 @@ A Chinese project overview for contest information review is available in
 
 ## Project boundary
 
-MoonJMES implements the JMESPath specification. It has no custom query
-extensions in version 0.1.0, which keeps results portable across compliant
-JMESPath implementations.
+MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
+query extensions, keeping results portable across compliant JMESPath
+implementations. The latest published Mooncakes version is 0.1.1; changes on
+`main` after that release are awaiting the next package publication.
 
 ## License
 

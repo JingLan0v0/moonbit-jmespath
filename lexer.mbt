@@ -69,8 +69,15 @@ fn parse_int_text(text : String, offset : Int) -> Int raise JmesPathError {
   }
   while i < chars.length() {
     let digit = chars[i].to_int() - '0'.to_int()
-    if value > 214748364 {
+    let last_digit = if negative { 8 } else { 7 }
+    if value > 214748364 || (value == 214748364 && digit > last_digit) {
       fail("syntax", offset, "integer index is out of range")
+    }
+    if negative && value == 214748364 && digit == 8 {
+      if i + 1 < chars.length() {
+        fail("syntax", offset, "integer index is out of range")
+      }
+      return -2147483647 - 1
     }
     value = value * 10 + digit
     i += 1
