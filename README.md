@@ -142,6 +142,20 @@ The GitHub Actions matrix runs on Windows and Ubuntu with the pinned compiler.
 Architecture and trust boundaries are in
 [docs/architecture.md](docs/architecture.md).
 
+## September acceptance bug fixed in 0.1.2
+
+The rejected release could crash while parsing an expression made of 4,000
+`!` prefixes followed by `@` (4,001 characters, below the default length
+limit). The parser checked AST depth only after recursion, so a three-request
+batch produced no output and exited with status 1 in both debug and release.
+The parser now enforces recursion depth while building the AST and checks the
+depth of each constructed node. The offending request returns a structured
+`limit_exceeded` error; the requests before and after it still return results.
+Single-query CLI mode exits with status 2 and a diagnostic instead of crashing.
+Regression tests cover the exact batch shape, single-query mode, nested
+grouping and the allowed depth boundary in both CLI builds. The original
+0.1.1 release remains available for historical comparison.
+
 A Chinese project overview for contest information review is available in
 [docs/project-introduction.zh-CN.md](docs/project-introduction.zh-CN.md).
 
@@ -149,8 +163,9 @@ A Chinese project overview for contest information review is available in
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. The latest published Mooncakes version is 0.1.1; changes on
-`main` after that release are awaiting the next package publication.
+implementations. The 0.1.2 release includes early parser depth checks and
+regression tests for the September acceptance rejection's 4,001-character
+unary expression. See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

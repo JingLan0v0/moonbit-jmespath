@@ -84,3 +84,27 @@ test "parser rejects long field chains while constructing the AST" {
   }
   assert_eq(error, Some("limit_exceeded"))
 }
+
+///|
+test "unary nesting accepts the depth boundary and rejects the next level" {
+  let valid = StringBuilder()
+  for i = 0; i < 255; i = i + 1 {
+    valid.write_char('!')
+  }
+  valid.write_char('@')
+  let valid_expression = parse(valid.to_string(), default_limits())
+  assert_eq(expr_depth(valid_expression), 256)
+
+  let invalid = StringBuilder()
+  for i = 0; i < 256; i = i + 1 {
+    invalid.write_char('!')
+  }
+  invalid.write_char('@')
+  let error = try {
+    parse(invalid.to_string(), default_limits()) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(error, Some("limit_exceeded"))
+}

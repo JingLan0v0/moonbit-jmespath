@@ -1,22 +1,23 @@
 # Project status and handoff
 
-## Current state (2026-10-01)
+## Current state (2026-10-19)
 
 - Project: MoonJMES, MoonBit module `JingLan0v0/jmespath`.
 - Repository: `https://github.com/JingLan0v0/moonbit-jmespath`.
 - The owner reports that the project passed the competition's initial review.
   This is owner-provided status, not an independently verified organizer result.
-- Version 0.1.1 is public on Mooncakes:
-  `https://mooncakes.io/docs/JingLan0v0/jmespath`.
-- The changes in the `Unreleased` section of `CHANGELOG.md` are repository
-  changes. They are not included in the published Mooncakes 0.1.1 package.
+- Version 0.1.2 is public on Mooncakes:
+  `https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.2`. Version 0.1.1 remains
+  available for historical comparison. See `docs/acceptance.md` for the
+  September parser crash and fresh-consumer repair evidence.
 - The pure MoonBit library includes the JMESPath engine, standard functions,
   compiled expressions, one-shot calls, and isolated batch results. The JS
   command-line host reads files or stdin through Node.js.
 - Local JS-target verification passes: formatting, compiler checks, MoonBit
   tests, generated interfaces, CLI integration tests, and three scenarios.
-- Official JMESPath compliance: 892/892 at pinned revision
-  `53abcc37901891cf4308fcd910eab287416c4609`.
+- Earlier official JMESPath compliance evidence: 892/892 at pinned revision
+  `53abcc37901891cf4308fcd910eab287416c4609`. The current local rerun was
+  blocked by the external vector download; final CI must repeat it.
 - PowerShell pipeline and CLI version checks pass locally.
 
 ## Evidence and release boundary
@@ -27,9 +28,10 @@
 - A separate consumer project previously installed
   `JingLan0v0/jmespath@0.1.1`, compiled it, and evaluated
   `items[*].name` to `["moon","bit"]`.
-- The current repository contains new boundary fixes and tests. A later
-  Mooncakes version will require an authenticated publish and a new consumer
-  check; GitHub synchronization alone does not update Mooncakes.
+- The 0.1.2 source is committed locally. Its release is published and tested
+  from a new module. GitHub push is still pending: direct Git transport could
+  not reach GitHub, and the connected GitHub API returned 403 for writes.
+  Do not claim remote CI on these new commits until it is observed.
 - Final competition acceptance and support payments are organizer decisions.
 
 ## Continuation checklist

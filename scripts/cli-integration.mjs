@@ -5,7 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(import.meta.dirname, '..');
-const cli = path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
+const cli = process.env.JMES_CLI_PATH || path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
 const version = fs.readFileSync(path.join(root, 'moon.mod'), 'utf8').match(/^version = "([^"]+)"/m)?.[1];
 assert.ok(version, 'moon.mod must declare a version');
 
@@ -37,6 +37,36 @@ assert.equal(JSON.parse(batch.stdout)[1].error.code, 'invalid_arity');
 assert.equal(JSON.parse(batch.stdout)[2].error.code, 'invalid_batch');
 assert.deepEqual(JSON.parse(batch.stdout)[3], { ok: true, result: 'Lin' });
 
+// A syntactically short expression can still create extreme parser depth.
+// The September acceptance test used this exact 4,001-character shape.
+const deeplyNested = `${'!'.repeat(4000)}@`;
+const isolatedDepth = invoke(['--batch', '--compact', '-'], JSON.stringify([
+  { expression: 'name', data: { name: 'before' } },
+  { expression: deeplyNested, data: null },
+  { expression: 'name', data: { name: 'after' } },
+]));
+assert.equal(isolatedDepth.status, 0, isolatedDepth.stderr);
+assert.equal(isolatedDepth.stderr, '');
+const depthResults = JSON.parse(isolatedDepth.stdout);
+assert.equal(depthResults.length, 3);
+assert.deepEqual(depthResults[0], { ok: true, result: 'before' });
+assert.equal(depthResults[1].ok, false);
+assert.equal(depthResults[1].error.code, 'limit_exceeded');
+assert.deepEqual(depthResults[2], { ok: true, result: 'after' });
+
+const singleDepth = invoke([deeplyNested, '-'], '{}');
+assert.equal(singleDepth.status, 2);
+assert.match(singleDepth.stderr, /limit_exceeded/);
+assert.equal(singleDepth.stdout, '');
+
+// Grouping invokes the parser recursively without growing the AST. It needs
+// the same pre-recursion guard as a long unary prefix.
+const deeplyGrouped = `${'('.repeat(300)}@${')'.repeat(300)}`;
+const groupedDepth = invoke([deeplyGrouped, '-'], '{}');
+assert.equal(groupedDepth.status, 2, groupedDepth.stderr);
+assert.match(groupedDepth.stderr, /limit_exceeded/);
+assert.equal(groupedDepth.stdout, '');
+
 const malformedBatch = invoke(['--batch', '-'], '{broken');
 assert.equal(malformedBatch.status, 2);
 assert.match(malformedBatch.stderr, /invalid_json/);
@@ -64,4 +94,4 @@ try {
 const help = invoke(['--version']);
 assert.equal(help.status, 0);
 assert.equal(help.stdout.trim(), version);
-console.log('PASS CLI: stdin, batch isolation, invalid input, size limit, and version');
+console.log('PASS CLI: stdin, deep-parser batch isolation, invalid input, size limit, and version');

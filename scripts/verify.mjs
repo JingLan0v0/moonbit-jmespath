@@ -36,6 +36,12 @@ for (const [name, expression] of scenarios) {
 
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs']));
 
+run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
+const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
+process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], {
+  env: { ...process.env, JMES_CLI_PATH: releaseCli },
+}));
+
 if (process.env.VERIFY_PUBLISH === '1') {
   const publish = spawnSync(moon, ['publish', '--dry-run'], { cwd: root, encoding: 'utf8' });
   const detail = (publish.stdout || '') + (publish.stderr || '');
@@ -46,4 +52,4 @@ if (process.env.VERIFY_PUBLISH === '1') {
   }
   console.log('PASS Mooncakes publish dry-run');
 }
-console.log('PASS MoonBit checks, tests, examples, interfaces, and build');
+console.log('PASS MoonBit checks, tests, examples, interfaces, and debug/release builds');
