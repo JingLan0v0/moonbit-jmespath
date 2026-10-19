@@ -32,9 +32,9 @@
   permission. The owner's existing Git credential was used with GitHub's
   official API to write the same reviewed file tree to public `main` in a
   single commit, preserving older remote history. Remote source commit
-  `f569c4f` and its cross-platform CI were independently verified. The local
-  Git commit chain has the same file tree but different intermediate commit
-  hashes; reconcile local history with the remote branch before a later push.
+  `f569c4f` and its cross-platform CI were independently verified. Local
+  `main` and `origin/main` were then aligned with GitHub's commit history; a
+  local backup branch retains the earlier intermediate commits for recovery.
 - Final competition acceptance and support payments are organizer decisions.
 
 ## Continuation checklist
