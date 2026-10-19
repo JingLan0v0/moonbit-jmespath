@@ -24,10 +24,14 @@ module then ran `moon add JingLan0v0/jmespath@0.1.2` and called its public
 Package URL: https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.2.
 
 The pinned [official JMESPath compliance runner](conformance.md) could not
-download its vectors on this machine during this check because the GitHub raw
-endpoint reset the connection. Earlier repository evidence records 892/892;
-the new source must be checked again by CI on the final GitHub commit before
-claiming current cross-platform conformance. GitHub synchronization is pending
-until the remote `main` head can be read back with the 0.1.2 manifest and the
-Windows/Ubuntu workflow succeeds. Technical repair and package publication do
-not imply that the September organizer reopened or accepted the application.
+download its vectors on this machine during the local check because the GitHub
+raw endpoint reset the connection. The pushed [GitHub Actions run
+39249597919](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/39249597919)
+completed successfully on source commit
+`f569c4fcd3838c13e459d23893b8ede1822a163c`: both Windows and Ubuntu
+passed the full verification and logged **892/892** official compliance cases.
+The remote `main` file tree was verified identical to the locally tested tree,
+and the 0.1.2 manifest was read back from GitHub. This record may be followed
+by a documentation-only commit; the code and CI evidence remain tied to the
+source commit above. Technical repair and publication do not imply that the
+September organizer reopened or accepted the application.

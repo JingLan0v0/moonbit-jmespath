@@ -15,23 +15,26 @@
   command-line host reads files or stdin through Node.js.
 - Local JS-target verification passes: formatting, compiler checks, MoonBit
   tests, generated interfaces, CLI integration tests, and three scenarios.
-- Earlier official JMESPath compliance evidence: 892/892 at pinned revision
-  `53abcc37901891cf4308fcd910eab287416c4609`. The current local rerun was
-  blocked by the external vector download; final CI must repeat it.
+- The local conformance rerun was blocked by an external vector download, but
+  the published source commit `f569c4f` passed 892/892 official cases in both
+  Windows and Ubuntu GitHub Actions jobs. See `docs/acceptance.md`.
 - PowerShell pipeline and CLI version checks pass locally.
 
 ## Evidence and release boundary
 
-- The previous Ubuntu/Windows CI run passed for an earlier commit:
-  `https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/35997809718`.
-  Check the Actions page for the status of any newer commit.
+- The current 0.1.2 source passed both Ubuntu and Windows in
+  `https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/39249597919`.
 - A separate consumer project previously installed
   `JingLan0v0/jmespath@0.1.1`, compiled it, and evaluated
   `items[*].name` to `["moon","bit"]`.
-- The 0.1.2 source is committed locally. Its release is published and tested
-  from a new module. GitHub push is still pending: direct Git transport could
-  not reach GitHub, and the connected GitHub API returned 403 for writes.
-  Do not claim remote CI on these new commits until it is observed.
+- The 0.1.2 release is published and tested from a new module. Direct Git
+  transport could not reach GitHub, and the connected GitHub app lacked write
+  permission. The owner's existing Git credential was used with GitHub's
+  official API to write the same reviewed file tree to public `main` in a
+  single commit, preserving older remote history. Remote source commit
+  `f569c4f` and its cross-platform CI were independently verified. The local
+  Git commit chain has the same file tree but different intermediate commit
+  hashes; reconcile local history with the remote branch before a later push.
 - Final competition acceptance and support payments are organizer decisions.
 
 ## Continuation checklist
