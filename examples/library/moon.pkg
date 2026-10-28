@@ -1,0 +1,6 @@
+import {
+  "JingLan0v0/jmespath",
+  "moonbitlang/core/json",
+}
+
+pkgtype(kind: "executable")

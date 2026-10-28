@@ -1,10 +1,13 @@
 $ErrorActionPreference = 'Stop'
-$moon = if ($env:MOON_BIN) { $env:MOON_BIN } else { 'moon' }
+$projectRoot = Split-Path $PSScriptRoot -Parent
+$moon = if ($env:MOON_BIN) { $env:MOON_BIN } else { Join-Path $projectRoot 'scripts/moon.ps1' }
 $cases = @(
   @{ Name='cloud-inventory'; Expression="instances[?environment == 'prod' && state == 'running'].{id: id, zone: zone}" },
   @{ Name='deployments'; Expression="deployments[?decision == 'deny'].{service: service, reasons: reasons[*].code}" },
   @{ Name='costs'; Expression='sort_by(services, &monthly_cost)[*].{service: name, monthly_cost: monthly_cost}' }
 )
+Push-Location $projectRoot
+try {
 foreach ($case in $cases) {
   $actual = & $moon run cmd/main --target js -- --compact $case.Expression "examples/$($case.Name).json"
   if ($LASTEXITCODE -ne 0) { throw "$($case.Name) failed" }
@@ -13,4 +16,7 @@ foreach ($case in $cases) {
     throw "$($case.Name) output did not match expected JSON"
   }
   Write-Host "PASS $($case.Name)"
+}
+} finally {
+  Pop-Location
 }

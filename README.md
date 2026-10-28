@@ -48,10 +48,15 @@ moon add JingLan0v0/jmespath
 The package documentation is available at
 [mooncakes.io/docs/JingLan0v0/jmespath](https://mooncakes.io/docs/JingLan0v0/jmespath).
 
-To run this repository's CLI, install MoonBit and Node.js, then query a file:
+`moon add` installs a library dependency, not a global CLI executable. This
+release supports the **JS backend**; CI pins MoonBit `0.10.14+7d59c7ec9` and
+Node.js `24.14.0` (see `toolchain.json`). To run the CLI, clone this repository
+and query the included file:
 
 ```bash
-moon run cmd/main --target js -- "instances[?state == 'running'].{id: id, zone: zone}" inventory.json
+git clone https://github.com/JingLan0v0/moonbit-jmespath.git
+cd moonbit-jmespath
+moon run cmd/main --target js -- "instances[?state == 'running'].{id: id, zone: zone}" examples/cloud-inventory.json
 ```
 
 Or pipe JSON through standard input:
@@ -90,6 +95,11 @@ Public entry points: `compile`, `Compiled::search`, `search`, `search_json`, and
 `search_batch`. Use `stringify_bounded(result, pretty=true)` to serialize library
 results with the same output safeguards as the CLI.
 
+The fragment above belongs inside a function that handles or propagates errors.
+For a complete executable with imports, custom limits, query reuse and error
+handling, run `moon run examples/library --target js` from this checkout.
+See [the API and error guide](docs/usage.md).
+
 ### Batch API and CLI
 
 Batch input is an array of independent requests:
@@ -102,12 +112,14 @@ Batch input is an array of independent requests:
 ```
 
 ```bash
-moon run cmd/main --target js -- --batch requests.json
+moon run cmd/main --target js -- --batch examples/batch.json
 ```
 
 Each response has `ok: true` and `result`, or `ok: false` and a structured
 `error`. Invalid expressions and malformed request entries therefore do not
 discard other batch results. Invalid top-level JSON still exits with code 2.
+Batch mode exits **0 even when individual requests fail**: inspect every `ok`
+field. The included file adds a third successful fallback query after the error.
 
 ## Three runnable scenarios
 
@@ -132,6 +144,8 @@ Errors use stable categories: `syntax`, `invalid_json`, `invalid_type`,
 `invalid_arity`, `invalid_value`, `unknown_function`, `invalid_batch`, and
 `limit_exceeded`. A library caller receives `JmesPathError`; the CLI writes a
 single diagnostic to stderr and exits with code 2.
+This describes single-query or whole-batch failures; per-item batch errors stay
+in the JSON response on stdout, as described above.
 
 ## Verification
 
@@ -192,6 +206,20 @@ query extensions, keeping results portable across compliant JMESPath
 implementations. Version [0.1.3 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.3)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
+
+## Null semantics and usability fixes in 0.1.4
+
+An additional audit found behavior not covered by the pinned official vectors:
+multi-select lists/hashes must preserve a null input, while a subexpression must
+still evaluate its right-hand function on a null left result. For example,
+`missing.not_null(@, 'fallback')` now returns `"fallback"` for `{}`, and `[foo]`
+returns `null` for null input. Added regressions cover projections, `map`, error
+propagation, and non-null false-like values. Existing resource guards remain.
+
+Quick-start commands now use committed input files, a complete public API
+example runs in both modes, and the PowerShell scenario runner works outside
+the checkout. See [CHANGELOG.md](CHANGELOG.md), [usage](docs/usage.md) and
+[contributing](CONTRIBUTING.md). Release evidence is in [acceptance.md](docs/acceptance.md).
 
 ## License
 

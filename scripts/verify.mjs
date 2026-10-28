@@ -21,6 +21,13 @@ run(moon, ['check', '--target', 'js', '--deny-warn']);
 const unitTests = run(moon, ['test', '--target', 'js', '--deny-warn']);
 process.stdout.write(unitTests);
 run(moon, ['info', '--target', 'js']);
+for (const mode of [[], ['--release']]) {
+  const output = run(moon, ['run', 'examples/library', '--target', 'js', ...mode]);
+  if (output.trim().replaceAll('\r', '') !== '["Ada"]\n[]\nerror: invalid_type') {
+    throw new Error(`Public API example mismatch: ${output}`);
+  }
+}
+console.log('PASS public API example: compile reuse, limits, serialization and error handling');
 run(moon, ['build', 'cmd/main', '--target', 'js']);
 
 const cli = path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
@@ -64,4 +71,5 @@ fs.writeFileSync(path.join(root, '_build', 'verification-summary.json'), JSON.st
   node: process.version, recordedAt: new Date().toISOString(),
   unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
   cliModes: ['debug', 'release'], adversarialChecksPerMode: 20, grammarMutationsPerMode: 256,
+  publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');

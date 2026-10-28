@@ -168,11 +168,8 @@ fn evaluate(
     Literal(value) => value
     Subexpression(left, right) => {
       let value = evaluate(left, data, state)
-      if value is Null {
-        Json::null()
-      } else {
-        evaluate(right, value, state)
-      }
+      // Functions on the right can deliberately handle a null left result.
+      evaluate(right, value, state)
     }
     Index(base, index) =>
       match evaluate(base, data, state) {
@@ -285,6 +282,7 @@ fn evaluate(
         evaluate(right, data, state),
         state,
       )
+    MultiList(_) | MultiHash(_) if data is Null => Json::null()
     MultiList(items) => {
       let values : Array[Json] = []
       for item in items {

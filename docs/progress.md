@@ -2,6 +2,21 @@
 
 ## Current state (2026-10-28)
 
+### Additional audit: 0.1.4 source checkpoint
+
+- Corrected null multi-select and null-left subexpression function semantics;
+  preserved previous resource guards. Added three unit tests and both-mode CLI regressions.
+- Added complete library example, batch file, API/error guide and contributor
+  guide. Fixed quick-start paths and PowerShell invocation from another directory.
+- Aligned the agent setup with the CI toolchain instead of downloading latest.
+- Local checks passed: 37 unit tests, library example in both modes, three
+  scenarios, CLI plus 20 adversarial/256 mutation checks per mode, 892 official
+  cases in each mode, and PowerShell out-of-directory smoke.
+- Next: normal commit to existing main, verify exact CI, publish/consume 0.1.4
+  and append observed release evidence. Do not claim publication before success.
+
+### Previous verified release: 0.1.3
+
 - Project: MoonJMES, module `JingLan0v0/jmespath`.
 - Repository: https://github.com/JingLan0v0/moonbit-jmespath . Continue on the existing main, preserving ordinary Git history for rollback.
 - The participant supplied the organizer's October initial-review approval notice for this repository. Final acceptance/payment are still pending.

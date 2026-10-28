@@ -1,4 +1,59 @@
 ///|
+test "multi-select preserves null but evaluates other false-like inputs" {
+  for expression in ["[foo,bar]", "{a:foo}", "[unknown_function()]"] {
+    assert_eq(@jmespath.search(expression, Json::null()), Json::null())
+  }
+  for input in ["{}", "[]", "false", "0", "\"\""] {
+    assert_eq(
+      @jmespath.search_json("[foo,bar]", input),
+      @json.parse("[null,null]"),
+    )
+    assert_eq(
+      @jmespath.search_json("{a:foo}", input),
+      @json.parse("{\"a\":null}"),
+    )
+  }
+}
+
+///|
+test "subexpressions evaluate functions after a missing field" {
+  assert_eq(
+    @jmespath.search_json("missing.to_array(@)", "{}"),
+    @json.parse("[null]"),
+  )
+  assert_eq(
+    @jmespath.search_json("missing.not_null(@, 'fallback')", "{}"),
+    Json::string("fallback"),
+  )
+  assert_eq(
+    @jmespath.search_json("missing.type(@)", "{}"),
+    Json::string("null"),
+  )
+  assert_eq(@jmespath.search_json("missing.[foo]", "{}"), Json::null())
+  let error = try {
+    @jmespath.search_json("missing.length(@)", "{}") |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(error, Some("invalid_type"))
+}
+
+///|
+test "null multi-select projection and map keep different cardinalities" {
+  let data = @json.parse("[null,{\"x\":1},{}]")
+  assert_eq(@jmespath.search("[*].[x]", data), @json.parse("[[1],[null]]"))
+  assert_eq(
+    @jmespath.search("map(&[x], @)", data),
+    @json.parse("[null,[1],[null]]"),
+  )
+  assert_eq(
+    @jmespath.search("[*].{v:x}", data),
+    @json.parse("[{\"v\":1},{\"v\":null}]"),
+  )
+}
+
+///|
 test "field, index, negative index, and slice evaluation" {
   let data = @json.parse(
     "{\"users\":[{\"name\":\"Ada\"},{\"name\":\"Lin\"},{\"name\":\"Sam\"}]}",

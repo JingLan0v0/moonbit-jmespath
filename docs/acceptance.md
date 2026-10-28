@@ -1,5 +1,26 @@
 # MoonJMES acceptance evidence
 
+## Additional 0.1.4 semantic and usability audit (2026-10-28)
+
+Found two semantic defects beyond the 892 pinned upstream cases: multi-selects
+were constructing collections for null input, and subexpressions skipped
+right-hand functions after null left results. Both are corrected with unit and
+CLI regressions, including projection/map cardinality and error propagation.
+Existing resource guards and September/October adversarial regressions remain.
+
+Local verification: **37/37** unit tests with warnings denied; three scenarios;
+complete library example in debug/release; null semantics, batch example and
+all previous CLI checks in both modes; **20 adversarial checks and 256 grammar
+mutations per mode**; official suite **892/892 in each mode**. PowerShell smoke
+also runs all scenarios from outside the checkout and checks caller directory
+restoration. README command paths now refer to committed inputs. The API guide
+documents diagnostic offsets, JS backend and batch exit semantics; contributor
+instructions define how to add regressions and verify future releases.
+
+At this source checkpoint, remote CI and registry 0.1.4 evidence are pending.
+The verified 0.1.3 release evidence below remains historical, not a claim that
+0.1.4 has already been published.
+
 ## October 0.1.3 audit (2026-10-28)
 
 The participant supplied the organizer's October initial-approval notice for

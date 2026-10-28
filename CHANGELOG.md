@@ -2,6 +2,19 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.4 - 2026-10-28
+
+- preserve null inputs in multi-select lists/hashes, including projections and map
+- evaluate subexpression functions on null left results, allowing fallbacks and
+  propagating type errors instead of silently returning null
+- add three semantic unit tests and debug/release CLI regressions beyond the
+  pinned official suite; keep parser/evaluator/output guard regressions
+- provide a runnable public API example, committed batch input, accurate exit
+  and diagnostic contracts, and contributor instructions
+- fix quick-start file paths and make PowerShell scenarios independent of the
+  caller's directory; verify both example modes and out-of-tree invocation
+- align the development-agent setup with CI's pinned MoonBit and Node versions
+
 ## 0.1.3 - 2026-10-28
 
 - prevent the reproduced debug evaluator overflow from 255 nested `to_array`

@@ -61,7 +61,7 @@ assert.deepEqual(replies.at(-1), {ok:true,result:'still running'});
 checks++;
 
 for (const expression of ['!'.repeat(4000)+'@', 'to_array('.repeat(255)+'@'+')'.repeat(255), expansion]) {
-  const r=invoke([expression, '-'], 'null');
+  const r=invoke([expression, '-'], '0');
   assert.equal(r.status, 2, r.stderr);
   assert.equal(r.stdout, '');
   assert.match(r.stderr, /limit_exceeded/);

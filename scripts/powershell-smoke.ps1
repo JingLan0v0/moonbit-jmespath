@@ -18,6 +18,14 @@ try {
     throw 'PowerShell wrapper version does not match moon.mod.'
   }
   Write-Host 'PASS PowerShell wrapper: pipeline and version'
+  Push-Location ([IO.Path]::GetTempPath())
+  try {
+    $startingLocation = (Get-Location).Path
+    & (Join-Path $projectRoot 'examples/run.ps1')
+    if ((Get-Location).Path -ne $startingLocation) { throw 'Example runner changed caller directory.' }
+  } finally {
+    Pop-Location
+  }
 } finally {
   Pop-Location
 }

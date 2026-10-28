@@ -26,6 +26,32 @@ assert.equal(good.status, 0);
 assert.deepEqual(JSON.parse(good.stdout), ['月', 'bit']);
 assert.equal(good.stderr, '');
 
+// Nulls have different behavior in multi-select, subexpressions and projections.
+const nullCases = [
+  ['[foo,bar]', null, null], ['{a:foo}', null, null],
+  ['[unknown_function()]', null, null], ['[foo,bar]', {}, [null,null]],
+  ['missing.to_array(@)', {}, [null]],
+  ["missing.not_null(@, 'fallback')", {}, 'fallback'],
+  ['missing.type(@)', {}, 'null'], ['missing.[foo]', {}, null],
+  ['[*].[x]', [null,{x:1},{}], [[1],[null]]],
+  ['map(&[x], @)', [null,{x:1},{}], [null,[1],[null]]],
+];
+const nullRun = invoke(['--batch', '--compact', '-'], JSON.stringify(nullCases.map(([expression,data])=>({expression,data}))));
+assert.equal(nullRun.status, 0, nullRun.stderr);
+assert.equal(nullRun.stderr, '');
+assert.deepEqual(JSON.parse(nullRun.stdout), nullCases.map(([, ,result])=>({ok:true,result})));
+const nullError = invoke(['missing.length(@)', '-'], '{}');
+assert.equal(nullError.status, 2);
+assert.equal(nullError.stdout, '');
+assert.match(nullError.stderr, /invalid_type/);
+const documentedBatch = invoke(['--batch', '--compact', 'examples/batch.json']);
+assert.equal(documentedBatch.status, 0, documentedBatch.stderr);
+const documentedReplies = JSON.parse(documentedBatch.stdout);
+assert.equal(documentedReplies.length, 3);
+assert.deepEqual(documentedReplies[0], {ok:true,result:'Ada'});
+assert.equal(documentedReplies[1].error.code, 'invalid_arity');
+assert.deepEqual(documentedReplies[2], {ok:true,result:'fallback'});
+
 const batch = invoke(['--batch', '--compact', '-'], JSON.stringify([
   { expression: 'name', data: { name: 'Ada' } },
   { expression: 'length()', data: null },

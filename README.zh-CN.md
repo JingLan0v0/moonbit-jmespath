@@ -31,6 +31,9 @@ MoonJMES 将完整的词法分析、语法解析、抽象语法树和执行器�
 
 从 Mooncakes 安装：
 
+当前仅支持 **JS 后端**。CI 固定使用 MoonBit `0.10.14+7d59c7ec9` 和 Node.js
+`24.14.0`，详见 `toolchain.json`。`moon add` 安装的是库依赖，不会安装全局 CLI。
+
 ```powershell
 moon add JingLan0v0/jmespath
 ```
@@ -56,14 +59,25 @@ let result = query.search(input)
 
 主要入口包括 `compile`、`Compiled::search`、`search`、`search_json` 和 `search_batch`。库调用方可用 `stringify_bounded(result, pretty=true)` 获得与 CLI 相同的输出保护。
 
+上方是函数体内的代码片段，调用方需要处理或传递错误。仓库提供包含导入、可执行入口、
+自定义限制、重复查询及错误处理的完整示例：`moon run examples/library --target js`。
+详细约定见 [API 与错误说明](docs/usage.md)。
+
 ## PowerShell 使用方式
 
 仓库提供 `scripts/moon.ps1`，会优先使用本地固定版本的 MoonBit 工具链，也可以回退到系统中的 `moon`：
 
+首次使用先克隆并进入仓库：
+
+```powershell
+git clone https://github.com/JingLan0v0/moonbit-jmespath.git
+cd moonbit-jmespath
+```
+
 ```powershell
 .\scripts\moon.ps1 check --target js
 .\scripts\moon.ps1 test --target js
-.\scripts\moon.ps1 run cmd/main --target js -- "instances[?state == 'running'].id" inventory.json
+.\scripts\moon.ps1 run cmd/main --target js -- "instances[?state == 'running'].id" examples/cloud-inventory.json
 ```
 
 从标准输入查询：
@@ -93,10 +107,13 @@ let result = query.search(input)
 ```
 
 ```powershell
-.\scripts\moon.ps1 run cmd/main --target js -- --batch requests.json
+.\scripts\moon.ps1 run cmd/main --target js -- --batch examples/batch.json
 ```
 
 每个返回项都包含 `ok: true` 和 `result`，或者 `ok: false` 和结构化 `error`。错误表达式或格式错误的请求项不会丢弃同批次中的其他结果；顶层 JSON 本身无效时命令以退出码 2 结束。
+
+**批量模式中，即使部分请求失败，命令仍以 0 退出**，调用方须逐项检查 `ok`。
+仓库示例文件还包含第三个成功的缺失值回退查询，用于演示错误后的继续执行。
 
 ## 三个可运行场景
 
@@ -145,6 +162,17 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 连续 `[@,@]` 管道只复制少量引用，却可能生成指数膨胀的 JSON 输出。现在按实际展开次数检查结果；JSON 相等比较改为非递归遍历并计入执行预算；`join` 在拼接前检查长度；对象合并在写入前检查结果预算；批次成功响应也有累计预算。非有限数值返回 `invalid_value`，避免生成无法解析的 JSON。
 
 验证入口 `node scripts/verify.mjs` 包含零警告检查、34 项单元测试、三个真实使用场景，以及**每种构建模式**的 20 组边界/隔离检查和 256 组固定随机语法输入。恶意输入子进程都有超时与堆内存限制。官方合规测试同时核对结果和准确错误类型，分别跑 debug、release；Windows、Ubuntu CI 保存可下载的 JSON 验收记录。详见 [验收证据](docs/acceptance.md) 与 [参赛状态](docs/competition.md)。初审通过和技术验证不等于终审通过。
+
+## 0.1.4：补齐空值语义和上手说明
+
+进一步审查发现了固定官方测试集没有覆盖的边界：空值输入的多选列表／对象应返回
+`null`；子表达式左侧缺失时，右侧函数仍应执行。例如 `{}` 上的
+`missing.not_null(@, 'fallback')` 现在正确返回 `"fallback"`。
+新增回归覆盖空值投影、`map` 保留项数、错误传递及非空假值，并保留已有资源限制。
+
+快速开始已改为仓库内真实存在的文件；完整库示例加入两种构建模式的验证；
+PowerShell 场景脚本可以从仓库外运行。详见 [使用约定](docs/usage.md)、
+[维护说明](CONTRIBUTING.md) 和 [验收证据](docs/acceptance.md)。
 
 ## 工程结构与职责
 

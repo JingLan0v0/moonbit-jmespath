@@ -1,0 +1,5 @@
+[
+  {"expression":"name","data":{"name":"Ada"}},
+  {"expression":"length()","data":null},
+  {"expression":"missing.not_null(@, 'fallback')","data":{}}
+]
