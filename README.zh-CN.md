@@ -134,7 +134,7 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 
 0.1.3 还限制执行调用深度为 128，并用非递归遍历检查 JSON 输入与结果：深度不超过 256（根节点为 0）、展开节点不超过 1,000,000、保守输出估算不超过 16 Mi 个 UTF-16 单元。批次成功响应共享 500,000 节点和 8 Mi 单元预算，另行预留错误响应空间。超出剩余预算的请求返回该项错误，后续小请求仍继续执行。批次包装层也计入深度。详见 [资源限制说明](docs/resource-limits.md)。
 
-当前源码版本为 `0.1.3`；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 [0.1.3 已发布到 Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.3)，并从全新消费者项目完成 debug/release 安装调用验证；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
 

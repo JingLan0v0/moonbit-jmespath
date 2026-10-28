@@ -7,7 +7,9 @@
 - The participant supplied the organizer's October initial-review approval notice for this repository. Final acceptance/payment are still pending.
 - Source version: 0.1.3. It preserves September's parser fix and additionally prevents the separately reproduced 255-level function evaluator crash, bounds expanded JSON and batch output, and uses iterative, work-budgeted equality.
 - Local validation: 34/34 unit tests with warnings denied; three scenarios; debug/release CLI checks, each with 20 adversarial cases and 256 deterministic grammar mutations; official compliance 892/892 in each mode; PowerShell smoke.
-- Remote CI and 0.1.3 publication evidence are pending in this source snapshot. The previously verified published version is 0.1.2. Check acceptance.md before claiming a newer release is public.
+- Source commit `7d84925484559cedd81121da75161dfe3e64f2c7` is on public main. Windows and Ubuntu CI passed: https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40682667445 . Both per-OS evidence artifacts were uploaded.
+- Version 0.1.3 was published with registry 200 OK, after archive inspection and fresh-extraction verification. A new consumer installed the exact release and passed normal queries, three adverse batch items with valid neighbors, and bounded serialization in debug and release. Details and archive hash are in acceptance.md.
+- Git transport timed out, so the existing authenticated GitHub API connection path uploaded the identical Git tree and commit, retaining its original parent. Local and remote source IDs match. The following evidence update changes documentation only.
 
 ## Durable entry points
 

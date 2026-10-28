@@ -189,7 +189,8 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Current source version: 0.1.3. Older versions remain available
+implementations. Version [0.1.3 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.3)
+and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
 ## License

@@ -24,9 +24,37 @@ locally, including exact error categories. The PowerShell pipeline/version
 smoke test passes. Local summaries are generated in `_build/` and CI will
 upload fresh summaries associated with its exact commit SHA.
 
-Release progress: 0.1.3 source is locally tested; remote CI, formal publication
-and fresh-consumer verification will be recorded here after observing success.
-Until then, 0.1.2 below is the latest release with completed publication evidence.
+### Verified release and remote evidence
+
+- Source commit: `7d84925484559cedd81121da75161dfe3e64f2c7`. Its Git tree and
+  commit ID were verified identical locally and on public `main`. The commit
+  follows `f0df943`; earlier history is retained without a force push.
+- [GitHub Actions run 40682667445](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40682667445)
+  completed successfully on that exact commit. Windows and Ubuntu both passed
+  verification, debug/release official compliance and generated-interface
+  checks. The Windows PowerShell step also passed.
+- The run contains `acceptance-windows-latest` and `acceptance-ubuntu-latest`
+  artifacts with JSON summaries. Artifacts have a 30-day retention policy;
+  the commit, workflow and this record preserve how to reproduce the checks.
+- Mooncakes preflight returned **202 Accepted / Dry run completed successfully**.
+  The archive contains 55 files; no credentials, toolchains, `.git`, `_build`
+  or dependency cache. A separately extracted archive passed the full local
+  verification, including all adversarial CLI checks.
+- Formal publication returned **200 OK** for
+  [JingLan0v0/jmespath@0.1.3](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.3).
+  Published archive SHA-256:
+  `a9d92371caa70576b75500c15c44c6f134abef8be3d764ba0eb61ff79dc0f967`.
+- A fresh consumer installed that exact version from Mooncakes, asserted
+  `version() == "0.1.3"`, ran a normal query, and put the September unary input,
+  255-level function input and shared-output expansion between valid requests.
+  All three returned `limit_exceeded`; both valid results remained. It also
+  round-tripped `stringify_bounded` output. Both debug and release printed:
+  `published 0.1.3 query, parser/evaluator isolation, expansion guard and serialization OK`.
+
+This final evidence record is a documentation-only follow-up to the published
+source. The package's documents were captured before registry success; this
+GitHub file contains the subsequent receipts. Final organizer acceptance and
+any additional form submission are not established by these technical results.
 
 ## Historical 0.1.2 repair evidence (2026-10-19)
 
