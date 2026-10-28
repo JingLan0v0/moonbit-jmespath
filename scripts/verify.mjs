@@ -6,7 +6,8 @@ import { isDeepStrictEqual } from 'node:util';
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', ...options });
+  const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 120000, ...options });
+  if (result.error) throw result.error;
   if (result.status !== 0) {
     process.stderr.write(result.stdout || '');
     process.stderr.write(result.stderr || '');
@@ -16,8 +17,9 @@ function run(command, args, options = {}) {
 }
 
 run(moon, ['fmt', '--check']);
-run(moon, ['check', '--target', 'js']);
-run(moon, ['test', '--target', 'js']);
+run(moon, ['check', '--target', 'js', '--deny-warn']);
+const unitTests = run(moon, ['test', '--target', 'js', '--deny-warn']);
+process.stdout.write(unitTests);
 run(moon, ['info', '--target', 'js']);
 run(moon, ['build', 'cmd/main', '--target', 'js']);
 
@@ -35,10 +37,14 @@ for (const [name, expression] of scenarios) {
 }
 
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs']));
+process.stdout.write(run(process.execPath, ['scripts/adversarial.mjs']));
 
 run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
 const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], {
+  env: { ...process.env, JMES_CLI_PATH: releaseCli },
+}));
+process.stdout.write(run(process.execPath, ['scripts/adversarial.mjs'], {
   env: { ...process.env, JMES_CLI_PATH: releaseCli },
 }));
 
@@ -53,3 +59,9 @@ if (process.env.VERIFY_PUBLISH === '1') {
   console.log('PASS Mooncakes publish dry-run');
 }
 console.log('PASS MoonBit checks, tests, examples, interfaces, and debug/release builds');
+fs.writeFileSync(path.join(root, '_build', 'verification-summary.json'), JSON.stringify({
+  status: 'passed', ciCommit: process.env.GITHUB_SHA || null,
+  node: process.version, recordedAt: new Date().toISOString(),
+  unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
+  cliModes: ['debug', 'release'], adversarialChecksPerMode: 20, grammarMutationsPerMode: 256,
+}, null, 2)+'\n');

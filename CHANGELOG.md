@@ -2,6 +2,22 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.3 - 2026-10-28
+
+- prevent the reproduced debug evaluator overflow from 255 nested `to_array`
+  calls with an execution depth guard independent from AST depth
+- bound expanded JSON output, pretty formatting, batch envelopes and aggregate
+  batch successes before serialization
+- replace recursive JSON equality with iterative, work-budgeted traversal
+- check `join` size and object result budgets before allocation/insertion;
+  meter reductions and reject non-finite output
+- count expression characters before allocating the lexer array and classify
+  JSON nesting exhaustion as a resource error
+- add public `stringify_bounded`, 20 adversarial subprocess checks and 256
+  deterministic grammar mutations in each debug/release run
+- clear existing compiler warnings, enforce exact official error categories
+  in both modes, add a pinned GitHub API fallback and CI evidence artifacts
+
 ## 0.1.2 - 2026-10-19
 
 - validate configurable resource limits and reject excessive parser nesting before recursion grows unchecked

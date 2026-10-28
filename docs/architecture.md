@@ -38,6 +38,14 @@ limits are validated before parsing; parser recursion and AST depth are both
 bounded. The evaluation step and cumulative materialized-result counters check
 remaining capacity before incrementing or appending to an output collection.
 
+Active evaluation calls have a separate 128-level cap because a function call
+uses several runtime frames per AST node. `equality.mbt` walks JSON using an
+explicit stack and charges repeated subtrees to query work. `json_safety.mbt`
+walks one child at a time to bound JSON depth, expanded nodes and estimated
+serialized size, including pretty indentation. `api.mbt` reserves batch error
+space and checks successful replies including their envelope before appending.
+See `resource-limits.md` for the exact contract and its limitations.
+
 The conformance runner downloads only a pinned upstream revision into the OS
 temporary directory. Release archives contain the runner and notices, but not
 the downloaded vectors.

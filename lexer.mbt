@@ -103,6 +103,14 @@ fn decode_json_string(raw : String, offset : Int) -> String raise JmesPathError 
 
 ///|
 fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
+  // Count without allocating an array proportional to an untrusted string.
+  let mut length = 0
+  for _ in source.iter() {
+    if length >= limits.max_expression_chars {
+      fail("limit_exceeded", 0, "expression exceeds max_expression_chars")
+    }
+    length += 1
+  }
   let chars = source.to_array()
   if chars.length() > limits.max_expression_chars {
     fail("limit_exceeded", 0, "expression exceeds max_expression_chars")
@@ -226,8 +234,13 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
           fail("syntax", start, "unterminated JSON literal")
         }
         let value = @json.parse(b.to_string()) catch {
+          @json.DepthLimitExceeded =>
+            fail(
+              "limit_exceeded", start, "JSON literal exceeds parser nesting limit",
+            )
           _ => fail("syntax", start, "invalid JSON literal")
         }
+        check_json_size(value, false)
         tokens.push({ kind: LiteralToken(value), offset: start, })
       }
       '.' => {
@@ -331,3 +344,15 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
   tokens.push({ kind: Eof, offset: chars.length(), })
   tokens
 }
+
+///|
+pub extend Token with Eq::{equal, not_equal}
+
+///|
+pub extend Token with @debug.Debug::{to_repr}
+
+///|
+pub extend TokenKind with Eq::{equal, not_equal}
+
+///|
+pub extend TokenKind with @debug.Debug::{to_repr}

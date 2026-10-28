@@ -25,7 +25,7 @@ fn run() -> Int raise {
         return 2
       }
       let result = @lib.search_json(expression, read[1])
-      write_stdout(result.stringify(indent=if compact { 0 } else { 2 }) + "\n")
+      write_stdout(@lib.stringify_bounded(result, pretty=!compact) + "\n")
       0
     }
     Batch(path~, compact~) => {
@@ -35,6 +35,12 @@ fn run() -> Int raise {
         return 2
       }
       let input = @json.parse(read[1]) catch {
+        @json.DepthLimitExceeded => {
+          write_stderr(
+            "moon-jmes: limit_exceeded at 0: JSON nesting exceeds parser limit\n",
+          )
+          return 2
+        }
         _ => {
           write_stderr(
             "moon-jmes: invalid_json at 0: input is not valid JSON\n",
@@ -43,7 +49,7 @@ fn run() -> Int raise {
         }
       }
       let result = @lib.search_batch(input)
-      write_stdout(result.stringify(indent=if compact { 0 } else { 2 }) + "\n")
+      write_stdout(@lib.stringify_bounded(result, pretty=!compact) + "\n")
       0
     }
   }

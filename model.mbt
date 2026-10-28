@@ -98,5 +98,29 @@ fn validate_limits(limits : Limits) -> Unit raise JmesPathError {
 
 ///|
 pub fn version() -> String {
-  "0.1.2"
+  "0.1.3"
 }
+
+///|
+pub extend Diagnostic with Eq::{equal, not_equal}
+
+///|
+pub extend Diagnostic with @debug.Debug::{to_repr}
+
+///|
+pub extend Limits with Eq::{equal, not_equal}
+
+///|
+pub extend Limits with @debug.Debug::{to_repr}
+
+///|
+pub extend CompareOp with Eq::{equal, not_equal}
+
+///|
+pub extend CompareOp with @debug.Debug::{to_repr}
+
+///|
+pub extend Expr with Eq::{equal, not_equal}
+
+///|
+pub extend Expr with @debug.Debug::{to_repr}

@@ -22,6 +22,9 @@ pub(all) enum Command {
   Query(expression~ : String, path~ : String, compact~ : Bool)
   Batch(path~ : String, compact~ : Bool)
 } derive(Eq, @debug.Debug)
+pub fn Command::equal(Self, Self) -> Bool
+pub fn Command::not_equal(Self, Self) -> Bool
+pub fn Command::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

@@ -1,4 +1,34 @@
-# MoonJMES 0.1.2 repair evidence (2026-10-19)
+# MoonJMES acceptance evidence
+
+## October 0.1.3 audit (2026-10-28)
+
+The participant supplied the organizer's October initial-approval notice for
+this repository. Final acceptance remains an organizer decision.
+
+The audit reproduced a **new** debug evaluator crash in 0.1.2 using 255 nested
+`to_array` calls. The syntax fits the old AST limit but exhausted the runtime
+stack (exit 1). It also identified exponentially expanded output from repeated
+`[@,@]` pipes. Both are covered by new real-process regressions, alongside the
+September 4,001-character input. Core equality is now iterative and work-bounded;
+JSON traversal, join and batch output have guards before unsafe expansion.
+
+Local verification on the pinned JS toolchain passes 34 unit tests with compiler
+warnings denied, three scenarios, and debug/release CLI tests. Each CLI mode
+runs 20 adversarial checks and 256 deterministic grammar mutations. Valid
+requests before/after an oversized query remain present; standalone resource
+errors exit 2 with no stdout. Tests also cover response-envelope depth, reused
+compiled values, object budgets, equality semantics and non-finite output.
+
+The pinned official suite passes **892/892 in debug and 892/892 in release**
+locally, including exact error categories. The PowerShell pipeline/version
+smoke test passes. Local summaries are generated in `_build/` and CI will
+upload fresh summaries associated with its exact commit SHA.
+
+Release progress: 0.1.3 source is locally tested; remote CI, formal publication
+and fresh-consumer verification will be recorded here after observing success.
+Until then, 0.1.2 below is the latest release with completed publication evidence.
+
+## Historical 0.1.2 repair evidence (2026-10-19)
 
 The September completion rejection reported a 4,001-character query consisting
 of 4,000 `!` prefixes plus `@`. The old release overflowed the parser stack

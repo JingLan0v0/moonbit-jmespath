@@ -39,7 +39,11 @@ fn evaluate_args(
   data : Json,
   state : EvalState,
 ) -> Array[Json] raise JmesPathError {
-  args.map(arg => evaluate(arg, data, state))
+  let values : Array[Json] = []
+  for arg in args {
+    values.push(evaluate(arg, data, state))
+  }
+  values
 }
 
 ///|
@@ -99,14 +103,26 @@ fn function_length(value : Json) -> Json raise JmesPathError {
 }
 
 ///|
-fn function_contains(subject : Json, search : Json) -> Json raise JmesPathError {
+fn function_contains(
+  subject : Json,
+  search : Json,
+  state : EvalState,
+) -> Json raise JmesPathError {
   match subject {
     String(text) =>
       match search {
         String(needle) => Json::boolean(text.contains(needle))
         _ => invalid_type("contains")
       }
-    Array(items) => Json::boolean(items.any(fn(item) { item == search }))
+    Array(items) => {
+      for item in items {
+        state.tick()
+        if json_equal(item, search, state) {
+          return Json::boolean(true)
+        }
+      }
+      Json::boolean(false)
+    }
     _ => invalid_type("contains")
   }
 }
@@ -116,10 +132,12 @@ fn function_numeric_array(
   name : String,
   value : Json,
   average : Bool,
+  state : EvalState,
 ) -> Json raise JmesPathError {
   guard value is Array(items) else { return invalid_type(name) }
   let mut total = 0.0
   for item in items {
+    state.tick()
     guard item is Number(number, ..) else { return invalid_type(name) }
     total += number
   }
@@ -252,7 +270,7 @@ fn evaluate_function(
     }
     "avg" => {
       require_arity(name, values.length(), 1)
-      function_numeric_array(name, values[0], true)
+      function_numeric_array(name, values[0], true, state)
     }
     "ceil" => {
       require_arity(name, values.length(), 1)
@@ -261,7 +279,7 @@ fn evaluate_function(
     }
     "contains" => {
       require_arity(name, values.length(), 2)
-      function_contains(values[0], values[1])
+      function_contains(values[0], values[1], state)
     }
     "ends_with" => {
       require_arity(name, values.length(), 2)
@@ -281,8 +299,23 @@ fn evaluate_function(
         return invalid_type(name)
       }
       let strings : Array[String] = []
+      let mut units = 0
       for item in items {
+        state.tick()
         guard item is String(text) else { return invalid_type(name) }
+        let separator_size = if strings.is_empty() {
+          0
+        } else {
+          separator.length()
+        }
+        if separator_size > 16777216 - units {
+          fail("limit_exceeded", 0, "join exceeds string size budget")
+        }
+        units += separator_size
+        if text.length() > 16777216 - units {
+          fail("limit_exceeded", 0, "join exceeds string size budget")
+        }
+        units += text.length()
         strings.push(text)
       }
       Json::string(strings.join(separator))
@@ -311,6 +344,10 @@ fn evaluate_function(
       for value in values {
         guard value is Object(entries) else { return invalid_type(name) }
         for entry in entries {
+          state.tick()
+          if !result.contains(entry.0) {
+            state.add_results(1)
+          }
           result[entry.0] = entry.1
         }
       }
@@ -353,7 +390,7 @@ fn evaluate_function(
     }
     "sum" => {
       require_arity(name, values.length(), 1)
-      function_numeric_array(name, values[0], false)
+      function_numeric_array(name, values[0], false, state)
     }
     "to_array" => {
       require_arity(name, values.length(), 1)
@@ -384,7 +421,7 @@ fn evaluate_function(
       require_arity(name, values.length(), 1)
       match values[0] {
         String(_) => values[0]
-        value => Json::string(value.stringify())
+        value => Json::string(stringify_bounded(value))
       }
     }
     "type" => {

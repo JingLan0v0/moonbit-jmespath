@@ -3,14 +3,20 @@ priv struct EvalState {
   limits : Limits
   mut steps : Int
   mut results : Int
+  mut depth : Int
 }
 
 ///|
 fn EvalState::tick(self : EvalState) -> Unit raise JmesPathError {
-  if self.steps >= self.limits.max_steps {
+  self.charge(1)
+}
+
+///|
+fn EvalState::charge(self : EvalState, count : Int) -> Unit raise JmesPathError {
+  if count > self.limits.max_steps - self.steps {
     fail("limit_exceeded", 0, "evaluation exceeds max_steps")
   }
-  self.steps += 1
+  self.steps += count
 }
 
 ///|
@@ -113,10 +119,15 @@ fn slice_array(
 }
 
 ///|
-fn relation(op : CompareOp, left : Json, right : Json) -> Json {
+fn relation(
+  op : CompareOp,
+  left : Json,
+  right : Json,
+  state : EvalState,
+) -> Json raise JmesPathError {
   match op {
-    Eq => json_bool(left == right)
-    Ne => json_bool(left != right)
+    Eq => json_bool(json_equal(left, right, state))
+    Ne => json_bool(!json_equal(left, right, state))
     Lt | Le | Gt | Ge =>
       match (left, right) {
         (Number(a, ..), Number(b, ..)) =>
@@ -140,8 +151,14 @@ fn evaluate(
   data : Json,
   state : EvalState,
 ) -> Json raise JmesPathError {
+  // An AST node can use several runtime frames (function arguments and
+  // expression references in particular). Bound execution before descending.
+  if state.depth >= 128 {
+    fail("limit_exceeded", 0, "evaluation exceeds call depth 128")
+  }
   state.tick()
-  match expr {
+  state.depth += 1
+  let result = match expr {
     Current => data
     Field(name) =>
       match data {
@@ -262,7 +279,12 @@ fn evaluate(
     }
     Not(value) => json_bool(!truthy(evaluate(value, data, state)))
     Compare(op, left, right) =>
-      relation(op, evaluate(left, data, state), evaluate(right, data, state))
+      relation(
+        op,
+        evaluate(left, data, state),
+        evaluate(right, data, state),
+        state,
+      )
     MultiList(items) => {
       let values : Array[Json] = []
       for item in items {
@@ -276,9 +298,11 @@ fn evaluate(
       let values : Map[String, Json] = Map([])
       for entry in entries {
         let (key, item) = entry
+        if !values.contains(key) {
+          state.add_results(1)
+        }
         values[key] = evaluate(item, data, state)
       }
-      state.add_results(values.length())
       Json::object(values)
     }
     Function(name, args) => evaluate_function(name, args, data, state)
@@ -287,4 +311,6 @@ fn evaluate(
         "invalid_type", 0, "expression references are only valid as function arguments",
       )
   }
+  state.depth -= 1
+  result
 }

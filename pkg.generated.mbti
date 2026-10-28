@@ -16,6 +16,8 @@ pub fn search_batch(Json, limits? : Limits) -> Json raise JmesPathError
 
 pub fn search_json(String, String, limits? : Limits) -> Json raise JmesPathError
 
+pub fn stringify_bounded(Json, pretty? : Bool) -> String raise JmesPathError
+
 pub fn version() -> String
 
 // Errors
@@ -25,6 +27,9 @@ pub(all) suberror JmesPathError {
 
 // Types and methods
 type CompareOp derive(Eq, @debug.Debug)
+pub fn CompareOp::equal(Self, Self) -> Bool
+pub fn CompareOp::not_equal(Self, Self) -> Bool
+pub fn CompareOp::to_repr(Self) -> @debug.Repr
 
 pub struct Compiled {
   source : String
@@ -39,8 +44,14 @@ pub(all) struct Diagnostic {
   offset : Int
   message : String
 } derive(Eq, @debug.Debug)
+pub fn Diagnostic::equal(Self, Self) -> Bool
+pub fn Diagnostic::not_equal(Self, Self) -> Bool
+pub fn Diagnostic::to_repr(Self) -> @debug.Repr
 
 type Expr derive(Eq, @debug.Debug)
+pub fn Expr::equal(Self, Self) -> Bool
+pub fn Expr::not_equal(Self, Self) -> Bool
+pub fn Expr::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Limits {
   max_expression_chars : Int
@@ -48,10 +59,19 @@ pub(all) struct Limits {
   max_steps : Int
   max_results : Int
 } derive(Eq, @debug.Debug)
+pub fn Limits::equal(Self, Self) -> Bool
+pub fn Limits::not_equal(Self, Self) -> Bool
+pub fn Limits::to_repr(Self) -> @debug.Repr
 
 type Token derive(Eq, @debug.Debug)
+pub fn Token::equal(Self, Self) -> Bool
+pub fn Token::not_equal(Self, Self) -> Bool
+pub fn Token::to_repr(Self) -> @debug.Repr
 
 type TokenKind derive(Eq, @debug.Debug)
+pub fn TokenKind::equal(Self, Self) -> Bool
+pub fn TokenKind::not_equal(Self, Self) -> Bool
+pub fn TokenKind::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

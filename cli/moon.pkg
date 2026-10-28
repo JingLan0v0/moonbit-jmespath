@@ -1,3 +1,4 @@
 import {
+  "moonbitlang/core/debug",
   "JingLan0v0/jmespath" @lib,
 }

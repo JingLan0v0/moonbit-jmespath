@@ -49,5 +49,14 @@ jobs:
         run: ./scripts/powershell-smoke.ps1
       - name: Run official JMESPath compliance suite
         run: node scripts/conformance.mjs
+      - name: Run official JMESPath compliance suite in release mode
+        run: node scripts/conformance.mjs --release
       - name: Check generated interfaces
         run: git diff --exit-code -- '*.mbti'
+      - name: Save acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-${{ matrix.os }}
+          path: _build/*-summary.json
+          retention-days: 30

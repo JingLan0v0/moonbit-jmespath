@@ -70,3 +70,9 @@ pub fn parse_args(args : Array[String]) -> Command raise CliError {
 pub fn help() -> String {
   "moon-jmes \{@lib.version()} - query JSON with JMESPath\n\nUsage:\n  moon-jmes [--compact] EXPRESSION [FILE]\n  moon-jmes --batch [--compact] [FILE]\n\nArguments:\n  EXPRESSION       JMESPath expression\n  FILE             UTF-8 JSON file; omit or use - for stdin\n\nOptions:\n  --batch          Process [{expression, data}, ...] with per-item errors\n  --compact        Emit compact JSON instead of indented JSON\n  --help, -h       Show this help\n  --version        Show the version\n\nExit codes: 0 success, 2 invalid expression/input or I/O error.\n"
 }
+
+///|
+pub extend Command with Eq::{equal, not_equal}
+
+///|
+pub extend Command with @debug.Debug::{to_repr}

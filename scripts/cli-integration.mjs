@@ -15,6 +15,7 @@ function invoke(args, input) {
     input,
     encoding: 'utf8',
     maxBuffer: 2 * 1024 * 1024,
+    timeout: 15000,
   });
   if (result.error) throw result.error;
   return result;

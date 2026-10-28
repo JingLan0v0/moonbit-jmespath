@@ -87,7 +87,8 @@ let result = query.search(input)
 ```
 
 Public entry points: `compile`, `Compiled::search`, `search`, `search_json`, and
-`search_batch`.
+`search_batch`. Use `stringify_bounded(result, pretty=true)` to serialize library
+results with the same output safeguards as the CLI.
 
 ### Batch API and CLI
 
@@ -122,6 +123,11 @@ must be valid, and AST depth cannot exceed 256. Batch input is capped at
 10,000 requests; the CLI reads at most 16 MiB and decodes UTF-8 strictly,
 accepting an optional UTF-8 BOM.
 
+Version 0.1.3 also bounds active evaluation calls to 128, checks JSON input and
+output iteratively, and limits aggregate batch successes. The JSON guard limits
+depth to 256 (root at zero), expanded nodes to 1,000,000 and the conservative
+output estimate to 16 Mi UTF-16 units. See [the exact resource contract](docs/resource-limits.md).
+
 Errors use stable categories: `syntax`, `invalid_json`, `invalid_type`,
 `invalid_arity`, `invalid_value`, `unknown_function`, `invalid_batch`, and
 `limit_exceeded`. A library caller receives `JmesPathError`; the CLI writes a
@@ -135,6 +141,7 @@ moon check --target js
 moon test --target js
 moon info --target js
 node scripts/conformance.mjs
+node scripts/conformance.mjs --release
 node scripts/verify.mjs
 ```
 
@@ -161,11 +168,29 @@ A Chinese project overview for contest information review is available in
 
 ## Project boundary
 
+### October hardening in 0.1.3
+
+The October audit reproduced a separate stack overflow in 0.1.2: 255 nested
+`to_array(...)` calls passed AST validation but crashed the debug evaluator.
+Execution now checks active call depth before descending. Short repeated
+`[@,@]` pipes could also expand exponentially during serialization while barely
+increasing the old result counter. An iterative output guard now counts each
+expanded occurrence; iterative JSON equality consumes the query work budget.
+`join` checks size before allocation, object producers charge keys before
+insertion, and batch successes share an output budget with room reserved for
+errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
+
+Verification covers 34 unit tests, three scenarios, and, in **each** CLI build
+mode, 20 adversarial checks plus 256 deterministic grammar mutations. Test
+subprocesses have a timeout and heap cap. CI enforces warning-free checks and
+exact official error categories in both modes, on Windows and Ubuntu, and saves
+downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
+[competition status](docs/competition.md).
+
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. The 0.1.2 release includes early parser depth checks and
-regression tests for the September acceptance rejection's 4,001-character
-unary expression. See [CHANGELOG.md](CHANGELOG.md).
+implementations. Current source version: 0.1.3. Older versions remain available
+for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
