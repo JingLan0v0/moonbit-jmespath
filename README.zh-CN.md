@@ -151,7 +151,7 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 
 0.1.3 还限制执行调用深度为 128，并用非递归遍历检查 JSON 输入与结果：深度不超过 256（根节点为 0）、展开节点不超过 1,000,000、保守输出估算不超过 16 Mi 个 UTF-16 单元。批次成功响应共享 500,000 节点和 8 Mi 单元预算，另行预留错误响应空间。超出剩余预算的请求返回该项错误，后续小请求仍继续执行。批次包装层也计入深度。详见 [资源限制说明](docs/resource-limits.md)。
 
-当前版本 [0.1.3 已发布到 Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.3)，并从全新消费者项目完成 debug/release 安装调用验证；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 [0.1.4 已发布到 Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.4)，并从全新消费者项目完成 debug/release 安装调用验证；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
 
@@ -161,7 +161,7 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 
 连续 `[@,@]` 管道只复制少量引用，却可能生成指数膨胀的 JSON 输出。现在按实际展开次数检查结果；JSON 相等比较改为非递归遍历并计入执行预算；`join` 在拼接前检查长度；对象合并在写入前检查结果预算；批次成功响应也有累计预算。非有限数值返回 `invalid_value`，避免生成无法解析的 JSON。
 
-验证入口 `node scripts/verify.mjs` 包含零警告检查、34 项单元测试、三个真实使用场景，以及**每种构建模式**的 20 组边界/隔离检查和 256 组固定随机语法输入。恶意输入子进程都有超时与堆内存限制。官方合规测试同时核对结果和准确错误类型，分别跑 debug、release；Windows、Ubuntu CI 保存可下载的 JSON 验收记录。详见 [验收证据](docs/acceptance.md) 与 [参赛状态](docs/competition.md)。初审通过和技术验证不等于终审通过。
+验证入口 `node scripts/verify.mjs` 包含零警告检查、37 项单元测试、三个真实使用场景，以及**每种构建模式**的 20 组边界/隔离检查和 256 组固定随机语法输入。恶意输入子进程都有超时与堆内存限制。官方合规测试同时核对结果和准确错误类型，分别跑 debug、release；Windows、Ubuntu CI 保存可下载的 JSON 验收记录。详见 [验收证据](docs/acceptance.md) 与 [参赛状态](docs/competition.md)。初审通过和技术验证不等于终审通过。
 
 ## 0.1.4：补齐空值语义和上手说明
 

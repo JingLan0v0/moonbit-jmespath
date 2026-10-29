@@ -17,9 +17,27 @@ restoration. README command paths now refer to committed inputs. The API guide
 documents diagnostic offsets, JS backend and batch exit semantics; contributor
 instructions define how to add regressions and verify future releases.
 
-At this source checkpoint, remote CI and registry 0.1.4 evidence are pending.
-The verified 0.1.3 release evidence below remains historical, not a claim that
-0.1.4 has already been published.
+### Verified release evidence (2026-10-29)
+
+- Source commit `bedcd49470e1e7c1e7c5ea80629c861beca7d6e2` is on public main,
+  with identical local/remote Git tree and commit IDs. Its parent is `224932c`;
+  history is retained without force push.
+- [CI run 40833672916](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40833672916)
+  passed on Windows and Ubuntu. Both acceptance evidence artifacts were uploaded.
+  [Development setup run 40833672917](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40833672917)
+  also passed with the pinned toolchain.
+- Mooncakes preflight returned 202 / dry-run success. Formal publication returned
+  **200 OK** for `JingLan0v0/jmespath@0.1.4` on 2026-10-29.
+- Archive: 61 files, no credentials, Git metadata, build output or toolchain/cache
+  directories. SHA-256: `74310ce30c30af5760de7ce7601a7efb7943a7172b5cc3f7a2d65b6e675573a4`.
+  A fresh extraction passed the complete verification script before publication.
+- A fresh consumer installed exact registry version 0.1.4 and passed debug/release
+  calls for null multi-selects, missing-field fallback/conversion and `map`;
+  ordinary queries, September parser isolation, evaluator depth, output expansion
+  and bounded serialization also passed. This used the downloaded package.
+- [Published package](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.4).
+  The following documentation-only Git commit records the observed evidence;
+  it is not a second registry release. Organizer final acceptance remains pending.
 
 ## October 0.1.3 audit (2026-10-28)
 
