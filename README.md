@@ -194,8 +194,8 @@ expanded occurrence; iterative JSON equality consumes the query work budget.
 insertion, and batch successes share an output budget with room reserved for
 errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
 
-Verification covers 37 unit tests, three scenarios, and, in **each** CLI build
-mode, 20 adversarial checks plus 256 deterministic grammar mutations. Test
+Verification covers 39 unit tests, three scenarios, and, in **each** CLI build
+mode, 22 adversarial checks plus 256 deterministic grammar mutations. Test
 subprocesses have a timeout and heap cap. CI enforces warning-free checks and
 exact official error categories in both modes, on Windows and Ubuntu, and saves
 downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
@@ -203,7 +203,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.4 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.4)
+implementations. Version [0.1.5 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.5)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -220,6 +220,16 @@ Quick-start commands now use committed input files, a complete public API
 example runs in both modes, and the PowerShell scenario runner works outside
 the checkout. See [CHANGELOG.md](CHANGELOG.md), [usage](docs/usage.md) and
 [contributing](CONTRIBUTING.md). Release evidence is in [acceptance.md](docs/acceptance.md).
+
+## Numeric conversion memory fix in 0.1.5
+
+`to_number` no longer parses arbitrary encoded arrays/objects merely to return
+null. An encoded 4.8 MB object array crashed 0.1.4 under a 192 MiB test heap in
+both modes; scalar prefiltering now preserves the batch's neighboring results.
+Numeric scanning also consumes the work budget. This is a conversion fix, not
+a universal memory guarantee: core transport decoding can still exhaust a
+constrained heap. See [resource limits](docs/resource-limits.md) and the
+[release evidence](docs/acceptance.md).
 
 ## License
 

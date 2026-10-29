@@ -2,7 +2,7 @@
 
 ## Current state (2026-10-29)
 
-### 0.1.5 source checkpoint
+### 0.1.5 released
 
 - Fixed allocation of arbitrary encoded JSON inside to_number; scalar scanning
   is now metered. Exact number grammar and whitespace compatibility retained.
@@ -12,8 +12,12 @@
 - Separate remaining limitation: core transport decoding can exhaust constrained
   host memory before in-memory checks (12 MB escaped-string probe). Do not claim
   universal heap safety; resource-limits.md describes deployment boundaries.
-- Next: synchronize source, verify CI, publish 0.1.5, verify fresh consumer and
-  record receipts. Previous published 0.1.4 evidence remains below.
+- Source `a763059` is on existing main; CI 40834983084 passed both OS jobs.
+  61-file extracted archive passed full verification. Mooncakes returned 200 OK
+  for 0.1.5, and a fresh consumer passed conversion and historical regressions
+  in both modes. See acceptance.md for the SHA-256 and links.
+- Current submission version is 0.1.5. The following sections describe earlier
+  releases; do not repeat publication of an existing version.
 
 ### Additional audit: 0.1.4 released
 

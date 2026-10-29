@@ -15,8 +15,25 @@ before/null/after with exit 0. The exact numeric grammar remains parser-validate
 
 Scope: a larger ~12 MB escaped input also exhausted the test heap during core
 transport decoding. That is a separate, documented host-memory limitation, not
-claimed fixed by 0.1.5. See resource-limits.md. Remote and publication evidence
-for 0.1.5 is pending at this source checkpoint.
+claimed fixed by 0.1.5. See resource-limits.md.
+
+Verified release evidence (2026-10-29):
+
+- Source commit `a763059841b44be838b0686b9ad23a21e4392b64` pushed to existing main.
+  [CI 40834983084](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40834983084)
+  passed on Windows and Ubuntu. Prior Git history is retained.
+- Baseline 0.1.4 archive reproduced exit 134 / no output for the 4.8 MB
+  conversion in both debug and release; `type(@)` on identical data exited 0.
+- 61-file archive inspected with no credentials/build/cache directories;
+  fresh-extraction full verification passed. SHA-256:
+  `b505de436451a2215027415a2784eded3f7f9699644da15dd18e62954fd131c7`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+  A fresh consumer downloaded exact `JingLan0v0/jmespath@0.1.5` and passed
+  conversion, null semantics, parser/evaluator isolation, expansion and bounded
+  serialization checks in debug and release.
+- [Mooncakes 0.1.5](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.5).
+  The following documentation-only commit records these receipts. Final
+  organizer acceptance is still pending.
 
 ## Additional 0.1.4 semantic and usability audit (2026-10-28)
 
