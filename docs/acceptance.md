@@ -1,5 +1,23 @@
 # MoonJMES acceptance evidence
 
+## 0.1.5 conversion allocation audit (2026-10-29)
+
+`to_number` in 0.1.4 parsed arbitrary JSON strings before checking their type.
+A string encoding 600,000 small objects (~4.8 MB decoded) exhausted a 192 MiB
+test heap during conversion, while querying its string type succeeded. The
+fix rejects nonnumeric characters before parsing and meters numeric scanning.
+No arbitrary JSON subtree can now be allocated by this conversion.
+
+Local verification: 39 unit tests; three scenarios and the complete API example;
+both CLI modes with 22 adversarial checks and 256 grammar mutations; official
+suite 892/892 in both modes; PowerShell smoke. The new conversion batch returns
+before/null/after with exit 0. The exact numeric grammar remains parser-validated.
+
+Scope: a larger ~12 MB escaped input also exhausted the test heap during core
+transport decoding. That is a separate, documented host-memory limitation, not
+claimed fixed by 0.1.5. See resource-limits.md. Remote and publication evidence
+for 0.1.5 is pending at this source checkpoint.
+
 ## Additional 0.1.4 semantic and usability audit (2026-10-28)
 
 Found two semantic defects beyond the 892 pinned upstream cases: multi-selects

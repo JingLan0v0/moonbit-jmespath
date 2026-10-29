@@ -2,6 +2,16 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.5 - 2026-10-29
+
+- reject non-numeric string contents before `to_number` invokes the JSON parser,
+  avoiding construction of discarded arrays/objects; exact numeric syntax is
+  still validated by the parser, retaining existing whitespace compatibility
+- charge numeric-string scanning to the per-query work budget
+- add numeric grammar/budget tests and isolated 4.8 MB encoded-object regression
+  with valid neighboring requests in both CLI modes under the 192 MiB test heap
+- document that the input byte cap is not a peak-memory guarantee for decoding
+
 ## 0.1.4 - 2026-10-28
 
 - preserve null inputs in multi-select lists/hashes, including projections and map

@@ -38,6 +38,47 @@ test "string, conversion, object, and variadic functions" {
 }
 
 ///|
+test "number conversion validates scalar grammar and preserves whitespace compatibility" {
+  for
+    text in [
+      "[1,2]", "{\"x\":1}", "\"123\"", "true", "null", "", "+1", "01", "1e", "1 2",
+      ".5", "NaN", "Infinity", "0x10",
+    ] {
+    assert_eq(
+      @jmespath.search("to_number(@)", Json::string(text)),
+      Json::null(),
+    )
+  }
+  for text in ["125", "1.25e2", "125.0", " 125\r\n\t"] {
+    assert_eq(
+      @jmespath.search("to_number(@)", Json::string(text)),
+      Json::number(125.0),
+    )
+  }
+  assert_eq(
+    @jmespath.search("to_number(@)", Json::string("-1.25e-2")),
+    Json::number(-0.0125),
+  )
+}
+
+///|
+test "number conversion consumes the work budget before parsing long numeric strings" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 8, }
+  let code = try {
+    @jmespath.search("to_number(@)", Json::string("1".repeat(100)), limits~)
+    |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("limit_exceeded"))
+  assert_eq(
+    @jmespath.search("to_number(@)", Json::number(12.0), limits~),
+    Json::number(12.0),
+  )
+}
+
+///|
 test "function errors are classified" {
   let invalid_type = try {
     @jmespath.search("sum('no')", Json::null()) |> ignore

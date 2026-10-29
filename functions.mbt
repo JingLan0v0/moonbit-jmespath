@@ -407,6 +407,21 @@ fn evaluate_function(
       match values[0] {
         Number(_, ..) => values[0]
         String(text) => {
+          // Only a numeric scalar may reach the JSON parser. Parsing arbitrary
+          // encoded arrays/objects here can allocate millions of discarded nodes.
+          // Keep the parser responsible for exact JSON-number grammar.
+          for c in text.iter() {
+            state.tick()
+            if !(is_digit(c) ||
+              is_space(c) ||
+              c == '-' ||
+              c == '+' ||
+              c == '.' ||
+              c == 'e' ||
+              c == 'E') {
+              return Json::null()
+            }
+          }
           let parsed = @json.parse(text) catch { _ => return Json::null() }
           if parsed is Number(_, ..) {
             parsed

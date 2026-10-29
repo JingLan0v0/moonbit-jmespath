@@ -49,6 +49,22 @@ isolated('in-memory JSON depth', '@', nested);
 isolated('nested JSON literal', '`'+'['.repeat(4000)+'0'+']'.repeat(4000)+'`', null);
 
 const shared = Array(16).fill('[@,@]').join('|');
+// 0.1.4 parsed this encoded array merely to return null, exhausting the
+// 192 MiB heap in both modes. Numeric conversion must never construct it.
+const encodedObjects = '[' + '{"x":0},'.repeat(600000) + '0]';
+const conversion = invoke(['--batch', '--compact', '-'], JSON.stringify([
+  {expression:'@',data:'before'},
+  {expression:'to_number(@)',data:encodedObjects},
+  {expression:'@',data:'after'},
+]));
+assert.equal(conversion.status, 0, conversion.stderr);
+assert.equal(conversion.stderr, '');
+assert.deepEqual(JSON.parse(conversion.stdout), [
+  {ok:true,result:'before'}, {ok:true,result:null}, {ok:true,result:'after'},
+]);
+checks++;
+isolated('numeric conversion scan budget', 'to_number(@)', '1'.repeat(1000000));
+
 const largeBatch = invoke(['--batch', '--compact', '-'], JSON.stringify([
   ...Array.from({length:6},()=>({expression:shared,data:0})), {expression:'@',data:'still running'},
 ]));

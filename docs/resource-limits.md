@@ -1,4 +1,4 @@
-# Resource contract (0.1.3)
+# Resource contract (0.1.5)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -31,6 +31,20 @@ does not consume the success budget, allowing later smaller responses to fit.
 If no success budget remains, later requests may also get `limit_exceeded`.
 Logical work is not a CPU instruction counter: core string/sort routines and
 shape preflight have bounded inputs but are not charged per machine instruction.
+
+Since 0.1.5, `to_number` scans string characters against a scalar-number alphabet
+before calling the JSON parser and charges each scanned character to max_steps.
+Non-numeric arrays/objects encoded as strings return null without materializing
+their contents. Extremely long numeric strings can now return limit_exceeded.
+
+The 16 MiB transport cap does **not** guarantee a 192 MiB peak heap. In this
+audit, a roughly 12 MB heavily escaped string exhausted that artificial test
+heap during core JSON decoding even without conversion. In-memory limits are
+checked after decoding; host out-of-memory termination is not catchable as a
+per-item query error. Services accepting untrusted JSON must also set an
+appropriate ingress size and isolate worker processes with host memory/time
+limits. The harness heap cap proves the recorded cases only, not every input
+under the transport cap. This limitation remains outside the 0.1.5 conversion fix.
 
 Use `stringify_bounded` to serialize library results. It validates and renders
 the same value. Mutating returned JSON and invoking a different serializer is

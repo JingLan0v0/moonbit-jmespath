@@ -2,6 +2,19 @@
 
 ## Current state (2026-10-29)
 
+### 0.1.5 source checkpoint
+
+- Fixed allocation of arbitrary encoded JSON inside to_number; scalar scanning
+  is now metered. Exact number grammar and whitespace compatibility retained.
+- Local: 39 unit tests; 22 adversarial checks/256 mutations per mode; 892 official
+  cases per mode; examples and PowerShell passed. The 4.8 MB conversion regression
+  now preserves both neighboring batch results under the 192 MiB test heap.
+- Separate remaining limitation: core transport decoding can exhaust constrained
+  host memory before in-memory checks (12 MB escaped-string probe). Do not claim
+  universal heap safety; resource-limits.md describes deployment boundaries.
+- Next: synchronize source, verify CI, publish 0.1.5, verify fresh consumer and
+  record receipts. Previous published 0.1.4 evidence remains below.
+
 ### Additional audit: 0.1.4 released
 
 - Corrected null multi-select and null-left subexpression function semantics;
