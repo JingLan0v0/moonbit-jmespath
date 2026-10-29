@@ -15,7 +15,22 @@ The scanner is not a second parser; normal syntax/escape decoding remains with
 core JSON. New transport budgets deliberately restrict some previously accepted
 inputs. Passing these cases is not a universal memory safety guarantee.
 
-Remote CI and publication evidence pending at this source checkpoint.
+Verified release evidence (2026-10-29):
+
+- Source `95be832ade24b6276c65687bd42fb83373f93738` is on existing main,
+  preserving previous history. [CI 40836861937](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/40836861937)
+  passed on Windows and Ubuntu.
+- Inspected 64-file archive; no credentials/build/cache directories. Fresh
+  extraction passed full verification. SHA-256:
+  `f42f280b62489c1591e5786f6e4268696202d505ff1d531f6039b06463d5cfa9`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+- Fresh consumer downloaded exact `JingLan0v0/jmespath@0.1.6` and passed public
+  parse_json_bounded checks, over-limit rejection and all retained consumer
+  regressions (conversion, null semantics, parser/evaluator isolation, expansion
+  and serialization) in debug and release.
+- [Mooncakes 0.1.6](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.6).
+  The following docs-only commit records these receipts; organizer acceptance
+  remains pending.
 
 ## 0.1.5 conversion allocation audit (2026-10-29)
 

@@ -2,7 +2,7 @@
 
 ## Current state (2026-10-29)
 
-### 0.1.6 source checkpoint
+### Current release: 0.1.6
 
 - Added constant-space JSON text preflight and public parse_json_bounded.
   Text search, CLI batch and expression JSON decoding share the guards.
@@ -11,8 +11,13 @@
   conversion batch isolation remains passing. No universal heap guarantee.
 - Local checks: 43 unit tests, 25 adversarial/256 mutations per mode, 892 official
   cases per mode, API example, three scenarios and PowerShell smoke passed.
-- Next: synchronize source, verify CI and package, publish/install exact 0.1.6,
-  then record observed receipts. Earlier version notes below are historical.
+- Source `95be832` is on main; Windows/Ubuntu CI 40836861937 passed. Inspected
+  64-file archive passed full verification after extraction. Formal Mooncakes
+  publication returned 200 OK; a fresh consumer installed exact 0.1.6 and
+  passed new API/guard and all retained regressions in both modes.
+- See acceptance.md for archive hash and links. The following docs-only commit
+  records observed receipts. Earlier version notes below are historical; their
+  reported decoder case is addressed by 0.1.6, not a universal heap guarantee.
 
 ### 0.1.5 released
 
@@ -28,7 +33,7 @@
   61-file extracted archive passed full verification. Mooncakes returned 200 OK
   for 0.1.5, and a fresh consumer passed conversion and historical regressions
   in both modes. See acceptance.md for the SHA-256 and links.
-- Current submission version is 0.1.5. The following sections describe earlier
+- At that checkpoint the submission version was 0.1.5. Following sections describe earlier
   releases; do not repeat publication of an existing version.
 
 ### Additional audit: 0.1.4 released

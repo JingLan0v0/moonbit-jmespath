@@ -194,8 +194,8 @@ expanded occurrence; iterative JSON equality consumes the query work budget.
 insertion, and batch successes share an output budget with room reserved for
 errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
 
-Verification covers 39 unit tests, three scenarios, and, in **each** CLI build
-mode, 22 adversarial checks plus 256 deterministic grammar mutations. Test
+Verification covers 43 unit tests, three scenarios, and, in **each** CLI build
+mode, 25 adversarial checks plus 256 deterministic grammar mutations. Test
 subprocesses have a timeout and heap cap. CI enforces warning-free checks and
 exact official error categories in both modes, on Windows and Ubuntu, and saves
 downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
@@ -203,7 +203,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.5 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.5)
+implementations. Version [0.1.6 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.6)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -230,6 +230,19 @@ Numeric scanning also consumes the work budget. This is a conversion fix, not
 a universal memory guarantee: core transport decoding can still exhaust a
 constrained heap. See [resource limits](docs/resource-limits.md) and the
 [release evidence](docs/acceptance.md).
+
+## Decoder preflight in 0.1.6
+
+The 12 MB escaped-string case left open in 0.1.5 now fails before JSON decoder
+allocation. Constant-space lexical scanning caps raw string tokens at 8 Mi
+UTF-16 units, lexical tokens (including keys) at 1,000,000, and nesting at 1,024.
+This intentionally adds restrictions within the overall 16 MiB input cap.
+Single-query, batch transport and expression JSON decoding share this check.
+The public `parse_json_bounded` supports safe text ingestion by library callers.
+Whole-transport failures return `limit_exceeded`, exit 2, empty stdout; item
+isolation still applies once the batch is decoded. Regression tests exercise
+both modes under the same 192 MiB test heap. This is not a universal peak-memory
+guarantee. See [resource limits](docs/resource-limits.md) and [evidence](docs/acceptance.md).
 
 ## License
 
