@@ -30,6 +30,21 @@ function isolated(label, expression, data, expectedCode = 'limit_exceeded') {
   checks++;
 }
 
+// Transport allocation checks run before the core decoder. Unlike evaluation
+// errors these reject the entire transport with exit 2 and no partial stdout.
+const escapedTransport = JSON.stringify('['+'{"x":0},'.repeat(1500000)+'0]');
+for (const [args, input] of [
+  [['type(@)', '-'], escapedTransport],
+  [['--batch', '-'], '[{"expression":"type(@)","data":'+escapedTransport+'}]'],
+  [['type(@)', '-'], '['+'{"x":0},'.repeat(600000)+'0]'],
+]) {
+  const r = invoke(args, input);
+  assert.equal(r.status, 2, r.stderr);
+  assert.equal(r.stdout, '');
+  assert.match(r.stderr, /limit_exceeded/);
+  checks++;
+}
+
 // Historical parser failure and a separate evaluator overflow discovered
 // during the October audit. Each used to threaten the entire process.
 isolated('September unary input', '!'.repeat(4000)+'@', null);

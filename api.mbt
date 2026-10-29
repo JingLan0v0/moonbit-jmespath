@@ -34,14 +34,7 @@ pub fn search_json(
   json_text : String,
   limits? : Limits = default_limits(),
 ) -> Json raise JmesPathError {
-  if json_text.length() > 16777216 {
-    fail("limit_exceeded", 0, "JSON text exceeds 16 Mi UTF-16 units")
-  }
-  let data = @json.parse(json_text) catch {
-    @json.DepthLimitExceeded =>
-      fail("limit_exceeded", 0, "JSON nesting exceeds parser limit")
-    _ => fail("invalid_json", 0, "input is not valid JSON")
-  }
+  let data = parse_json_bounded(json_text)
   search(expression, data, limits~)
 }
 

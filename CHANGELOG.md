@@ -2,6 +2,18 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.6 - 2026-10-29
+
+- preflight JSON text before decoder allocation: 8 Mi source units per string
+  token, 1,000,000 lexical tokens including duplicate keys, and nesting 1,024
+- share public parse_json_bounded across text search, batch CLI and expression
+  literals/quoted identifiers; preserve syntax categories and per-item checks
+- close the reproduced 12 MB escaped-string decoding failure from 0.1.5 with
+  explicit whole-transport errors; also reject excessive object allocation
+- test inclusive boundaries, escaped punctuation, malformed JSON, duplicate
+  keys and three new constrained-heap transport regressions in both modes
+- these are additional input restrictions, not a fixed peak-memory guarantee
+
 ## 0.1.5 - 2026-10-29
 
 - reject non-numeric string contents before `to_number` invokes the JSON parser,

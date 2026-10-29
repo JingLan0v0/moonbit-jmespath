@@ -92,8 +92,13 @@ fn parse_int_text(text : String, offset : Int) -> Int raise JmesPathError {
 ///|
 fn decode_json_string(raw : String, offset : Int) -> String raise JmesPathError {
   let wrapped = "\"" + raw + "\""
-  let parsed = @json.parse(wrapped) catch {
-    _ => fail("syntax", offset, "invalid quoted identifier escape")
+  let parsed = parse_json_bounded(wrapped) catch {
+    JmesPathError(d) =>
+      if d.code == "limit_exceeded" {
+        fail(d.code, offset, d.message)
+      } else {
+        fail("syntax", offset, "invalid quoted identifier escape")
+      }
   }
   guard parsed is String(value) else {
     fail("syntax", offset, "invalid quoted identifier")
@@ -233,12 +238,13 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
         if !closed {
           fail("syntax", start, "unterminated JSON literal")
         }
-        let value = @json.parse(b.to_string()) catch {
-          @json.DepthLimitExceeded =>
-            fail(
-              "limit_exceeded", start, "JSON literal exceeds parser nesting limit",
-            )
-          _ => fail("syntax", start, "invalid JSON literal")
+        let value = parse_json_bounded(b.to_string()) catch {
+          JmesPathError(d) =>
+            if d.code == "limit_exceeded" {
+              fail(d.code, start, d.message)
+            } else {
+              fail("syntax", start, "invalid JSON literal")
+            }
         }
         check_json_size(value, false)
         tokens.push({ kind: LiteralToken(value), offset: start, })

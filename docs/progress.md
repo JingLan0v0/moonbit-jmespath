@@ -2,6 +2,18 @@
 
 ## Current state (2026-10-29)
 
+### 0.1.6 source checkpoint
+
+- Added constant-space JSON text preflight and public parse_json_bounded.
+  Text search, CLI batch and expression JSON decoding share the guards.
+- The known 12 MB escaped-string decoder crash is now a whole-transport error;
+  excessive lexical tokens also fail before allocation. Existing 4.8 MB
+  conversion batch isolation remains passing. No universal heap guarantee.
+- Local checks: 43 unit tests, 25 adversarial/256 mutations per mode, 892 official
+  cases per mode, API example, three scenarios and PowerShell smoke passed.
+- Next: synchronize source, verify CI and package, publish/install exact 0.1.6,
+  then record observed receipts. Earlier version notes below are historical.
+
 ### 0.1.5 released
 
 - Fixed allocation of arbitrary encoded JSON inside to_number; scalar scanning

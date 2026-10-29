@@ -10,6 +10,8 @@ pub fn compile(String, limits? : Limits) -> Compiled raise JmesPathError
 
 pub fn default_limits() -> Limits
 
+pub fn parse_json_bounded(String) -> Json raise JmesPathError
+
 pub fn search(String, Json, limits? : Limits) -> Json raise JmesPathError
 
 pub fn search_batch(Json, limits? : Limits) -> Json raise JmesPathError

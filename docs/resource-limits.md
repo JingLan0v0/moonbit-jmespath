@@ -1,4 +1,4 @@
-# Resource contract (0.1.5)
+# Resource contract (0.1.6)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -14,13 +14,20 @@ The library targets MoonBit's JS backend. Resource errors are reported as
 | Output estimate | 16,777,216 UTF-16 units | Conservative estimate includes escaping and pretty indentation; checked before serialization |
 | join intermediate string | 16,777,216 UTF-16 units | Length checked before allocation; final escaping may cause a stricter rejection |
 | search_json text | 16,777,216 UTF-16 units | Checked before JSON parsing |
+| JSON string token source | 8,388,608 UTF-16 units, excluding quotes | Checked before decoding; escape sequences count as written, not decoded |
+| JSON lexical tokens | 1,000,000 per text | Containers, keys and scalar values counted before construction; duplicate keys also count |
+| JSON text nesting | 1,024 open containers | Checked before recursive parsing; strings/escapes do not affect depth |
 | CLI input | 16 MiB of bytes | Bounded read, strict UTF-8, optional BOM |
 | Batch requests | 10,000 | Exceeding this rejects the whole batch |
 | Successful batch responses combined | 500,000 nodes / 8,388,608 estimated UTF-16 units | Includes pretty formatting and wrapping; excess becomes an individual item error |
 | Batch error messages | 128 UTF-16 units plus ... if truncated | Bounded errors remain possible after the success budget is exhausted |
 
-JSON text parsing uses the pinned core parser's nesting ceiling (1,024) before
-the library checks parsed values. Invalid or excessively nested **whole batch
+JSON text parsing now preflights the budgets above in constant extra space,
+then uses the pinned core parser for exact grammar and decoding. The same path
+serves search_json, CLI batch input and expression JSON literals/quoted identifiers.
+The public parse_json_bounded API applies transport budgets, not the per-query
+depth/node limits. Thus a valid batch retains independent item checks.
+Invalid or excessively nested **whole batch
 text** cannot be split reliably and fails at the CLI transport boundary. In a
 valid parsed batch, requests are checked independently. The outer response
 array and `{ok,result}` count toward depth: a too-deep result becomes an item
@@ -37,14 +44,15 @@ before calling the JSON parser and charges each scanned character to max_steps.
 Non-numeric arrays/objects encoded as strings return null without materializing
 their contents. Extremely long numeric strings can now return limit_exceeded.
 
-The 16 MiB transport cap does **not** guarantee a 192 MiB peak heap. In this
-audit, a roughly 12 MB heavily escaped string exhausted that artificial test
-heap during core JSON decoding even without conversion. In-memory limits are
-checked after decoding; host out-of-memory termination is not catchable as a
-per-item query error. Services accepting untrusted JSON must also set an
-appropriate ingress size and isolate worker processes with host memory/time
-limits. The harness heap cap proves the recorded cases only, not every input
-under the transport cap. This limitation remains outside the 0.1.5 conversion fix.
+The roughly 12 MB escaped-string crash left open in 0.1.5 is now rejected before
+decoding by the string-token budget. Very wide texts are rejected by the lexical
+token budget, including duplicate object keys. These additional restrictions can
+reject some inputs previously accepted within the overall 16 MiB byte cap.
+They intentionally bound decoder work; they do **not** guarantee a universal
+192 MiB peak heap. Host memory exhaustion remains uncatchable as a per-item error.
+Applications still need appropriate ingress and worker memory/time controls.
+An oversized transport returns limit_exceeded for the whole command (exit 2,
+empty stdout), rather than pretending to preserve undecoded batch items.
 
 Use `stringify_bounded` to serialize library results. It validates and renders
 the same value. Mutating returned JSON and invoking a different serializer is

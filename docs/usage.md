@@ -27,6 +27,13 @@ starts fresh evaluation counters. `search` compiles and evaluates once.
 the expanded JSON before serializing it. None of these APIs mutate input JSON.
 Treat compiled queries and input collections as read-only while evaluating.
 
+Since 0.1.6, `parse_json_bounded(text)` exposes the shared preflight/decoder.
+Use `search_batch(parse_json_bounded(text))` for a text batch with the same
+transport guards as the CLI. It caps total text, raw string-token size, lexical
+token count and nesting before building JSON. It leaves per-item shape checks
+to search_batch; transport errors necessarily reject the entire input. Source
+escape sequences count toward string-token size. See resource-limits.md.
+
 Catch `JmesPathError(d)` and branch on `d.code`, not the human-readable message.
 `d.offset` is a zero-based Unicode character index for lexer/parser diagnostics;
 it is not a UTF-8 byte offset or UTF-16 editor index. Runtime, JSON and aggregate

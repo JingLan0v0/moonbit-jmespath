@@ -1,5 +1,22 @@
 # MoonJMES acceptance evidence
 
+## 0.1.6 decoder preflight audit (2026-10-29)
+
+Closes the reproduced 12 MB escaped-string case left open in 0.1.5 by scanning
+transport budgets before decoding. Both single-query and batch CLI now return
+limit_exceeded, exit 2 and empty stdout under the same 192 MiB test heap. A
+wide JSON array of objects is likewise rejected before construction. The 4.8 MB
+conversion batch and prior parser/evaluator regressions still pass.
+
+Local checks: 43 unit tests including exact preflight boundaries/duplicate keys;
+three scenarios and public API example; 25 adversarial checks and 256 mutations
+in each mode; official compliance 892/892 in debug and release; PowerShell smoke.
+The scanner is not a second parser; normal syntax/escape decoding remains with
+core JSON. New transport budgets deliberately restrict some previously accepted
+inputs. Passing these cases is not a universal memory safety guarantee.
+
+Remote CI and publication evidence pending at this source checkpoint.
+
 ## 0.1.5 conversion allocation audit (2026-10-29)
 
 `to_number` in 0.1.4 parsed arbitrary JSON strings before checking their type.

@@ -34,20 +34,7 @@ fn run() -> Int raise {
         write_stderr("moon-jmes: io: " + read[0] + "\n")
         return 2
       }
-      let input = @json.parse(read[1]) catch {
-        @json.DepthLimitExceeded => {
-          write_stderr(
-            "moon-jmes: limit_exceeded at 0: JSON nesting exceeds parser limit\n",
-          )
-          return 2
-        }
-        _ => {
-          write_stderr(
-            "moon-jmes: invalid_json at 0: input is not valid JSON\n",
-          )
-          return 2
-        }
-      }
+      let input = @lib.parse_json_bounded(read[1])
       let result = @lib.search_batch(input)
       write_stdout(@lib.stringify_bounded(result, pretty=!compact) + "\n")
       0
