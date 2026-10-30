@@ -12,7 +12,24 @@ arithmetic or an overflow-free averaging algorithm.
 Local validation: 49 unit tests; 892/892 official cases per mode; 27 adverse
 checks and 256 grammar mutations per mode; API example, scenarios and PowerShell.
 New regressions cover hidden overflow, short-circuit branches, compiled reuse
-and batches with normal neighbors. Remote CI and publication evidence pending.
+and batches with normal neighbors.
+
+Verified release evidence (2026-10-30):
+
+- Source `c12303afaa0be1a19aed5c60b65a3c4c04c36bb5` is on public main,
+  retaining prior history. [CI 41038798979](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41038798979)
+  passed on Windows and Ubuntu.
+- 64-file archive inspected without credentials/build/cache content and fully
+  verified after fresh extraction. SHA-256:
+  `1e020844ffdc99af7033f4a55ae572ec66c72fedf3923750b909a866be881f1d`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+- A fresh consumer installed exact `JingLan0v0/jmespath@0.1.9` and passed
+  hidden arithmetic/conversion overflow, lazy branches and the retained Unicode,
+  decoding, parser/evaluator isolation, expansion and serialization checks in
+  debug and release.
+- [Mooncakes 0.1.9](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.9).
+  The following docs-only commit records receipts; technical checks do not
+  substitute for organizer final acceptance.
 
 ## 0.1.8 Unicode ordering audit (2026-10-30)
 
