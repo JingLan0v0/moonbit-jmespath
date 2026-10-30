@@ -1,4 +1,4 @@
-# Resource contract (0.1.6)
+# Resource contract (0.1.9)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -59,6 +59,14 @@ the same value. Mutating returned JSON and invoking a different serializer is
 outside that guarantee. Non-finite numbers fail with `invalid_value` rather
 than becoming invalid JSON text. These are resource/representation limits,
 not JMESPath syntax extensions.
+
+Since 0.1.9 each evaluated scalar result must be finite before its parent runs.
+Previously `type(sum(@))` or a comparison could conceal an overflow that direct
+`sum(@)` correctly rejected. Such queries now consistently return invalid_value.
+The check does not evaluate skipped boolean branches. Floating-point operations
+remain IEEE binary64, not exact decimal arithmetic; the current avg uses a
+running sum, so it rejects an overflowing sum even when a mathematical average
+could be finite. This release does not claim improved numerical precision.
 
 ## Regression inputs
 

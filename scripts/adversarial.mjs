@@ -58,6 +58,8 @@ for (const suffix of ['', '|to_string(@)', '|@ == @', '|contains([@], @)']) {
 }
 isolated('join amplification', 'join(separator, items)', {separator:'x'.repeat(1024*1024),items:Array(32).fill('')});
 isolated('non-finite arithmetic', 'sum(@)', [1e308,1e308], 'invalid_value');
+isolated('hidden non-finite arithmetic', 'type(sum(@))', [1e308,1e308], 'invalid_value');
+isolated('hidden non-finite conversion', 'type(to_number(@))', '1e999', 'invalid_value');
 let nested = 0;
 for (let i=0;i<257;i++) nested=[nested];
 isolated('in-memory JSON depth', '@', nested);

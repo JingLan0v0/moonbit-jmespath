@@ -1,5 +1,19 @@
 # MoonJMES acceptance evidence
 
+## 0.1.9 intermediate numeric-value audit (2026-10-30)
+
+Reproduced in 0.1.8: direct sum overflow returned invalid_value, while wrapping
+it in type(), a comparison or collection-length pipeline incorrectly succeeded.
+Overflowing to_number strings could also be hidden. Scalar results are now
+validated before returning to the parent expression, consistent with the
+project's finite-JSON policy. This is a representation guard, not higher-precision
+arithmetic or an overflow-free averaging algorithm.
+
+Local validation: 49 unit tests; 892/892 official cases per mode; 27 adverse
+checks and 256 grammar mutations per mode; API example, scenarios and PowerShell.
+New regressions cover hidden overflow, short-circuit branches, compiled reuse
+and batches with normal neighbors. Remote CI and publication evidence pending.
+
 ## 0.1.8 Unicode ordering audit (2026-10-30)
 
 Reproduced a silent compatibility defect in 0.1.7: sort placed U+10000/emoji

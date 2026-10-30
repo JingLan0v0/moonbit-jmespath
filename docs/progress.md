@@ -2,6 +2,16 @@
 
 ## Current state (2026-10-30)
 
+### 0.1.9 source checkpoint
+
+- Reject non-finite intermediate scalar results before parent expressions can
+  hide them. Lazy branches remain lazy and compiled queries recover on next call.
+- Local checks: 49 units, 892 official cases per mode, 27 adverse/256 mutation
+  checks per mode, examples and PowerShell passed. Numeric precision and avg
+  running-sum overflow behavior are explicitly unchanged.
+- Next: synchronize source, verify CI/package, publish/install exact 0.1.9 and
+  record receipts. Previous version records below are historical.
+
 ### Current release: 0.1.8
 
 - Corrected UTF-16 ordering to JMESPath Unicode code-point order across all six

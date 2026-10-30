@@ -309,6 +309,11 @@ fn evaluate(
         "invalid_type", 0, "expression references are only valid as function arguments",
       )
   }
+  // Validate scalar results before a parent can hide overflow with type(),
+  // a comparison, a collection wrapper or a boolean conversion.
+  if result is Number(number, ..) && (number.is_nan() || number.is_inf()) {
+    fail("invalid_value", 0, "non-finite numbers cannot be represented as JSON")
+  }
   state.depth -= 1
   result
 }

@@ -70,6 +70,6 @@ fs.writeFileSync(path.join(root, '_build', 'verification-summary.json'), JSON.st
   status: 'passed', ciCommit: process.env.GITHUB_SHA || null,
   node: process.version, recordedAt: new Date().toISOString(),
   unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
-  cliModes: ['debug', 'release'], adversarialChecksPerMode: 25, grammarMutationsPerMode: 256,
+  cliModes: ['debug', 'release'], adversarialChecksPerMode: 27, grammarMutationsPerMode: 256,
   publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');

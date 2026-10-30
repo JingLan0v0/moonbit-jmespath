@@ -90,6 +90,60 @@ test "collection reductions count work and non-finite outputs fail explicitly" {
 }
 
 ///|
+test "non-finite intermediate results cannot be hidden by parent expressions" {
+  for
+    expression in [
+      "type(sum(@))", "sum(@) > `0`", "[sum(@)] | length(@)", "!sum(@)", "sum(@) || `0`",
+      "type(avg(@))",
+    ] {
+    let code = try {
+      @jmespath.search_json(expression, "[1e308,1e308]") |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(code, Some("invalid_value"))
+  }
+  for
+    expression in [
+      "type(to_number(@))", "to_number(@) == to_number(@)", "[to_number(@)] | length(@)",
+    ] {
+    let code = try {
+      @jmespath.search(expression, Json::string("1e999")) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(code, Some("invalid_value"))
+  }
+}
+
+///|
+test "non-finite guard respects unevaluated boolean branches" {
+  let data = @json.parse("[1e308,1e308]")
+  assert_eq(@jmespath.search("`true` || sum(@)", data), Json::boolean(true))
+  assert_eq(@jmespath.search("`false` && sum(@)", data), Json::boolean(false))
+  assert_eq(
+    @jmespath.search_json("type(sum(@))", "[1e308,-1e308]"),
+    Json::string("number"),
+  )
+}
+
+///|
+test "compiled query is reusable after intermediate overflow" {
+  let query = @jmespath.compile("type(sum(@))")
+  let overflowing = @json.parse("[1e308,1e308]")
+  let code = try {
+    query.search(overflowing) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("invalid_value"))
+  assert_eq(query.search(@json.parse("[1,2]")), Json::string("number"))
+}
+
+///|
 test "bounded serialization preserves compact and pretty JSON" {
   let value = @json.parse(
     "{\"text\":\"月\\n\\\"\\\\/\",\"items\":[true,null,1]}",

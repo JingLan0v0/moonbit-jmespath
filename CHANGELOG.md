@@ -2,6 +2,16 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.9 - 2026-10-30
+
+- reject non-finite scalar results at evaluated expression boundaries, before
+  parent functions/comparisons can hide arithmetic or numeric-conversion overflow
+- preserve lazy boolean branches and query reuse after an overflow error
+- add unit regressions for type/comparison/collection/boolean wrappers and two
+  isolated CLI batch cases with successful neighboring requests in both modes
+- this tightens the existing finite-JSON policy; IEEE binary64 arithmetic and
+  rounding are unchanged, including rejection when avg's running sum overflows
+
 ## 0.1.8 - 2026-10-30
 
 - compare string ordering by Unicode code points instead of UTF-16 code units,

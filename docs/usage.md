@@ -89,6 +89,13 @@ three entries: `Ada`, an `invalid_arity` error, and `fallback`; exit status is 0
 
 ## Compatibility edge cases
 
+Since 0.1.9 non-finite intermediate scalar values are rejected before a parent
+can consume them. `type(sum(@))` on `[1e308,1e308]` returns invalid_value rather
+than a successful `"number"`. Similarly, wrapping an overflowing to_number
+conversion cannot hide it. Unevaluated short-circuit branches remain skipped;
+compiled queries can still be reused after errors. See resource-limits.md for
+binary64 rounding and the existing avg running-sum overflow boundary.
+
 Since 0.1.8 string ordering follows Unicode code points, as required by the
 [JMESPath sort specification](https://jmespath.org/specification.html#sort).
 For example U+E000 sorts before U+10000, unlike UTF-16 code-unit ordering.
