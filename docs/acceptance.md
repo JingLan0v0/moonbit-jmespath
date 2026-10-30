@@ -12,7 +12,22 @@ checks and 256 grammar mutations per mode; examples and PowerShell smoke.
 New CLI vectors span empty strings, prefixes, combining sequences, BMP/astral
 boundaries through U+10FFFF, string length/reversal and large/small finite
 numbers. Unit tests also cover equal-key ordering and unchanged inputs.
-Remote CI and registry 0.1.8 evidence pending at this source checkpoint.
+Verified release evidence (2026-10-30):
+
+- Source `24b1231b4a90c3b76b54e831fbbdee93badfeae4` is on existing main,
+  with identical local/remote IDs and retained history.
+  [CI 41036477186](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41036477186)
+  passed on Windows and Ubuntu.
+- 64-file archive inspected without credentials/build/cache files and fully
+  verified after fresh extraction. SHA-256:
+  `aa63db9a45cd5777b592d203eff74e0451d61348edb806e60aac1bfa8a025203`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+- A new consumer installed exact `JingLan0v0/jmespath@0.1.8` and passed all six
+  Unicode ordering functions plus retained null, decoder, conversion, parser,
+  evaluator, expansion and serialization regressions in debug and release.
+- [Mooncakes 0.1.8](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.8).
+  The following docs-only commit records these observations; official contest
+  acceptance remains separate from technical verification.
 
 ## 0.1.7 CLI output and diagnostic audit (2026-10-30)
 

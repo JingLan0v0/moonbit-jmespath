@@ -2,17 +2,21 @@
 
 ## Current state (2026-10-30)
 
-### 0.1.8 source checkpoint
+### Current release: 0.1.8
 
 - Corrected UTF-16 ordering to JMESPath Unicode code-point order across all six
   sort/extreme functions. Iterator comparison avoids per-comparison char arrays.
 - Local validation: 46 unit tests, 892 official cases per mode, all previous
   25/256 adverse tests per mode, examples and PowerShell passed. New vectors
   cover supplementary planes, prefixes, ties, normalization boundaries and numbers.
-- Next: synchronize source, verify CI/package, publish and fresh-install 0.1.8,
-  then record receipts. Existing sections below are historical release records.
+- Source `24b1231` is on main. Windows/Ubuntu CI 41036477186 passed; the 64-file
+  archive passed inspection and fresh-extraction full verification. Mooncakes
+  publication returned 200 OK. A new consumer installed exact 0.1.8 and passed
+  all six ordering functions and retained safety regressions in both modes.
+- Use 0.1.8 for current submissions. Acceptance.md records the archive hash and
+  links; following docs-only commit records receipts. Earlier sections are historical.
 
-### Current release: 0.1.7
+### Previous release: 0.1.7
 
 - CLI stream errors now exit 2 without unhandled exceptions. Diagnostic control
   characters are escaped to prevent multiline/terminal manipulation.

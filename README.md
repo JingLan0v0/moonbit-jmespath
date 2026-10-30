@@ -194,7 +194,7 @@ expanded occurrence; iterative JSON equality consumes the query work budget.
 insertion, and batch successes share an output budget with room reserved for
 errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
 
-Verification covers 43 unit tests, three scenarios, and, in **each** CLI build
+Verification covers 46 unit tests, three scenarios, and, in **each** CLI build
 mode, 25 adversarial checks plus 256 deterministic grammar mutations. Test
 subprocesses have a timeout and heap cap. CI enforces warning-free checks and
 exact official error categories in both modes, on Windows and Ubuntu, and saves
@@ -203,7 +203,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.7 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.7)
+implementations. Version [0.1.8 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.8)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -255,6 +255,16 @@ JSON stdout is unchanged. Output may be partial if a destination fails during
 writing; consumers must check exit status. Five new subprocess cases pass in
 both modes, on Windows/Ubuntu and from the downloaded release. See
 [usage](docs/usage.md) and [release evidence](docs/acceptance.md).
+
+## Unicode ordering corrected in 0.1.8
+
+String ordering now follows Unicode code points rather than UTF-16 code units,
+fixing incorrect results across BMP and supplementary-plane characters in
+`sort`, `min`, `max` and their `_by` variants. For example U+E000 must precede
+U+10000. The comparator uses iterators without allocating character arrays;
+there is no locale collation or normalization. Regression cases include empty
+strings, prefixes, ties, combining sequences and U+10FFFF. Numeric extremes and
+existing behavior also pass. See [usage](docs/usage.md) and [evidence](docs/acceptance.md).
 
 ## License
 
