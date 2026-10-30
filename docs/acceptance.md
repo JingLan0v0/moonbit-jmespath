@@ -1,5 +1,20 @@
 # MoonJMES acceptance evidence
 
+## 0.1.7 CLI output and diagnostic audit (2026-10-30)
+
+Reproduced in 0.1.6: stdout redirected to a read-only descriptor caused an
+unhandled stream error, stack trace and exit 1. An invalid option containing
+newline/ESC/bidi controls was printed verbatim into stderr. Both are fixed:
+stream failures return exit 2 and a best-effort short diagnostic; embedded
+diagnostic controls are escaped. Normal JSON stdout remains unchanged.
+
+Local validation: 43 unit tests, both-mode 892/892 official cases, 25 adversarial
+checks and 256 mutations per mode, examples and PowerShell smoke. Added CLI
+tests run in debug/release for stdout failure, stderr failure, both unavailable,
+closed downstream pipe and hostile diagnostic content. Output can be partial
+if the destination fails after accepting some bytes; no atomic-output claim.
+Remote CI and registry 0.1.7 evidence pending at this source checkpoint.
+
 ## 0.1.6 decoder preflight audit (2026-10-29)
 
 Closes the reproduced 12 MB escaped-string case left open in 0.1.5 by scanning

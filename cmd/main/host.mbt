@@ -3,16 +3,34 @@ extern "js" fn arguments() -> FixedArray[String] =
   #|() => process.argv.slice(2)
 
 ///|
+extern "js" fn initialize_output() -> Unit =
+  #|() => {
+  #|  process.stderr.on('error', () => { process.exitCode = 2; });
+  #|  process.stdout.on('error', (error) => {
+  #|    process.exitCode = 2;
+  #|    const code = /^[A-Z0-9_]+$/.test(error.code || '') ? error.code : 'WRITE_FAILED';
+  #|    try {
+  #|      require('node:fs').writeSync(2, `moon-jmes: io: stdout ${code}\n`);
+  #|    } catch { /* stderr may be unavailable too; the exit code remains 2. */ }
+  #|  });
+  #|}
+
+///|
 extern "js" fn write_stdout(text : String) -> Unit =
   #|(text) => process.stdout.write(text)
 
 ///|
 extern "js" fn write_stderr(text : String) -> Unit =
-  #|(text) => process.stderr.write(text)
+  #|(text) => {
+  #|  const body = text.endsWith('\n') ? text.slice(0, -1) : text;
+  #|  const safe = body.replace(/[\u0000-\u001f\u007f-\u009f\u2028-\u202e\u2066-\u2069]/g,
+  #|    c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+  #|  process.stderr.write(safe + '\n');
+  #|}
 
 ///|
 extern "js" fn set_exit(code : Int) -> Unit =
-  #|(code) => { process.exitCode = code; }
+  #|(code) => { if (process.exitCode !== 2) process.exitCode = code; }
 
 ///|
 extern "js" fn read_utf8(path : String) -> FixedArray[String] =

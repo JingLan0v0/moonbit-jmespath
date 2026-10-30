@@ -44,6 +44,7 @@ fn run() -> Int raise {
 
 ///|
 fn main {
+  initialize_output()
   let code = run() catch {
     @cli.CliError(message) => {
       write_stderr("moon-jmes: usage: " + message + "\n")

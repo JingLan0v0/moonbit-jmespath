@@ -1,6 +1,17 @@
 # Project status and handoff
 
-## Current state (2026-10-29)
+## Current state (2026-10-30)
+
+### 0.1.7 source checkpoint
+
+- CLI stream errors now exit 2 without unhandled exceptions. Diagnostic control
+  characters are escaped to prevent multiline/terminal manipulation.
+- Added five real-process CLI cases in both modes (read-only stdout, read-only
+  stderr, both unavailable, closed pipe, hostile option). All local checks pass:
+  43 unit tests, official 892/892 per mode, existing 25/256 adverse tests per mode,
+  examples and PowerShell smoke. Details and limitations are in usage.md.
+- Next: verify source CI, package/extraction and exact 0.1.7 installation after
+  publication, then record receipts. Earlier release notes below are historical.
 
 ### Current release: 0.1.6
 

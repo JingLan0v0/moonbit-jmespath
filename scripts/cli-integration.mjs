@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const root = path.resolve(import.meta.dirname, '..');
 const cli = process.env.JMES_CLI_PATH || path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
@@ -121,4 +121,46 @@ try {
 const help = invoke(['--version']);
 assert.equal(help.status, 0);
 assert.equal(help.stdout.trim(), version);
+const closedPipe = await new Promise((resolve, reject) => {
+  const child = spawn(process.execPath, [cli, '--compact', '@', '-'], {cwd:root});
+  let stderr = '';
+  const timer = setTimeout(() => { child.kill(); reject(new Error('closed-pipe test timed out')); }, 15000);
+  child.on('error', error => { clearTimeout(timer); reject(error); });
+  child.stderr.on('data', chunk => { stderr += chunk.toString(); });
+  child.stdin.on('error', error => { clearTimeout(timer); child.kill(); reject(error); });
+  child.on('close', (code, signal) => { clearTimeout(timer); resolve({code, signal, stderr}); });
+  child.stdout.destroy();
+  child.stdin.end(JSON.stringify('x'.repeat(512 * 1024)));
+});
+assert.equal(closedPipe.signal, null);
+assert.equal(closedPipe.code, 2, closedPipe.stderr);
+assert.match(closedPipe.stderr, /^moon-jmes: io: stdout [A-Z0-9_]+\n$/);
+const hostileOption = invoke(['--bad\nFORGED\r\u001b[2J\u202e']);
+assert.equal(hostileOption.status, 2);
+assert.equal(hostileOption.stdout, '');
+assert.match(hostileOption.stderr, /\\u000aFORGED\\u000d\\u001b\[2J\\u202e/);
+assert.equal(hostileOption.stderr.split('\n').length, 2);
+assert.doesNotMatch(hostileOption.stderr, /[\u0000-\u0009\u000b-\u001f\u007f-\u009f\u2028-\u202e\u2066-\u2069]/);
+// A read-only file descriptor deterministically fails output on both CI OSes.
+const readonly = fs.openSync(path.join(root, 'moon.mod'), 'r');
+try {
+  for (const [args, stdio, diagnostic] of [
+    [['--version'], ['ignore', readonly, 'pipe'], true],
+    [['--bad'], ['ignore', 'pipe', readonly], false],
+    [['--version'], ['ignore', readonly, readonly], false],
+  ]) {
+    const failed = spawnSync(process.execPath, [cli, ...args], {
+      cwd:root, stdio, encoding:'utf8', timeout:15000,
+    });
+    assert.ifError(failed.error);
+    assert.equal(failed.signal, null);
+    assert.equal(failed.status, 2, failed.stderr);
+    if (diagnostic) {
+      assert.match(failed.stderr, /^moon-jmes: io: stdout [A-Z0-9_]+\n$/);
+      assert.doesNotMatch(failed.stderr, /Unhandled|node:events|at .*\.js/);
+    }
+  }
+} finally {
+  fs.closeSync(readonly);
+}
 console.log('PASS CLI: stdin, deep-parser batch isolation, invalid input, size limit, and version');

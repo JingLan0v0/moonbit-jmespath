@@ -2,6 +2,17 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.7 - 2026-10-30
+
+- handle stdout/stderr stream errors, including closed downstream pipes, with
+  exit 2 instead of an unhandled Node exception and internal stack trace
+- preserve output-error status if the main query itself succeeds; stderr failure
+  cannot recursively fail the stdout diagnostic fallback
+- escape control, line-separator and bidi-format characters in CLI diagnostics
+  to prevent terminal controls and forged diagnostic lines; JSON stdout is unchanged
+- add both-mode real-process checks for read-only descriptors, both streams
+  unavailable, a closed output pipe and hostile option text
+
 ## 0.1.6 - 2026-10-29
 
 - preflight JSON text before decoder allocation: 8 Mi source units per string

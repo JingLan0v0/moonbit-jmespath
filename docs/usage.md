@@ -65,6 +65,20 @@ The CLI's `--` ends its option parsing (after Moon's own `--` separator).
 | Single query succeeds, including a null result | 0 | JSON result | empty |
 | Batch processed, including per-item errors | 0 | JSON response array | empty |
 | Query error / unreadable file / malformed batch transport | 2 | empty | diagnostic |
+| Output stream fails / downstream closes its pipe | 2 | possibly partial | best-effort I/O diagnostic |
+
+Since 0.1.7 stdout/stderr errors are handled rather than emitted as unhandled
+Node exceptions. If stderr is also unavailable, only exit status 2 remains.
+Previously written output cannot be retracted; check the exit status before
+using a redirected file, and use a temporary file plus rename when atomic
+application-level updates are required. A downstream consumer intentionally
+closing early also produces exit 2 (including EPIPE).
+
+CLI diagnostics are one line: embedded controls, Unicode line separators and
+bidi formatting characters are printed as visible `\uXXXX` escapes. The final
+newline remains. This affects stderr diagnostics only, not JSON results or
+library Diagnostic values. Node's stream error behavior is documented in the
+[official stream reference](https://nodejs.org/docs/latest-v24.x/api/stream.html#event-error).
 
 Always inspect each batch `ok` field. A valid null result is `{ok:true,result:null}`,
 not an error. Batch results preserve input order. JSON syntax or excessive
