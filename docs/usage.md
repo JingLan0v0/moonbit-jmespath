@@ -89,6 +89,13 @@ three entries: `Ada`, an `invalid_arity` error, and `fallback`; exit status is 0
 
 ## Compatibility edge cases
 
+Since 0.1.8 string ordering follows Unicode code points, as required by the
+[JMESPath sort specification](https://jmespath.org/specification.html#sort).
+For example U+E000 sorts before U+10000, unlike UTF-16 code-unit ordering.
+The same comparator serves sort/min/max and their _by variants. It performs
+no locale collation or normalization: composed and decomposed spellings remain
+distinct. Numeric ordering remains numeric, and input collections are not mutated.
+
 Null multi-select input stays null; other false-like values (false, zero, an
 empty string/array/object) still evaluate the selected expressions. Projections
 omit null results; `map` retains them. Subexpressions evaluate the right side

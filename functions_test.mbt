@@ -1,4 +1,54 @@
 ///|
+test "string ordering uses Unicode code points across supplementary planes" {
+  let data = @json.parse(
+    "[\"\\uE000\",\"\\uD800\\uDC00\",\"😀\",\"\\uFFFF\"]",
+  )
+  let sorted = @json.parse(
+    "[\"\\uE000\",\"\\uFFFF\",\"\\uD800\\uDC00\",\"😀\"]",
+  )
+  assert_eq(@jmespath.search("sort(@)", data), sorted)
+  assert_eq(@jmespath.search("min(@)", data), @json.parse("\"\\uE000\""))
+  assert_eq(@jmespath.search("max(@)", data), Json::string("😀"))
+  assert_eq(@jmespath.search("sort(@)", data), sorted)
+  assert_eq(
+    data,
+    @json.parse("[\"\\uE000\",\"\\uD800\\uDC00\",\"😀\",\"\\uFFFF\"]"),
+  )
+}
+
+///|
+test "expression-reference ordering shares Unicode comparison and preserves ties" {
+  let data = @json.parse(
+    "[{\"id\":1,\"k\":\"😀\"},{\"id\":2,\"k\":\"\\uE000\"},{\"id\":3,\"k\":\"😀\"}]",
+  )
+  assert_eq(
+    @jmespath.search("sort_by(@, &k)[*].id", data),
+    @json.parse("[2,1,3]"),
+  )
+  assert_eq(@jmespath.search("min_by(@, &k).id", data), Json::number(2.0))
+  assert_eq(@jmespath.search("max_by(@, &k).id", data), Json::number(1.0))
+}
+
+///|
+test "Unicode ordering is prefix-aware and performs no locale normalization" {
+  let data = @json.parse(
+    "[\"😀x\",\"😀\",\"é\",\"é\",\"a\",\"\",\"A\",\"月\"]",
+  )
+  assert_eq(
+    @jmespath.search("sort(@)", data),
+    @json.parse("[\"\",\"A\",\"a\",\"é\",\"é\",\"月\",\"😀\",\"😀x\"]"),
+  )
+  assert_eq(
+    @jmespath.search_json("length(@)", "\"a😀月\""),
+    Json::number(3.0),
+  )
+  assert_eq(
+    @jmespath.search_json("reverse(@)", "\"a😀月\""),
+    Json::string("月😀a"),
+  )
+}
+
+///|
 test "numeric and collection functions" {
   let data = @json.parse("{\"nums\":[3,-2,8],\"empty\":[]}")
   assert_eq(@jmespath.search("abs(nums[1])", data), @json.parse("2"))

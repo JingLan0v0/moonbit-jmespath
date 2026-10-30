@@ -88,7 +88,27 @@ fn compare_ordered(left : Json, right : Json, kind : Int) -> Int {
     }
   } else {
     guard left is String(a) && right is String(b) else { return 0 }
-    a.lexical_compare(b)
+    // JMESPath ordering is by Unicode code points, not UTF-16 code units.
+    // Iterators avoid allocating a character array for every sort comparison.
+    let left_chars = a.iter()
+    let right_chars = b.iter()
+    while true {
+      match (left_chars.next(), right_chars.next()) {
+        (None, None) => return 0
+        (None, Some(_)) => return -1
+        (Some(_), None) => return 1
+        (Some(x), Some(y)) => {
+          if x.to_int() < y.to_int() {
+            return -1
+          }
+          if x.to_int() > y.to_int() {
+            return 1
+          }
+        }
+      }
+    } nobreak {
+      0
+    }
   }
 }
 

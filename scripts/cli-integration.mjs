@@ -26,6 +26,25 @@ assert.equal(good.status, 0);
 assert.deepEqual(JSON.parse(good.stdout), ['月', 'bit']);
 assert.equal(good.stderr, '');
 
+// Explicit specification examples spanning the UTF-16 surrogate boundary.
+const orderedUnicode = ['', 'A', 'a', 'e\u0301', 'é', '月', '\ue000', '\uffff', '\u{10000}', '😀', '😀x', '\u{10ffff}'];
+const unorderedUnicode = [...orderedUnicode].reverse();
+const records = unorderedUnicode.map((key,id)=>({key,id}));
+const semanticCases = [
+  ['sort(@)', unorderedUnicode, orderedUnicode],
+  ['min(@)', unorderedUnicode, ''],
+  ['max(@)', unorderedUnicode, '\u{10ffff}'],
+  ['sort_by(@, &key)[*].key', records, orderedUnicode],
+  ['min_by(@, &key).key', records, ''],
+  ['max_by(@, &key).key', records, '\u{10ffff}'],
+  ['length(@)', 'a😀月', 3], ['reverse(@)', 'a😀月', '月😀a'],
+  ['sort(@)', [1e308, -1e308, 0, 1e-308, -1e-308], [-1e308, -1e-308, 0, 1e-308, 1e308]],
+];
+const semanticRun = invoke(['--batch', '--compact', '-'], JSON.stringify(semanticCases.map(([expression,data])=>({expression,data}))));
+assert.equal(semanticRun.status, 0, semanticRun.stderr);
+assert.equal(semanticRun.stderr, '');
+assert.deepEqual(JSON.parse(semanticRun.stdout), semanticCases.map(([, ,result])=>({ok:true,result})));
+
 // Nulls have different behavior in multi-select, subexpressions and projections.
 const nullCases = [
   ['[foo,bar]', null, null], ['{a:foo}', null, null],

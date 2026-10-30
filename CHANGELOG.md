@@ -2,6 +2,15 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.8 - 2026-10-30
+
+- compare string ordering by Unicode code points instead of UTF-16 code units,
+  fixing supplementary-plane ordering in sort/min/max and their _by variants
+- use character iterators rather than allocating arrays for every comparison
+- add regressions for BMP/supplementary boundaries, U+10FFFF, prefixes, empty
+  strings, combining sequences, equal-key order and numeric extremes
+- no locale collation or Unicode normalization is introduced
+
 ## 0.1.7 - 2026-10-30
 
 - handle stdout/stderr stream errors, including closed downstream pipes, with

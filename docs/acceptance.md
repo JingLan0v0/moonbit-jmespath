@@ -1,5 +1,19 @@
 # MoonJMES acceptance evidence
 
+## 0.1.8 Unicode ordering audit (2026-10-30)
+
+Reproduced a silent compatibility defect in 0.1.7: sort placed U+10000/emoji
+before U+E000/U+FFFF due to UTF-16 code-unit comparison, and min/max selected
+incorrect extremes. The JMESPath specification requires code-point ordering.
+All six ordering functions now share an iterator-based code-point comparator.
+
+Local checks: 46 unit tests; 892/892 official cases in each mode; 25 adverse
+checks and 256 grammar mutations per mode; examples and PowerShell smoke.
+New CLI vectors span empty strings, prefixes, combining sequences, BMP/astral
+boundaries through U+10FFFF, string length/reversal and large/small finite
+numbers. Unit tests also cover equal-key ordering and unchanged inputs.
+Remote CI and registry 0.1.8 evidence pending at this source checkpoint.
+
 ## 0.1.7 CLI output and diagnostic audit (2026-10-30)
 
 Reproduced in 0.1.6: stdout redirected to a read-only descriptor caused an
