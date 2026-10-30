@@ -13,7 +13,22 @@ checks and 256 mutations per mode, examples and PowerShell smoke. Added CLI
 tests run in debug/release for stdout failure, stderr failure, both unavailable,
 closed downstream pipe and hostile diagnostic content. Output can be partial
 if the destination fails after accepting some bytes; no atomic-output claim.
-Remote CI and registry 0.1.7 evidence pending at this source checkpoint.
+Verified release evidence (2026-10-30):
+
+- Source `fe9cbc71daf054fa2e91e094ad53fba0d71a035d` is on existing main;
+  [CI 41034982842](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41034982842)
+  passed Windows and Ubuntu, including the new real-process output tests.
+- 64-file archive inspected without credentials, build or cache directories.
+  Fresh-extraction full verification passed. SHA-256:
+  `c198a3aaf1b7f1ff4f52cee963d5983492745f2114bfb44f00a84fc0d6c5e119`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+- A new consumer installed exact `JingLan0v0/jmespath@0.1.7` and passed all
+  retained API regressions in both modes. The downloaded package's CLI was
+  independently built in debug/release; its CLI integration suite passed,
+  including unavailable outputs, closed pipe and diagnostic control escaping.
+- [Mooncakes 0.1.7](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.7).
+  Following docs-only commit records these receipts; organizer decisions remain
+  separate. Previous commits/releases are retained for rollback and comparison.
 
 ## 0.1.6 decoder preflight audit (2026-10-29)
 

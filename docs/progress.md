@@ -2,7 +2,7 @@
 
 ## Current state (2026-10-30)
 
-### 0.1.7 source checkpoint
+### Current release: 0.1.7
 
 - CLI stream errors now exit 2 without unhandled exceptions. Diagnostic control
   characters are escaped to prevent multiline/terminal manipulation.
@@ -10,10 +10,14 @@
   stderr, both unavailable, closed pipe, hostile option). All local checks pass:
   43 unit tests, official 892/892 per mode, existing 25/256 adverse tests per mode,
   examples and PowerShell smoke. Details and limitations are in usage.md.
-- Next: verify source CI, package/extraction and exact 0.1.7 installation after
-  publication, then record receipts. Earlier release notes below are historical.
+- Source `fe9cbc7` is on main; Windows/Ubuntu CI 41034982842 passed. The 64-file
+  archive passed fresh-extraction verification. Mooncakes returned 200 OK for
+  0.1.7; a new consumer passed API regressions and the downloaded CLI integration
+  suite in both modes. Hash and links are in acceptance.md.
+- Following docs-only commit records verified receipts. Earlier release notes
+  below are historical. Use 0.1.7 for current submissions, retaining Git history.
 
-### Current release: 0.1.6
+### Previous release: 0.1.6
 
 - Added constant-space JSON text preflight and public parse_json_bounded.
   Text search, CLI batch and expression JSON decoding share the guards.

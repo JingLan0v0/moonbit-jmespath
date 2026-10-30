@@ -151,7 +151,7 @@ GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构
 
 0.1.3 还限制执行调用深度为 128，并用非递归遍历检查 JSON 输入与结果：深度不超过 256（根节点为 0）、展开节点不超过 1,000,000、保守输出估算不超过 16 Mi 个 UTF-16 单元。批次成功响应共享 500,000 节点和 8 Mi 单元预算，另行预留错误响应空间。超出剩余预算的请求返回该项错误，后续小请求仍继续执行。批次包装层也计入深度。详见 [资源限制说明](docs/resource-limits.md)。
 
-当前版本 [0.1.6 已发布到 Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.6)，并从全新消费者项目完成 debug/release 安装调用验证；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 [0.1.7 已发布到 Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.7)，并从全新消费者项目完成 debug/release 安装调用验证；变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
 
@@ -194,6 +194,16 @@ PowerShell 场景脚本可以从仓库外运行。详见 [使用约定](docs/usa
 整份文本超过限制时返回 `limit_exceeded`、退出码 2、标准输出为空；解码成功后仍逐项
 处理批次错误。同一 192 MiB 测试堆下，debug/release 回归均通过。这不代表所有输入的
 峰值内存都有绝对保证，详见[资源限制](docs/resource-limits.md)和[验收证据](docs/acceptance.md)。
+
+## 0.1.7：命令行输出失败和诊断控制符
+
+输出目标不可写或下游提前关闭管道时，现在返回退出码 2，不再抛出未处理的 Node 异常堆栈。
+标准错误可用时会输出简短 I/O 提示；两个通道都不可用时，只能依靠退出码。
+非法参数中的换行、终端控制符和双向文字格式符会被转义，避免伪造诊断行或影响终端显示；
+正常 JSON 输出不变。写入中途失败可能留下部分输出，调用方须检查退出码。
+
+新增五项真实进程检查已在两种模式、Windows／Ubuntu 及实际下载的发布包上通过。
+详见[使用约定](docs/usage.md)和[验收证据](docs/acceptance.md)。
 
 ## 工程结构与职责
 

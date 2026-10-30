@@ -203,7 +203,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.6 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.6)
+implementations. Version [0.1.7 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.7)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -243,6 +243,18 @@ Whole-transport failures return `limit_exceeded`, exit 2, empty stdout; item
 isolation still applies once the batch is decoded. Regression tests exercise
 both modes under the same 192 MiB test heap. This is not a universal peak-memory
 guarantee. See [resource limits](docs/resource-limits.md) and [evidence](docs/acceptance.md).
+
+## CLI output and diagnostic fixes in 0.1.7
+
+Output failures (including a downstream pipe closing early) now exit 2 rather
+than throwing an unhandled Node exception. If stderr is available, a short I/O
+diagnostic is emitted; if both streams fail, only exit status can report it.
+Diagnostics escape embedded controls, line separators and bidi formatting so
+invalid options cannot create forged log lines or terminal commands. Normal
+JSON stdout is unchanged. Output may be partial if a destination fails during
+writing; consumers must check exit status. Five new subprocess cases pass in
+both modes, on Windows/Ubuntu and from the downloaded release. See
+[usage](docs/usage.md) and [release evidence](docs/acceptance.md).
 
 ## License
 
