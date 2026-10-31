@@ -2,17 +2,21 @@
 
 ## Current state (2026-10-31)
 
-### 0.1.10 source checkpoint
+### Current release: 0.1.10
 
 - Meter all ordering scans/comparisons, including Unicode prefixes. Stable
   bottom-up merge sort propagates budget errors; input arrays stay unchanged.
 - Local: 52 unit tests, 892 official cases per mode, 33 adverse/256 mutation
   checks per mode, examples and PowerShell. Independent sorting checks cover
   merge boundaries and ties. Larger sorts may now need a higher trusted budget.
-- Next: synchronize source, verify CI/package, publish/install 0.1.10 and
-  record receipts. Older release records below are historical.
+- Source `e959381` is on main; Windows/Ubuntu CI 41161293727 passed. The 65-file
+  archive passed inspection and fresh-extraction verification. Mooncakes returned
+  200 OK; a new consumer installed exact 0.1.10 and passed all six ordering
+  budget guards, ordinary sorting and retained regressions in both modes.
+- Use 0.1.10 for current submissions. Acceptance.md records hash and links;
+  following docs-only commit records receipts. Older entries are historical.
 
-### Current release: 0.1.9
+### Previous release: 0.1.9
 
 - Reject non-finite intermediate scalar results before parent expressions can
   hide them. Lazy branches remain lazy and compiled queries recover on next call.

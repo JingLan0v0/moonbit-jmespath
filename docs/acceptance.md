@@ -12,8 +12,23 @@ checks and 256 mutations per mode; examples and PowerShell smoke. Each ordering
 function rejects the prefix workload without losing neighboring requests.
 Additional CLI checks compare numeric sorting and stable ties at lengths
 0/1/2/3/31/32/33/257 with Node's independent sort in debug and release. Tests
-cover input preservation and query reuse after exhaustion. Remote CI and
-publication evidence pending at this source checkpoint.
+cover input preservation and query reuse after exhaustion.
+
+Verified release evidence (2026-10-31):
+
+- Source `e959381573096a8034ed177065aa12e8260525e7` is on original main, with
+  prior history preserved. [CI 41161293727](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41161293727)
+  passed on Windows and Ubuntu.
+- 65-file archive inspected without credentials/build/cache content and fully
+  verified after fresh extraction. SHA-256:
+  `20d48c4645a562da0750ae7dcd394933becd8a01093333fb161c8b15cf858e02`.
+- Preflight returned 202 dry-run success; formal publication returned **200 OK**.
+- A fresh consumer installed exact `JingLan0v0/jmespath@0.1.10` and passed
+  budget exhaustion for all six ordering functions, ordinary sorting and all
+  retained consumer regressions in debug and release.
+- [Mooncakes 0.1.10](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.10).
+  Following docs-only commit records receipts. Organizer final acceptance is
+  still a separate decision.
 
 ## 0.1.9 intermediate numeric-value audit (2026-10-30)
 

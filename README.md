@@ -194,8 +194,8 @@ expanded occurrence; iterative JSON equality consumes the query work budget.
 insertion, and batch successes share an output budget with room reserved for
 errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
 
-Verification covers 49 unit tests, three scenarios, and, in **each** CLI build
-mode, 27 adversarial checks plus 256 deterministic grammar mutations. Test
+Verification covers 52 unit tests, three scenarios, and, in **each** CLI build
+mode, 33 adversarial checks plus 256 deterministic grammar mutations. Test
 subprocesses have a timeout and heap cap. CI enforces warning-free checks and
 exact official error categories in both modes, on Windows and Ubuntu, and saves
 downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
@@ -203,7 +203,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.9 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.9)
+implementations. Version [0.1.10 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.10)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -276,6 +276,17 @@ lazy, batches isolate the error and compiled queries remain reusable.
 This enforces the finite-JSON policy; it does not improve floating-point
 precision or change the running-sum algorithm for avg. See
 [resource limits](docs/resource-limits.md) and [evidence](docs/acceptance.md).
+
+## Ordering work budgets in 0.1.10
+
+Ordering scans, comparisons and Unicode iterator advances now consume max_steps
+across sort/min/max and their _by variants. Stable bottom-up merge sorting also
+meters scratch copies and merge writes, and stops immediately on budget errors.
+Long common prefixes can no longer perform unmetered comparison work. Inputs
+stay unchanged, equal-key order is preserved, and later batch items still run.
+Large legitimate sorts may now need a higher explicitly chosen trusted budget;
+this is an intentional tightening, not a wall-clock guarantee. See
+[resource contract](docs/resource-limits.md) and [release evidence](docs/acceptance.md).
 
 ## License
 
