@@ -26,6 +26,21 @@ assert.equal(good.status, 0);
 assert.deepEqual(JSON.parse(good.stdout), ['月', 'bit']);
 assert.equal(good.stderr, '');
 
+// Exercise merge-run boundaries and stable ties against Node's independent sort.
+for (const size of [0,1,2,3,31,32,33,257]) {
+  const values = Array.from({length:size},(_,i)=>(i*73+19)%41-20);
+  const records = values.map((key,id)=>({key,id}));
+  const r = invoke(['--batch','--compact','-'], JSON.stringify([
+    {expression:'sort(@)',data:values},
+    {expression:'sort_by(@, &key)[*].id',data:records},
+  ]));
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(JSON.parse(r.stdout), [
+    {ok:true,result:[...values].sort((a,b)=>a-b)},
+    {ok:true,result:[...records].sort((a,b)=>a.key-b.key).map(x=>x.id)},
+  ]);
+}
+
 // Explicit specification examples spanning the UTF-16 surrogate boundary.
 const orderedUnicode = ['', 'A', 'a', 'e\u0301', 'é', '月', '\ue000', '\uffff', '\u{10000}', '😀', '😀x', '\u{10ffff}'];
 const unorderedUnicode = [...orderedUnicode].reverse();

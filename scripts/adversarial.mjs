@@ -60,6 +60,10 @@ isolated('join amplification', 'join(separator, items)', {separator:'x'.repeat(1
 isolated('non-finite arithmetic', 'sum(@)', [1e308,1e308], 'invalid_value');
 isolated('hidden non-finite arithmetic', 'type(sum(@))', [1e308,1e308], 'invalid_value');
 isolated('hidden non-finite conversion', 'type(to_number(@))', '1e999', 'invalid_value');
+const longKeys = Array.from({length:32},(_,i)=>'x'.repeat(40000)+String(31-i).padStart(2,'0'));
+for (const expression of ['sort(@)', 'min(@)', 'max(@)', 'sort_by(@, &@)', 'min_by(@, &@)', 'max_by(@, &@)']) {
+  isolated(`ordering work budget ${expression}`, expression, longKeys);
+}
 let nested = 0;
 for (let i=0;i<257;i++) nested=[nested];
 isolated('in-memory JSON depth', '@', nested);

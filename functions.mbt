@@ -50,6 +50,7 @@ fn evaluate_args(
 fn homogeneous_order(
   values : Array[Json],
   name : String,
+  state : EvalState,
 ) -> Int raise JmesPathError {
   if values.is_empty() {
     return 0
@@ -57,6 +58,7 @@ fn homogeneous_order(
   match values[0] {
     Number(_, ..) => {
       for value in values {
+        state.tick()
         if !(value is Number(_, ..)) {
           return invalid_type(name)
         }
@@ -65,6 +67,7 @@ fn homogeneous_order(
     }
     String(_) => {
       for value in values {
+        state.tick()
         if !(value is String(_)) {
           return invalid_type(name)
         }
@@ -76,7 +79,13 @@ fn homogeneous_order(
 }
 
 ///|
-fn compare_ordered(left : Json, right : Json, kind : Int) -> Int {
+fn compare_ordered(
+  left : Json,
+  right : Json,
+  kind : Int,
+  state : EvalState,
+) -> Int raise JmesPathError {
+  state.tick()
   if kind == 1 {
     guard left is Number(a, ..) && right is Number(b, ..) else { return 0 }
     if a < b {
@@ -93,6 +102,7 @@ fn compare_ordered(left : Json, right : Json, kind : Int) -> Int {
     let left_chars = a.iter()
     let right_chars = b.iter()
     while true {
+      state.tick()
       match (left_chars.next(), right_chars.next()) {
         (None, None) => return 0
         (None, Some(_)) => return -1
@@ -177,15 +187,16 @@ fn function_extreme(
   name : String,
   value : Json,
   maximum : Bool,
+  state : EvalState,
 ) -> Json raise JmesPathError {
   guard value is Array(items) else { return invalid_type(name) }
   if items.is_empty() {
     return Json::null()
   }
-  let kind = homogeneous_order(items, name)
+  let kind = homogeneous_order(items, name, state)
   let mut best = items[0]
   for i = 1; i < items.length(); i = i + 1 {
-    let order = compare_ordered(items[i], best, kind)
+    let order = compare_ordered(items[i], best, kind, state)
     if (maximum && order > 0) || (!maximum && order < 0) {
       best = items[i]
     }
@@ -197,12 +208,10 @@ fn function_extreme(
 fn function_sort(value : Json, state : EvalState) -> Json raise JmesPathError {
   guard value is Array(items) else { return invalid_type("sort") }
   state.add_results(items.length())
-  let result = items.copy()
-  let kind = homogeneous_order(result, "sort")
-  if kind != 0 {
-    result.sort_by(fn(a, b) { compare_ordered(a, b, kind) })
-  }
-  Json::array(result)
+  let kind = homogeneous_order(items, "sort", state)
+  Json::array(
+    bounded_sort(items, (a, b) => compare_ordered(a, b, kind, state), state),
+  )
 }
 
 ///|
@@ -255,15 +264,19 @@ fn evaluate_expref_function(
     pairs.push((item, evaluate(reference, item, state)))
   }
   let keys = pairs.map(pair => pair.1)
-  let kind = homogeneous_order(keys, name)
+  let kind = homogeneous_order(keys, name, state)
   if name == "sort_by" {
-    pairs.sort_by(fn(a, b) { compare_ordered(a.1, b.1, kind) })
-    return Json::array(pairs.map(pair => pair.0))
+    let sorted = bounded_sort(
+      pairs,
+      (a, b) => compare_ordered(a.1, b.1, kind, state),
+      state,
+    )
+    return Json::array(sorted.map(pair => pair.0))
   }
   let maximum = name == "max_by"
   let mut best = pairs[0]
   for i = 1; i < pairs.length(); i = i + 1 {
-    let order = compare_ordered(pairs[i].1, best.1, kind)
+    let order = compare_ordered(pairs[i].1, best.1, kind, state)
     if (maximum && order > 0) || (!maximum && order < 0) {
       best = pairs[i]
     }
@@ -356,7 +369,7 @@ fn evaluate_function(
     }
     "max" => {
       require_arity(name, values.length(), 1)
-      function_extreme(name, values[0], true)
+      function_extreme(name, values[0], true, state)
     }
     "merge" => {
       require_min_arity(name, values.length(), 1)
@@ -375,7 +388,7 @@ fn evaluate_function(
     }
     "min" => {
       require_arity(name, values.length(), 1)
-      function_extreme(name, values[0], false)
+      function_extreme(name, values[0], false, state)
     }
     "not_null" => {
       require_min_arity(name, values.length(), 1)

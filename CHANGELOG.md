@@ -2,6 +2,17 @@
 
 All notable changes to MoonJMES are recorded here.
 
+## 0.1.10 - 2026-10-31
+
+- meter ordering type scans, comparisons, Unicode iterator advances, sorting
+  copies and merge writes against max_steps across all six ordering functions
+- use stable bottom-up merge sort so budget errors stop sorting immediately;
+  the pinned core sort comparator cannot raise an error
+- add long-common-prefix isolation tests, low-budget rejection, recovery and
+  unchanged-input tests; compare merge boundaries/ties against independent sorting
+- large legitimate sorts can now exhaust the default budget; this is an
+  intentional resource-contract tightening, not a wall-clock timeout
+
 ## 0.1.9 - 2026-10-30
 
 - reject non-finite scalar results at evaluated expression boundaries, before

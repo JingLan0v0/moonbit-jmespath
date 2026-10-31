@@ -1,4 +1,4 @@
-# Resource contract (0.1.9)
+# Resource contract (0.1.10)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -36,8 +36,19 @@ error before printing the batch.
 Each request starts with fresh evaluation state. A rejected large response
 does not consume the success budget, allowing later smaller responses to fit.
 If no success budget remains, later requests may also get `limit_exceeded`.
-Logical work is not a CPU instruction counter: core string/sort routines and
+Logical work is not a CPU instruction counter: other core string routines and
 shape preflight have bounded inputs but are not charged per machine instruction.
+
+Since 0.1.10 ordering type scans charge one step per element; comparisons charge
+one step plus one per Unicode iterator advance for strings. Sorting charges
+two steps per element before allocating scratch copies and one per merge write.
+The stable bottom-up merge sort propagates comparison errors immediately and
+does not mutate caller data. sort/min/max and their _by variants share the
+budget. Scratch storage is O(n); this is not a wall-clock or memory sandbox.
+Long common prefixes or large legitimate sorts may now exceed max_steps where
+earlier versions succeeded. Trusted callers may choose a higher valid budget;
+untrusted callers should retain bounded operation. Exhaustion remains an
+isolated per-item limit_exceeded error in a decoded batch.
 
 Since 0.1.5, `to_number` scans string characters against a scalar-number alphabet
 before calling the JSON parser and charges each scanned character to max_steps.

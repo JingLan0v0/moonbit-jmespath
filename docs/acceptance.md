@@ -1,5 +1,20 @@
 # MoonJMES acceptance evidence
 
+## 0.1.10 ordering work-budget audit (2026-10-31)
+
+In 0.1.9, 32 strings with 40,000-character common prefixes completed sort/min/max
+despite comparison work exceeding the default logical budget. Ordering scans and
+comparisons were previously unmetered. All six ordering functions now consume
+the budget, and stable merge sorting can raise and stop immediately.
+
+Local verification: 52 unit tests; official suite 892/892 per mode; 33 adversarial
+checks and 256 mutations per mode; examples and PowerShell smoke. Each ordering
+function rejects the prefix workload without losing neighboring requests.
+Additional CLI checks compare numeric sorting and stable ties at lengths
+0/1/2/3/31/32/33/257 with Node's independent sort in debug and release. Tests
+cover input preservation and query reuse after exhaustion. Remote CI and
+publication evidence pending at this source checkpoint.
+
 ## 0.1.9 intermediate numeric-value audit (2026-10-30)
 
 Reproduced in 0.1.8: direct sum overflow returned invalid_value, while wrapping

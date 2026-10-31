@@ -144,6 +144,60 @@ test "compiled query is reusable after intermediate overflow" {
 }
 
 ///|
+test "ordering scans and comparisons consume configured work limits" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 8, }
+  let numbers = Json::array(Array::make(32, Json::number(1.0)))
+  for
+    expression in [
+      "sort(@)", "min(@)", "max(@)", "sort_by(@, &@)", "min_by(@, &@)", "max_by(@, &@)",
+    ] {
+    let code = try {
+      @jmespath.search(expression, numbers, limits~) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(code, Some("limit_exceeded"))
+  }
+}
+
+///|
+test "long common prefixes exhaust comparison budget and query recovers" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 100, }
+  let query = @jmespath.compile("sort(@)", limits~)
+  let input = Json::array([
+    Json::string("x".repeat(128) + "b"),
+    Json::string("x".repeat(128) + "a"),
+  ])
+  let code = try {
+    query.search(input) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("limit_exceeded"))
+  assert_eq(query.search(@json.parse("[2,1]")), @json.parse("[1,2]"))
+  assert_eq(
+    @jmespath.search("min(@)", input),
+    Json::string("x".repeat(128) + "a"),
+  )
+}
+
+///|
+test "bounded merge ordering is stable and does not mutate inputs" {
+  let input = @json.parse(
+    "[{\"k\":2,\"id\":0},{\"k\":1,\"id\":1},{\"k\":2,\"id\":2},{\"k\":1,\"id\":3},{\"k\":2,\"id\":4},{\"k\":1,\"id\":5},{\"k\":2,\"id\":6},{\"k\":1,\"id\":7}]",
+  )
+  assert_eq(
+    @jmespath.search("sort_by(@, &k)[*].id", input),
+    @json.parse("[1,3,5,7,0,2,4,6]"),
+  )
+  assert_eq(@jmespath.search("[*].id", input), @json.parse("[0,1,2,3,4,5,6,7]"))
+  assert_eq(@jmespath.search_json("sort(@)", "[]"), @json.parse("[]"))
+  assert_eq(@jmespath.search_json("sort(@)", "[1]"), @json.parse("[1]"))
+}
+
+///|
 test "bounded serialization preserves compact and pretty JSON" {
   let value = @json.parse(
     "{\"text\":\"月\\n\\\"\\\\/\",\"items\":[true,null,1]}",

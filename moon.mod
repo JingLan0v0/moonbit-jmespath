@@ -11,7 +11,7 @@
 
 name = "JingLan0v0/jmespath"
 
-version = "0.1.9"
+version = "0.1.10"
 
 readme = "README.md"
 

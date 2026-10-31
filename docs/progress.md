@@ -1,6 +1,16 @@
 # Project status and handoff
 
-## Current state (2026-10-30)
+## Current state (2026-10-31)
+
+### 0.1.10 source checkpoint
+
+- Meter all ordering scans/comparisons, including Unicode prefixes. Stable
+  bottom-up merge sort propagates budget errors; input arrays stay unchanged.
+- Local: 52 unit tests, 892 official cases per mode, 33 adverse/256 mutation
+  checks per mode, examples and PowerShell. Independent sorting checks cover
+  merge boundaries and ties. Larger sorts may now need a higher trusted budget.
+- Next: synchronize source, verify CI/package, publish/install 0.1.10 and
+  record receipts. Older release records below are historical.
 
 ### Current release: 0.1.9
 
