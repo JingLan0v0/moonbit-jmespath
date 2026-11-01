@@ -173,3 +173,58 @@ test "expression-reference functions map, sort, and select records" {
     Json::string("Lin"),
   )
 }
+
+///|
+test "expression references capture boolean comparison and pipe expressions" {
+  let data = @json.parse("[{\"a\":0,\"b\":9},{\"a\":2},{\"b\":3}]")
+  assert_eq(@jmespath.search("map(&a || b, @)", data), @json.parse("[0,2,3]"))
+  assert_eq(
+    @jmespath.search("map(&a > `1`, @)", data),
+    @json.parse("[false,true,null]"),
+  )
+  assert_eq(
+    @jmespath.search("map(&a && b, @)", data),
+    @json.parse("[9,null,null]"),
+  )
+  assert_eq(
+    @jmespath.search("map(&a || b | to_string(@), @)", data),
+    @json.parse("[\"0\",\"2\",\"3\"]"),
+  )
+}
+
+///|
+test "ordering expression references support fallback keys and pipes" {
+  let data = @json.parse(
+    "[{\"id\":0,\"b\":2},{\"id\":1,\"a\":1},{\"id\":2,\"a\":1}]",
+  )
+  assert_eq(
+    @jmespath.search("sort_by(@, &a || b)[*].id", data),
+    @json.parse("[1,2,0]"),
+  )
+  assert_eq(@jmespath.search("min_by(@, &a || b).id", data), Json::number(1.0))
+  assert_eq(@jmespath.search("max_by(@, &a || b).id", data), Json::number(0.0))
+  assert_eq(
+    @jmespath.search("sort_by(@, &a || b | to_string(@))[*].id", data),
+    @json.parse("[1,2,0]"),
+  )
+}
+
+///|
+test "expression reference delimiters nesting and lazy evaluation are preserved" {
+  assert_eq(
+    @jmespath.search_json("map(&map(&@ > `1`, @), @)", "[[0,2],[3]]"),
+    @json.parse("[[false,true],[true]]"),
+  )
+  assert_eq(
+    @jmespath.search_json("map(&`true` || unknown_function(), @)", "[1,2]"),
+    @json.parse("[true,true]"),
+  )
+  assert_eq(
+    @jmespath.search_json("map(&`false` && unknown_function(), @)", "[1]"),
+    @json.parse("[false]"),
+  )
+  assert_eq(
+    @jmespath.search_json("map(&(@ || `0`), @) | length(@)", "[null,2]"),
+    Json::number(2.0),
+  )
+}

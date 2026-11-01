@@ -2,7 +2,17 @@
 
 ## Current state (2026-11-01)
 
-### Current release: 0.1.11
+### Current work: 0.1.12
+
+- Fix compound expression reference precedence; valid map/ordering references
+  with boolean, comparison and pipe operators now retain the whole expression.
+- Added nested/delimiter/lazy-branch and budget/reuse regressions. Targeted local
+  slice audit: 2,100 cases match Python slicing in each mode, no defect found.
+- Local: 58 unit tests, 892 official cases per mode, 35 adverse/256 mutations
+  per mode, examples and PowerShell passed. CI and registry receipts pending;
+  last verified release is 0.1.11. Older entries are historical.
+
+### Previous release: 0.1.11
 
 - Reproduced and fixed the 8-million-character string reversal heap abort.
 - Meter string length without a character array; precharge reverse before output

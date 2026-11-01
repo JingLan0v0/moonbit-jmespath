@@ -1,5 +1,26 @@
 # MoonJMES acceptance evidence
 
+## 0.1.12 expression-reference audit (2026-11-01)
+
+In 0.1.11, valid map calls with fallback, comparison or pipe expressions and
+sort_by with fallback keys returned invalid_type in debug and release. The
+parser used unary precedence after &, leaving operators outside the reference.
+The [official grammar](https://jmespath.org/specification.html#grammar) defines
+expression-type as & followed by an expression. Parsing now consumes all its
+operators until the argument delimiter. Nested references, short-circuiting,
+ordering ties and work-budget recovery have explicit regressions.
+
+The adjacent slice audit compared 2,100 combinations of start/stop/stride and
+empty/singleton/four-element inputs against Python slicing, including signed
+32-bit extremes; all matched in both modes. This was a targeted local probe,
+not an expansion of the pinned official 892-case suite.
+
+Local verification passed: 58 unit tests; 892/892 official cases per mode;
+35 adversarial/256 mutation checks per mode; complete API and scenario examples;
+PowerShell smoke. Eight additional CLI cases cover compound references in both
+modes. CI and registry release receipts are pending for this revision.
+
+
 ## 0.1.11 string allocation audit (2026-11-01)
 
 Reproduced in 0.1.10: a decoded batch with an 8,000,000-character string queried

@@ -1,5 +1,14 @@
 # MoonJMES
 
+## 0.1.12 compound expression references
+
+Queries such as map(&a || b, @), map(&a > `1`, @) and
+sort_by(@, &a || b) previously returned invalid_type despite valid input.
+The parser now captures the complete expression after &, including pipes,
+while preserving function argument boundaries and existing resource guards.
+See [verification and publication evidence](docs/acceptance.md).
+
+
 ## 0.1.11 string allocation fix
 
 An 8,000,000-character length(reverse(@)) query previously aborted both

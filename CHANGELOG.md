@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.12 - 2026-11-01
+
+- parse complete expression references, including comparison, boolean and pipe
+  operators, instead of binding & as tightly as unary negation
+- fix valid map/sort_by/min_by/max_by calls incorrectly returning invalid_type
+  for fallback keys, comparison mappings and piped transformations
+- test nested references, argument delimiters, lazy branches, budget exhaustion
+  and compiled-query recovery; retain parser/evaluator depth guards
+
+
 ## 0.1.11 - 2026-11-01
 
 - fix a reproduced process-wide heap abort on an 8,000,000-character reverse

@@ -203,7 +203,9 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
     CurrentToken => Current
     Star => Projection(ObjectWildcard(Current), Current)
     NotToken => Not(self.parse_expression(5))
-    Ampersand => ExpressionRef(self.parse_expression(5))
+    // An expression reference captures a complete expression up to the argument
+    // delimiter, including comparisons, boolean operators and pipes.
+    Ampersand => ExpressionRef(self.parse_expression(1))
     LParen => {
       let expr = self.parse_expression(1)
       self.expect(RParen, ")")

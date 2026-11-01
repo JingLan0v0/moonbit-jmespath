@@ -283,3 +283,17 @@ test "string operations preserve Unicode scalars and array semantics" {
   )
   assert_eq(@jmespath.search_json("length(@)", "{\"a\":1}"), Json::number(1.0))
 }
+
+///|
+test "compound expression references retain resource limits and query reuse" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 16, }
+  let query = @jmespath.compile("map(&@ || `0`, @)", limits~)
+  let code = try {
+    query.search(Json::array(Array::make(32, Json::null()))) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("limit_exceeded"))
+  assert_eq(query.search(Json::array([Json::null()])), @json.parse("[0]"))
+}

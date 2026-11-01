@@ -60,6 +60,23 @@ assert.equal(semanticRun.status, 0, semanticRun.stderr);
 assert.equal(semanticRun.stderr, '');
 assert.deepEqual(JSON.parse(semanticRun.stdout), semanticCases.map(([, ,result])=>({ok:true,result})));
 
+// References capture complete expressions and stop at function delimiters.
+const referenceData = [{id:0,b:2},{id:1,a:1},{id:2,a:1}];
+const referenceCases = [
+  ['map(&a || b, @)', referenceData, [2,1,1]],
+  ['map(&a > `2`, @)', referenceData, [null,false,false]],
+  ['map(&a && b, @)', referenceData, [null,null,null]],
+  ['map(&a || b | to_string(@), @)', referenceData, ['2','1','1']],
+  ['sort_by(@, &a || b)[*].id', referenceData, [1,2,0]],
+  ['min_by(@, &a || b).id', referenceData, 1],
+  ['max_by(@, &a || b).id', referenceData, 0],
+  ['map(&map(&@ > `1`, @), @)', [[0,2],[3]], [[false,true],[true]]],
+];
+const referenceRun = invoke(['--batch','--compact','-'],JSON.stringify(referenceCases.map(([expression,data])=>({expression,data}))));
+assert.equal(referenceRun.status,0,referenceRun.stderr);
+assert.equal(referenceRun.stderr,'');
+assert.deepEqual(JSON.parse(referenceRun.stdout),referenceCases.map(([, ,result])=>({ok:true,result})));
+
 // Nulls have different behavior in multi-select, subexpressions and projections.
 const nullCases = [
   ['[foo,bar]', null, null], ['{a:foo}', null, null],
