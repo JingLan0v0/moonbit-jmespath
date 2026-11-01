@@ -1,5 +1,26 @@
 # MoonJMES acceptance evidence
 
+## 0.1.13 filter syntax and error audit (2026-11-01)
+
+In 0.1.12, [ ?@], tab-separated markers, grouped filters and map(&[ ?@], @)
+incorrectly succeeded; @[ ?@] correctly failed. Reproduced in both build modes.
+The [official grammar](https://jmespath.org/specification.html#filter-expressions)
+defines the adjacent opener [?. Validation now occurs in the lexer everywhere,
+replacing a postfix-only check. This is a malformed-syntax consistency repair,
+not a crash finding. Valid whitespace outside the opener and literal text remain
+unchanged; Unicode-scalar diagnostic offsets are tested.
+
+The function audit found no new defect in 30 wrong-arity/type/unknown-function
+cases. Those checks are now retained in both-mode CLI integration, with exact
+error categories and valid neighbors. Eight malformed filter cases have the same
+batch isolation checks, plus unit coverage for four whitespace characters and
+nested/reference contexts.
+
+Local checks passed: 60 unit tests; 892 official cases per mode; 35 adversarial
+checks and 256 mutations per mode; complete API/scenario examples and PowerShell.
+CI and registry publication receipts are pending for this source revision.
+
+
 ## 0.1.12 expression-reference audit (2026-11-01)
 
 In 0.1.11, valid map calls with fallback, comparison or pipe expressions and

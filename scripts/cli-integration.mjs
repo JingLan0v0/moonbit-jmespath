@@ -77,6 +77,51 @@ assert.equal(referenceRun.status,0,referenceRun.stderr);
 assert.equal(referenceRun.stderr,'');
 assert.deepEqual(JSON.parse(referenceRun.stdout),referenceCases.map(([, ,result])=>({ok:true,result})));
 
+// Validate invalid arities/types across the function surface in a mixed batch.
+const invalidFunctions = [
+  ['abs()', 'invalid_arity'], ['abs(`1`, `2`)', 'invalid_arity'],
+  ...['avg(`null`)', 'ceil(`false`)', 'contains(`1`, `1`)',
+    'ends_with(`1`, `1`)', 'floor(`null`)', 'join(`0`, `[]`)', 'keys(`[]`)',
+    'length(`null`)', 'map(@, `[]`)', 'map(&@, `null`)', 'max(`[1,true]`)',
+    'max_by(`[]`, @)', 'merge(`null`)', 'min(`[true]`)', 'min_by(`[]`, @)',
+    'reverse(`1`)', 'sort(`[1,"x"]`)', 'sort_by(`[]`, @)',
+    'starts_with(`1`, `1`)', 'sum(`[true]`)', 'values(`[]`)'].map(e=>[e,'invalid_type']),
+  ...['merge()', 'not_null()', 'to_array()', 'to_number()', 'to_string()', 'type()'].map(e=>[e,'invalid_arity']),
+  ['unknown_function()', 'unknown_function'],
+];
+const invalidRun=invoke(['--batch','--compact','-'],JSON.stringify([
+  {expression:'@',data:'before'}, ...invalidFunctions.map(([expression])=>({expression,data:null})),
+  {expression:'@',data:'after'},
+]));
+assert.equal(invalidRun.status,0,invalidRun.stderr);
+assert.equal(invalidRun.stderr,'');
+const invalidReplies=JSON.parse(invalidRun.stdout);
+assert.deepEqual(invalidReplies[0],{ok:true,result:'before'});
+assert.deepEqual(invalidReplies.at(-1),{ok:true,result:'after'});
+invalidFunctions.forEach(([expression,code],i)=>{
+  assert.equal(invalidReplies[i+1].ok,false,expression);
+  assert.equal(invalidReplies[i+1].error.code,code,expression);
+});
+
+// A split filter marker must fail consistently, while valid neighbors survive.
+const splitFilters = ['[ ?@]', '[\t?@]', '[\r?@]', '[\n?@]', '([ ?@])', 'map(&[ ?@], @)', '@[ ?@]', "'月😀' | [ ?@]"];
+const filterRequests = [
+  {expression:'[? @ ]',data:[false,1,null,2]},
+  ...splitFilters.map(expression=>({expression,data:[1,2]})),
+  {expression:'@ [? @ ]',data:[false,1,null,2]},
+];
+const filterRun=invoke(['--batch','--compact','-'],JSON.stringify(filterRequests));
+assert.equal(filterRun.status,0,filterRun.stderr);
+assert.equal(filterRun.stderr,'');
+const filterReplies=JSON.parse(filterRun.stdout);
+assert.deepEqual(filterReplies[0],{ok:true,result:[1,2]});
+assert.deepEqual(filterReplies.at(-1),{ok:true,result:[1,2]});
+splitFilters.forEach((expression,i)=>{
+  assert.equal(filterReplies[i+1].ok,false,expression);
+  assert.equal(filterReplies[i+1].error.code,'syntax',expression);
+  assert.equal(filterReplies[i+1].error.offset,[...expression.slice(0,expression.indexOf('?'))].length,expression);
+});
+
 // Nulls have different behavior in multi-select, subexpressions and projections.
 const nullCases = [
   ['[foo,bar]', null, null], ['{a:foo}', null, null],

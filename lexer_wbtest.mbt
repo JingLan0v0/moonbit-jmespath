@@ -39,3 +39,32 @@ test "integer indexes reject overflow without wrapping" {
     _ => assert_true(false)
   }
 }
+
+///|
+test "filter opener rejects separated markers in every expression context" {
+  for whitespace in [" ", "\t", "\r", "\n"] {
+    for prefix in ["", "@", "(", "map(&", "foo | ", "{x:", "'月😀' | "] {
+      let expression = prefix + "[" + whitespace + "?@]"
+      let diagnostic = try {
+        lex(expression, default_limits()) |> ignore
+        None
+      } catch {
+        JmesPathError(d) => Some(d)
+      }
+      assert_true(diagnostic is Some(_))
+      let d = diagnostic.unwrap()
+      assert_eq(d.code, "syntax")
+      assert_eq(d.offset, prefix.iter().count() + 2)
+    }
+  }
+}
+
+///|
+test "filter spacing preserves literal content and valid adjacent markers" {
+  for source in ["[? @ ]", "@ [? @ ]", "map(&[? @ ], @)"] {
+    parse(source, default_limits()) |> ignore
+  }
+  for source in ["'[ ?@]'", "\"[ ?@]\"", "`\"[ ?@]\"`"] {
+    lex(source, default_limits()) |> ignore
+  }
+}

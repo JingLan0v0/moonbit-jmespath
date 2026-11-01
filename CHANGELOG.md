@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.13 - 2026-11-01
+
+- consistently reject whitespace inside the [?-filter opener at the lexer
+  boundary, including root, grouped and expression-reference contexts
+- remove the postfix-only duplicate check; keep Unicode diagnostic offsets,
+  valid surrounding whitespace and quoted literal content unchanged
+- add mixed-batch regressions for malformed filter markers and 30 invalid
+  function calls with exact error categories and surviving valid neighbors
+- this tightens acceptance of malformed syntax; it is not a crash or new feature
+
+
 ## 0.1.12 - 2026-11-01
 
 - parse complete expression references, including comparison, boolean and pipe

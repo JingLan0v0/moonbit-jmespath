@@ -2,7 +2,17 @@
 
 ## Current state (2026-11-01)
 
-### Current release: 0.1.12
+### Current work: 0.1.13
+
+- Fix inconsistent filter-opener syntax validation across root/postfix/nested
+  contexts. Preserve literal content, valid whitespace and Unicode offsets.
+- 30 invalid function calls showed no defect; retained them as CLI regressions
+  alongside malformed filter batch isolation. Local: 60 units, 892 official cases
+  per mode, 35 adverse/256 mutations per mode, examples and PowerShell passed.
+  CI and registry release receipts pending.
+- Last verified registry release: 0.1.12. Older entries are historical.
+
+### Previous release: 0.1.12
 
 - Fix compound expression reference precedence; valid map/ordering references
   with boolean, comparison and pipe operators now retain the whole expression.

@@ -294,6 +294,11 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
         i += 1
       }
       '?' => {
+        // The filter opener is the single lexical sequence "[?" everywhere,
+        // including root expressions, groups and expression references.
+        if i == 0 || chars[i - 1] != '[' {
+          fail("syntax", start, "filter marker must immediately follow [")
+        }
         tokens.push({ kind: Question, offset: start, })
         i += 1
       }

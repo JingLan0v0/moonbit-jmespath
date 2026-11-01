@@ -1,5 +1,14 @@
 # MoonJMES
 
+## 0.1.13 consistent filter syntax validation
+
+Malformed [ ?condition] filters were accepted at the root or inside function
+arguments but rejected after a field. Filter openers are now checked uniformly:
+[? must be adjacent, while [? condition ] and field [? condition ] remain valid.
+This is a syntax consistency fix. Literal strings containing [ ? are unchanged.
+See [verification and publication evidence](docs/acceptance.md).
+
+
 ## 0.1.12 compound expression references
 
 Queries such as map(&a || b, @), map(&a > `1`, @) and

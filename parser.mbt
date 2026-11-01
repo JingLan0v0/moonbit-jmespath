@@ -290,15 +290,7 @@ fn Parser::parse_expression(
       continue
     }
     if self.peek().kind is LBracket {
-      let bracket = self.advance()
-      if self.peek().kind is Question &&
-        self.peek().offset != bracket.offset + 1 {
-        fail(
-          "syntax",
-          self.peek().offset,
-          "whitespace is not allowed before filter marker",
-        )
-      }
+      self.advance() |> ignore
       if self.accept(RBracket) {
         left = Projection(Flatten(left), Current)
       } else {
