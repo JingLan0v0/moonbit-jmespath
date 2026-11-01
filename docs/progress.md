@@ -2,15 +2,20 @@
 
 ## Current state (2026-11-01)
 
-### Current work: 0.1.12
+### Current release: 0.1.12
 
 - Fix compound expression reference precedence; valid map/ordering references
   with boolean, comparison and pipe operators now retain the whole expression.
 - Added nested/delimiter/lazy-branch and budget/reuse regressions. Targeted local
   slice audit: 2,100 cases match Python slicing in each mode, no defect found.
 - Local: 58 unit tests, 892 official cases per mode, 35 adverse/256 mutations
-  per mode, examples and PowerShell passed. CI and registry receipts pending;
-  last verified release is 0.1.11. Older entries are historical.
+  per mode, examples and PowerShell passed.
+- Source 1852abd is on original main. Windows/Ubuntu CI 41279980902 passed.
+  The 65-file release archive passed inspection and fresh-extraction verification.
+- Mooncakes returned 200 OK for 0.1.12. A new consumer downloaded that exact
+  version and passed compound references and retained regressions in both modes.
+- Current verified release is 0.1.12; see acceptance.md for receipts and hash.
+  Following docs-only commit records evidence; older entries are historical.
 
 ### Previous release: 0.1.11
 

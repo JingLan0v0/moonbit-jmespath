@@ -18,7 +18,23 @@ not an expansion of the pinned official 892-case suite.
 Local verification passed: 58 unit tests; 892/892 official cases per mode;
 35 adversarial/256 mutation checks per mode; complete API and scenario examples;
 PowerShell smoke. Eight additional CLI cases cover compound references in both
-modes. CI and registry release receipts are pending for this revision.
+modes.
+
+Verified release evidence (2026-11-01):
+
+- Source 1852abd46f157fbf0ca85e40c0e037dff54ca4c9 is on original main with
+  normal rollback history. [CI 41279980902](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41279980902)
+  passed on Windows and Ubuntu.
+- The 65-file archive excludes credentials, Git, build and cache content; a
+  fresh extraction passed full verification. SHA-256:
+  8e65e2027662d391aeddd84b73dc683735509af79a23ba2d713345d0ce806507.
+- Dry-run returned 202 success; formal registry publication returned 200 OK.
+- A new consumer downloaded exact JingLan0v0/jmespath@0.1.12 and passed fallback,
+  comparison, pipe and sorting references plus all retained safety checks in
+  debug and release.
+- [Mooncakes 0.1.12](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.12).
+  The next documentation-only commit records receipts. Organizer acceptance
+  remains separate from these engineering checks.
 
 
 ## 0.1.11 string allocation audit (2026-11-01)
