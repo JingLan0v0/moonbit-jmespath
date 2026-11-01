@@ -19,7 +19,21 @@ Tests cover malformed/mismatched representations, valid large-number notation,
 query reuse, nested data and valid batch neighbors. Local verification passed:
 63 unit tests in both debug and release; 892 official cases per mode; 35 adverse
 checks/256 mutations per mode; CLI, API/scenario examples and PowerShell smoke.
-CI and publication receipts are pending for this source revision.
+Verified release evidence (2026-11-01):
+
+- Source fb530083e8ec1057b1eb6ca19a7751f9b9123eb5 is on original main,
+  preserving history. [CI 41305257961](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41305257961)
+  passed Windows and Ubuntu. Local release-mode unit tests were also run explicitly.
+- The 65-file archive excludes credentials, Git, build and cache content and
+  passed full verification after fresh extraction. SHA-256:
+  7d1a1fa85a106d522fc058af51fdd4fab4e9c6053160f2b4ac04b6dbadcaab7f.
+- Preflight returned 202 dry-run success; formal publication returned 200 OK.
+- A fresh consumer downloaded exact JingLan0v0/jmespath@0.1.14 and passed forged
+  numeric repr rejection, large-integer spelling preservation, batch isolation
+  and retained regressions in debug/release.
+- [Mooncakes 0.1.14](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.14).
+  The following docs-only commit records receipts. Organizer final acceptance
+  remains separate from technical verification.
 
 
 ## 0.1.13 filter syntax and error audit (2026-11-01)

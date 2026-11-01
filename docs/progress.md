@@ -2,15 +2,21 @@
 
 ## Current state (2026-11-01)
 
-### Current work: 0.1.14
+### Current release: 0.1.14
 
 - Reject forged numeric repr in caller-constructed Json before evaluation or
   bounded serialization; preserve matching precision text and batch isolation.
 - Reproduced the missing validation in both build modes. This is a direct library
   boundary issue, not a demonstrated CLI JSON injection.
 - Local: 63 unit tests in both modes, 892 official cases per mode, 35 adverse/256
-  mutations per mode, CLI, examples and PowerShell passed. CI/publish pending.
-- Last verified registry release: 0.1.13. Older entries are historical.
+  mutations per mode, CLI, examples and PowerShell passed.
+- Source fb53008 is on original main; Windows/Ubuntu CI 41305257961 passed.
+  The 65-file archive passed inspection and fresh-extraction verification.
+- Mooncakes returned 200 OK for 0.1.14. A new consumer downloaded the exact version
+  and passed numeric representation, precision-text and batch checks plus retained
+  regressions in both modes. See acceptance.md for hash and receipts.
+- Current verified release: 0.1.14. Following docs-only commit records evidence;
+  older entries are historical.
 
 ### Previous release: 0.1.13
 
