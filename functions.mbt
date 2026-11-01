@@ -123,9 +123,16 @@ fn compare_ordered(
 }
 
 ///|
-fn function_length(value : Json) -> Json raise JmesPathError {
+fn function_length(value : Json, state : EvalState) -> Json raise JmesPathError {
   match value {
-    String(text) => Json::number(text.to_array().length().to_double())
+    String(text) => {
+      let mut count = 0
+      for _ in text.iter() {
+        state.tick()
+        count += 1
+      }
+      Json::number(count.to_double())
+    }
     Array(items) => Json::number(items.length().to_double())
     Object(entries) => Json::number(entries.length().to_double())
     _ => invalid_type("length")
@@ -365,7 +372,7 @@ fn evaluate_function(
     }
     "length" => {
       require_arity(name, values.length(), 1)
-      function_length(values[0])
+      function_length(values[0], state)
     }
     "max" => {
       require_arity(name, values.length(), 1)
@@ -406,7 +413,16 @@ fn evaluate_function(
           state.add_results(items.length())
           Json::array(items.rev())
         }
-        String(text) => Json::string(String::from_array(text.to_array().rev()))
+        String(text) => {
+          // Reject unaffordable copies before allocating output. UTF-16 units
+          // conservatively cover every code point, including surrogate pairs.
+          state.charge(text.length())
+          let reversed = StringBuilder()
+          for c in text.rev_iter() {
+            reversed.write_char(c)
+          }
+          Json::string(reversed.to_string())
+        }
         _ => invalid_type(name)
       }
     }

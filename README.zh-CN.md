@@ -1,5 +1,12 @@
 # MoonJMES
 
+## 0.1.11 字符串分配修复
+
+此前对 800 万字符执行反转再求长度，在 192 MiB 测试堆限制下会导致整个进程退出，批次前后的正常结果也会丢失。现在反转会先检查执行预算，再通过反向 Unicode 迭代构建结果，避免多份临时字符数组；字符串长度计算改为计入预算的逐字符计数。超限返回逐项 limit_exceeded，保留正常请求的结果。
+
+合法的大字符串也可能触发新限制，可信调用方可显式提高预算，但这不代表任意内存条件下都不会崩溃。验证与发布状态见 [验收记录](docs/acceptance.md)。
+
+
 简体中文 | [English](README.md)
 
 [![CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml/badge.svg)](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)

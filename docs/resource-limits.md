@@ -1,4 +1,4 @@
-# Resource contract (0.1.10)
+# Resource contract (0.1.11)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -91,3 +91,12 @@ could be finite. This release does not claim improved numerical precision.
 `node scripts/verify.mjs` runs both debug and release subprocesses. The
 adversarial harness uses a 15-second timeout and a 192 MiB V8 old-space cap.
 Those are harness safeguards, not implied runtime features of the CLI.
+
+Since 0.1.11 string length charges one step per Unicode scalar and uses constant
+extra space. String reverse charges its UTF-16 length before allocating output
+and builds it using reverse Unicode iteration, avoiding character arrays.
+Supplementary characters cost two units for reversal but count as one for length.
+Arrays/objects retain their existing length semantics. Large valid strings can
+now exhaust max_steps; increasing it for trusted input does not guarantee peak
+memory safety. The 8-million-character reverse heap regression is checked in
+both modes with valid batch neighbors.

@@ -64,6 +64,11 @@ const longKeys = Array.from({length:32},(_,i)=>'x'.repeat(40000)+String(31-i).pa
 for (const expression of ['sort(@)', 'min(@)', 'max(@)', 'sort_by(@, &@)', 'min_by(@, &@)', 'max_by(@, &@)']) {
   isolated(`ordering work budget ${expression}`, expression, longKeys);
 }
+// 0.1.10 reverse allocated multiple character arrays and aborted with exit 134
+// under the harness heap, losing both valid batch neighbors.
+for (const expression of ['length(@)', 'length(reverse(@))']) {
+  isolated('large string work '+expression, expression, 'x'.repeat(8000000));
+}
 let nested = 0;
 for (let i=0;i<257;i++) nested=[nested];
 isolated('in-memory JSON depth', '@', nested);

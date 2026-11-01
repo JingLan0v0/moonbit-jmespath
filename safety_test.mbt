@@ -243,3 +243,43 @@ test "iterative equality compares object members independent of order" {
     Json::boolean(true),
   )
 }
+
+///|
+test "string length and reversal consume work and recover" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 16, }
+  for expression in ["length(@)", "reverse(@)"] {
+    let query = @jmespath.compile(expression, limits~)
+    let code = try {
+      query.search(Json::string("x".repeat(128))) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(code, Some("limit_exceeded"))
+    assert_eq(
+      query.search(Json::string("")),
+      if expression == "length(@)" {
+        Json::number(0.0)
+      } else {
+        Json::string("")
+      },
+    )
+  }
+}
+
+///|
+test "string operations preserve Unicode scalars and array semantics" {
+  for text in ["", "a", "a😀月", "e\u0301", "\u{10000}\u{10ffff}"] {
+    let input = Json::string(text)
+    assert_eq(
+      @jmespath.search("length(@)", input),
+      Json::number(text.iter().count().to_double()),
+    )
+    assert_eq(@jmespath.search("reverse(reverse(@))", input), input)
+  }
+  assert_eq(
+    @jmespath.search_json("reverse(@)", "[1,null,2]"),
+    @json.parse("[2,null,1]"),
+  )
+  assert_eq(@jmespath.search_json("length(@)", "{\"a\":1}"), Json::number(1.0))
+}

@@ -1,5 +1,21 @@
 # MoonJMES acceptance evidence
 
+## 0.1.11 string allocation audit (2026-11-01)
+
+Reproduced in 0.1.10: a decoded batch with an 8,000,000-character string queried
+by length(reverse(@)) exits 134 with empty stdout in debug and release under
+192 MiB old-space. Both valid neighboring requests are lost. length(@) alone
+succeeds but needlessly allocates a character array and bypasses the work budget.
+The fix precharges reverse output work and removes both operations' character
+arrays. Tests retain Unicode scalar behavior, query reuse and batch isolation.
+
+Local verification passed: 54 unit tests, 892/892 official cases per mode,
+35 adversarial checks and 256 mutations per mode, API/scenario examples and
+PowerShell smoke. The former crashing batch now retains both neighbors and
+returns limit_exceeded for the large string request.
+Remote CI and publication receipts are pending for this source revision.
+
+
 ## 0.1.10 ordering work-budget audit (2026-10-31)
 
 In 0.1.9, 32 strings with 40,000-character common prefixes completed sort/min/max

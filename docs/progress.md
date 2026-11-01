@@ -1,8 +1,18 @@
 # Project status and handoff
 
-## Current state (2026-10-31)
+## Current state (2026-11-01)
 
-### Current release: 0.1.10
+### Current work: 0.1.11
+
+- Reproduced and fixed the 8-million-character string reversal heap abort.
+- Meter string length without a character array; precharge reverse before output
+  allocation and iterate Unicode backward without temporary character arrays.
+- Local: 54 units, 892 official cases per mode, 35 adverse/256 mutation checks
+  per mode, examples and PowerShell passed. CI/publication receipts pending;
+  0.1.10 remains the last verified release until those receipts are recorded.
+  Historical entries are not current advice.
+
+### Previous release: 0.1.10
 
 - Meter all ordering scans/comparisons, including Unicode prefixes. Stable
   bottom-up merge sort propagates budget errors; input arrays stay unchanged.
@@ -111,7 +121,7 @@
   exact 0.1.4 and passed null semantics and prior safety regressions in both modes.
   Archive hash and links are in acceptance.md. This evidence update is docs-only.
 - No known failing checked case remains. This finite audit does not establish
-  absolute correctness or organizer acceptance. Use 0.1.4 for current submissions.
+  absolute correctness or organizer acceptance. That checkpoint used 0.1.4.
 
 ### Previous verified release: 0.1.3
 
@@ -137,5 +147,5 @@
 1. Check working tree and remote main without discarding user changes.
 2. Do not repeat successful checks unless code/build inputs changed or a new concern warrants it. toolchain.json pins the compiler and Node version.
 3. For code changes run `node scripts/verify.mjs`, compliance with and without `--release`, and PowerShell smoke. MOON_BIN may point to the local toolchain; set MOON_HOME to the same installation.
-4. Push normal commits, verify the exact remote SHA and both CI jobs, and record their URLs. For a future release, follow publishing.md; 0.1.4 is already published and must not be overwritten. A dry run is not publication, and a timeout requires checking the registry before retrying.
+4. Push normal commits, verify the exact remote SHA and both CI jobs, and record their URLs. For a future release, follow publishing.md; all recorded releases are already published and must not be overwritten. A dry run is not publication, and a timeout requires checking the registry before retrying.
 5. Install the exact published version in a new consumer project and exercise library batch isolation and bounded serialization. Update evidence only after observing the result. Do not guarantee organizer acceptance.

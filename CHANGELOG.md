@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.11 - 2026-11-01
+
+- fix a reproduced process-wide heap abort on an 8,000,000-character reverse
+  inside a batch: precharge UTF-16 copy work before allocating the result
+- build reversed strings from reverse Unicode iteration without character arrays;
+  count string length through a metered iterator with constant extra space
+- add constrained-process isolation, Unicode and compiled-query recovery tests
+- string length/reverse can now reject large valid inputs with limit_exceeded;
+  raising budgets explicitly trades protection for accepted workload size
+
+
 All notable changes to MoonJMES are recorded here.
 
 ## 0.1.10 - 2026-10-31

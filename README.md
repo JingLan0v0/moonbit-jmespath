@@ -1,5 +1,16 @@
 # MoonJMES
 
+## 0.1.11 string allocation fix
+
+An 8,000,000-character length(reverse(@)) query previously aborted both
+build modes under the 192 MiB test heap and lost neighboring batch responses.
+Reversal now checks the work budget before output allocation and avoids temporary
+character arrays. String length counts Unicode scalars with a metered iterator.
+Oversized work returns an isolated limit_exceeded error. Large legitimate
+strings may need a higher trusted budget; this is not a universal memory guarantee.
+See [release evidence](docs/acceptance.md) for verification and publication status.
+
+
 [简体中文](README.zh-CN.md) | English
 
 [![CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml/badge.svg)](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
