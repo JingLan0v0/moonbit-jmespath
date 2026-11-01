@@ -2,15 +2,20 @@
 
 ## Current state (2026-11-01)
 
-### Current work: 0.1.11
+### Current release: 0.1.11
 
 - Reproduced and fixed the 8-million-character string reversal heap abort.
 - Meter string length without a character array; precharge reverse before output
   allocation and iterate Unicode backward without temporary character arrays.
 - Local: 54 units, 892 official cases per mode, 35 adverse/256 mutation checks
-  per mode, examples and PowerShell passed. CI/publication receipts pending;
-  0.1.10 remains the last verified release until those receipts are recorded.
-  Historical entries are not current advice.
+  per mode, examples and PowerShell passed.
+- Source 7a4a92c is on original main. Windows/Ubuntu CI 41279214295 passed.
+  The 65-file archive passed inspection and fresh-extraction verification.
+- Mooncakes returned 200 OK for 0.1.11. A fresh consumer downloaded the exact
+  version and passed large-string guards, Unicode and retained regressions in
+  debug/release. See acceptance.md for hash and receipts.
+- Current verified version is 0.1.11. The following docs-only commit records
+  receipts; older entries are historical. No final organizer acceptance claimed.
 
 ### Previous release: 0.1.10
 

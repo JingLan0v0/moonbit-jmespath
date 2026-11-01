@@ -13,7 +13,21 @@ Local verification passed: 54 unit tests, 892/892 official cases per mode,
 35 adversarial checks and 256 mutations per mode, API/scenario examples and
 PowerShell smoke. The former crashing batch now retains both neighbors and
 returns limit_exceeded for the large string request.
-Remote CI and publication receipts are pending for this source revision.
+Verified release evidence (2026-11-01):
+
+- Source 7a4a92c94afcb432b0f0bc58ff16210eafc775ae is on the original main,
+  preserving history. [CI 41279214295](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41279214295)
+  passed on Windows and Ubuntu.
+- The 65-file archive contains no credential, Git, build or cache content and
+  passed full verification after fresh extraction. SHA-256:
+  99e092fda7eb43091a3991838751fdd62558aef8d4501fb1c13d8b8c21e3f2ff.
+- Preflight returned 202 dry-run success; formal publication returned 200 OK.
+- A new consumer downloaded exact JingLan0v0/jmespath@0.1.11 from the registry
+  and passed large-string rejection, Unicode behavior and all retained parser,
+  evaluator, decoding, ordering, overflow and serialization checks in both modes.
+- [Mooncakes 0.1.11](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.11).
+  This following documentation-only commit records receipts. Finite engineering
+  checks do not constitute organizer final acceptance or a universal heap bound.
 
 
 ## 0.1.10 ordering work-budget audit (2026-10-31)
