@@ -20,7 +20,11 @@ Local full verification passed: 63 unit tests, examples, CLI, 35 boundary checks
 and 256 mutations per mode. The report now records 35 and 256. No production
 MoonBit code or module version changed; Mooncakes 0.1.14 remains the verified
 library release. These new verification scripts are GitHub changes only.
-Remote CI receipts pending for this audit revision.
+Source 054deec6a75100e072b3ea3a02b26259a62fefd1 is on original main with
+history retained. [CI 41305826247](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41305826247)
+passed on Windows and Ubuntu, including both official conformance modes. The
+following documentation-only commit records that receipt. No registry publish
+was performed for this test-tooling-only change.
 
 
 ## 0.1.14 numeric representation audit (2026-11-01)

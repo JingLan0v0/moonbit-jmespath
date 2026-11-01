@@ -8,7 +8,9 @@
   modes and both output formats; retained as scripts/json-roundtrip.mjs.
 - Fixed stale hardcoded report count (33 instead of actual 35), deriving counts
   from the harness. Failed new runs cannot leave an earlier success receipt.
-- Full local verification passed; deliberate failure probe passed. CI pending.
+- Full local verification and deliberate failure probe passed. Source 054deec
+  is on original main; Windows/Ubuntu CI 41305826247 passed, including both
+  conformance modes. Following docs-only commit records the receipt.
 - Runtime/API/version unchanged. Published library stays 0.1.14; no republish.
 
 ### Current release: 0.1.14
