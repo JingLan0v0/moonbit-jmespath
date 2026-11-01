@@ -2,7 +2,17 @@
 
 ## Current state (2026-11-01)
 
-### Current release: 0.1.13
+### Current work: 0.1.14
+
+- Reject forged numeric repr in caller-constructed Json before evaluation or
+  bounded serialization; preserve matching precision text and batch isolation.
+- Reproduced the missing validation in both build modes. This is a direct library
+  boundary issue, not a demonstrated CLI JSON injection.
+- Local: 63 unit tests in both modes, 892 official cases per mode, 35 adverse/256
+  mutations per mode, CLI, examples and PowerShell passed. CI/publish pending.
+- Last verified registry release: 0.1.13. Older entries are historical.
+
+### Previous release: 0.1.13
 
 - Fix inconsistent filter-opener syntax validation across root/postfix/nested
   contexts. Preserve literal content, valid whitespace and Unicode offsets.

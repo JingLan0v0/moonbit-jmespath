@@ -297,3 +297,70 @@ test "compound expression references retain resource limits and query reuse" {
   assert_eq(code, Some("limit_exceeded"))
   assert_eq(query.search(Json::array([Json::null()])), @json.parse("[0]"))
 }
+
+///|
+test "bounded serialization rejects forged numeric representations" {
+  for
+    repr in [
+      "null", "true", "[]", "1,2", "01", "1e999", "2", "", "+1", "1.", "1e", " 1",
+      "1\n",
+    ] {
+    let forged = Json::number(1.0, repr~)
+    let code = try {
+      @jmespath.stringify_bounded(forged) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some(d.code)
+    }
+    assert_eq(code, Some("invalid_value"))
+  }
+}
+
+///|
+test "numeric representation validation preserves matching precision and notation" {
+  for
+    text in [
+      "9007199254740993", "10000000000000000000", "1.2300", "1e-30", "-0",
+    ] {
+    let parsed = @json.parse(text)
+    guard parsed is Number(number, ..) else { fail("expected number") }
+    let value = Json::number(number, repr=text)
+    for pretty in [true, false] {
+      assert_eq(@jmespath.stringify_bounded(value, pretty~), text)
+    }
+    assert_eq(@jmespath.search("@", value), parsed)
+  }
+}
+
+///|
+test "forged numeric representations are isolated before evaluation" {
+  let forged = Json::object(Map([("n", Json::number(1.0, repr="1,2"))]))
+  let query = @jmespath.compile("type(n)")
+  let code = try {
+    query.search(forged) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("invalid_value"))
+  assert_eq(query.search(@json.parse("{\"n\":1}")), Json::string("number"))
+  let requests = Json::array([
+    Json::object(
+      Map([("expression", Json::string("@")), ("data", Json::string("before"))]),
+    ),
+    Json::object(
+      Map([("expression", Json::string("to_string(@)")), ("data", forged)]),
+    ),
+    Json::object(
+      Map([("expression", Json::string("@")), ("data", Json::string("after"))]),
+    ),
+  ])
+  let replies = @jmespath.search_batch(requests)
+  assert_eq(@jmespath.search("[0].result", replies), Json::string("before"))
+  assert_eq(
+    @jmespath.search("[1].error.code", replies),
+    Json::string("invalid_value"),
+  )
+  assert_eq(@jmespath.search("[2].result", replies), Json::string("after"))
+  @jmespath.stringify_bounded(replies) |> ignore
+}

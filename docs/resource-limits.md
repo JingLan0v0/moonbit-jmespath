@@ -1,4 +1,4 @@
-# Resource contract (0.1.11)
+# Resource contract (0.1.14)
 
 The library targets MoonBit's JS backend. Resource errors are reported as
 `JmesPathError`. These limits are not a wall-clock deadline or OS memory sandbox.
@@ -100,3 +100,12 @@ Arrays/objects retain their existing length semantics. Large valid strings can
 now exhaust max_steps; increasing it for trusted input does not guarantee peak
 memory safety. The 8-million-character reverse heap regression is checked in
 both modes with valid batch neighbors.
+
+Since 0.1.14 caller-supplied numeric repr must be a standalone JSON numeric
+lexeme whose parsed binary64 value matches the stored finite Double. Non-numeric
+characters (including surrounding whitespace), invalid grammar and mismatches
+return invalid_value. The output budget is charged before scanning/parsing.
+Validation uses the existing shape-preflight budget, not max_steps; matching
+large-integer spelling is retained, without promising exact decimal arithmetic.
+This protects direct library construction; normal parsed JSON cannot attach an
+arbitrary separate repr.

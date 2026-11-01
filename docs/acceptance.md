@@ -1,5 +1,27 @@
 # MoonJMES acceptance evidence
 
+## 0.1.14 numeric representation audit (2026-11-01)
+
+Core Json::number accepts a caller-supplied repr, and its serializer writes that
+text verbatim. The 0.1.13 size walker checked only the Double and repr length.
+A regression expecting invalid_value for Json::number(1.0, repr="null") failed
+in both debug and release: bounded serialization accepted the forged value.
+Other malformed text could change serialized structure or disagree with queries.
+
+Validation now checks size first, scans a numeric-only alphabet before parsing,
+and requires a number equal to the finite stored Double. This applies through
+the shared input/output shape validator and preserves matching large-integer
+repr. Equality remains binary64, including its precision limitations. Surrounding
+whitespace is rejected in a manually supplied repr; parsed JSON remains supported.
+The demonstrated boundary is direct library construction, not ordinary CLI input.
+
+Tests cover malformed/mismatched representations, valid large-number notation,
+query reuse, nested data and valid batch neighbors. Local verification passed:
+63 unit tests in both debug and release; 892 official cases per mode; 35 adverse
+checks/256 mutations per mode; CLI, API/scenario examples and PowerShell smoke.
+CI and publication receipts are pending for this source revision.
+
+
 ## 0.1.13 filter syntax and error audit (2026-11-01)
 
 In 0.1.12, [ ?@], tab-separated markers, grouped filters and map(&[ ?@], @)

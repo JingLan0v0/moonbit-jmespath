@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.14 - 2026-11-01
+
+- validate caller-supplied Json numeric repr before evaluation and serialization;
+  malformed/non-numeric/mismatched representations now return invalid_value
+- check the output-size budget before validation and reject non-number alphabet
+  before parsing, avoiding construction of arbitrary encoded arrays or objects
+- preserve matching numeric spelling, including large-integer precision text;
+  equality is based on the stored binary64 value, not new exact arithmetic
+- test serialization, nested input rejection, compiled reuse and batch isolation
+- this affects programmatically constructed Json values; it is not a demonstrated
+  raw-JSON CLI input injection
+
+
 ## 0.1.13 - 2026-11-01
 
 - consistently reject whitespace inside the [?-filter opener at the lexer

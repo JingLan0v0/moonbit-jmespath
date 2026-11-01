@@ -47,6 +47,27 @@ fn JsonBudget::string(
 }
 
 ///|
+fn validate_number_repr(
+  number : Double,
+  text : String,
+) -> Unit raise JmesPathError {
+  // Json::number exposes repr to library callers. The core serializer writes
+  // it verbatim, so it must be a numeric scalar agreeing with the stored value.
+  // Reject containers/strings before parsing to avoid allocating discarded JSON.
+  for c in text.iter() {
+    if !(is_digit(c) || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E') {
+      fail("invalid_value", 0, "invalid numeric representation")
+    }
+  }
+  let parsed = @json.parse(text) catch {
+    _ => fail("invalid_value", 0, "invalid numeric representation")
+  }
+  guard parsed is Number(value, ..) && value == number else {
+    fail("invalid_value", 0, "numeric representation disagrees with value")
+  }
+}
+
+///|
 // Walk one child at a time. Stack space depends on nesting, not array width.
 // Shared subtrees are counted once per occurrence, exactly as JSON output
 // expands them; cycles supplied by callers hit the depth limit as well.
@@ -93,12 +114,14 @@ fn measure_json(
                 "invalid_value", 0, "non-finite numbers cannot be represented as JSON",
               )
             }
-            budget.add(
-              match repr {
-                Some(text) => text.length()
-                None => 32
-              },
-            )
+            match repr {
+              Some(text) => {
+                // Charge size before scanning or parsing a caller-supplied repr.
+                budget.add(text.length())
+                validate_number_repr(number, text)
+              }
+              None => budget.add(32)
+            }
           }
           _ => budget.add(5)
         }

@@ -1,5 +1,16 @@
 # MoonJMES
 
+## 0.1.14 numeric representation validation
+
+Library callers can attach original numeric text through Json::number(..., repr=...).
+Previously that text was serialized verbatim even if it said null, contained
+multiple JSON values or disagreed with the stored number. Bounded serialization
+and query input validation now reject these values with invalid_value. Matching
+large-number spelling is preserved. This concerns programmatically constructed
+Json values, not a demonstrated CLI JSON input vulnerability.
+See [verification and release evidence](docs/acceptance.md).
+
+
 ## 0.1.13 consistent filter syntax validation
 
 Malformed [ ?condition] filters were accepted at the root or inside function
