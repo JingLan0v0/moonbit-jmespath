@@ -18,7 +18,21 @@ nested/reference contexts.
 
 Local checks passed: 60 unit tests; 892 official cases per mode; 35 adversarial
 checks and 256 mutations per mode; complete API/scenario examples and PowerShell.
-CI and registry publication receipts are pending for this source revision.
+Verified release evidence (2026-11-01):
+
+- Source 74432793ff989ccfabb4c66f075c477df56fd3e7 is on original main,
+  preserving commit history. [CI 41280805125](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41280805125)
+  passed on Windows and Ubuntu.
+- The 65-file archive excludes credentials, Git, build and cache content and
+  passed full verification after fresh extraction. SHA-256:
+  d2ffaa3d32489af32a2c02206586bef878f4a75dc29dd399c8b196ef07ebb95a.
+- Preflight returned 202 dry-run success; formal publication returned 200 OK.
+- A new consumer downloaded exact JingLan0v0/jmespath@0.1.13 and passed split
+  marker rejection, valid whitespace, unchanged literal content and retained
+  regression checks in debug/release.
+- [Mooncakes 0.1.13](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.13).
+  The following docs-only commit records receipts. This is engineering evidence,
+  not organizer final acceptance.
 
 
 ## 0.1.12 expression-reference audit (2026-11-01)

@@ -2,15 +2,20 @@
 
 ## Current state (2026-11-01)
 
-### Current work: 0.1.13
+### Current release: 0.1.13
 
 - Fix inconsistent filter-opener syntax validation across root/postfix/nested
   contexts. Preserve literal content, valid whitespace and Unicode offsets.
 - 30 invalid function calls showed no defect; retained them as CLI regressions
   alongside malformed filter batch isolation. Local: 60 units, 892 official cases
   per mode, 35 adverse/256 mutations per mode, examples and PowerShell passed.
-  CI and registry release receipts pending.
-- Last verified registry release: 0.1.12. Older entries are historical.
+- Source 7443279 is on original main; Windows/Ubuntu CI 41280805125 passed.
+  The 65-file archive passed inspection and fresh-extraction verification.
+- Mooncakes returned 200 OK for 0.1.13. A new consumer installed that exact
+  release and passed filter syntax/literal behavior and retained regressions
+  in both modes. See acceptance.md for receipts and archive hash.
+- Current verified release: 0.1.13. Following docs-only commit records evidence;
+  older entries are historical.
 
 ### Previous release: 0.1.12
 
