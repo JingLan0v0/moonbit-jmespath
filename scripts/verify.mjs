@@ -5,6 +5,9 @@ import { isDeepStrictEqual } from 'node:util';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
+const summaryPath = path.join(root, '_build', 'verification-summary.json');
+// A failed new run must not leave a previous successful receipt behind.
+fs.rmSync(summaryPath, { force: true });
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 120000, ...options });
   if (result.error) throw result.error;
@@ -14,6 +17,20 @@ function run(command, args, options = {}) {
     throw new Error(`${command} ${args.join(' ')} failed`);
   }
   return result.stdout;
+}
+
+function runAdversarial(env = process.env) {
+  const output = run(process.execPath, ['scripts/adversarial.mjs'], { env });
+  process.stdout.write(output);
+  const marker = 'ADVERSARIAL_SUMMARY ';
+  const summaries = output.split(/\r?\n/).filter(line => line.startsWith(marker));
+  if (summaries.length !== 1) throw new Error('Missing or duplicate adversarial summary');
+  const counts = JSON.parse(summaries[0].slice(marker.length));
+  if (!Number.isSafeInteger(counts.checks) || counts.checks <= 0 ||
+      !Number.isSafeInteger(counts.mutations) || counts.mutations <= 0) {
+    throw new Error('Invalid adversarial counts');
+  }
+  return counts;
 }
 
 run(moon, ['fmt', '--check']);
@@ -44,16 +61,21 @@ for (const [name, expression] of scenarios) {
 }
 
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs']));
-process.stdout.write(run(process.execPath, ['scripts/adversarial.mjs']));
+process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs']));
+const debugAdversarial = runAdversarial();
 
 run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
 const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], {
   env: { ...process.env, JMES_CLI_PATH: releaseCli },
 }));
-process.stdout.write(run(process.execPath, ['scripts/adversarial.mjs'], {
+process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], {
   env: { ...process.env, JMES_CLI_PATH: releaseCli },
 }));
+const releaseAdversarial = runAdversarial({ ...process.env, JMES_CLI_PATH: releaseCli });
+if (!isDeepStrictEqual(debugAdversarial, releaseAdversarial)) {
+  throw new Error('Debug/release adversarial coverage differs');
+}
 
 if (process.env.VERIFY_PUBLISH === '1') {
   const publish = spawnSync(moon, ['publish', '--dry-run'], { cwd: root, encoding: 'utf8' });
@@ -66,10 +88,13 @@ if (process.env.VERIFY_PUBLISH === '1') {
   console.log('PASS Mooncakes publish dry-run');
 }
 console.log('PASS MoonBit checks, tests, examples, interfaces, and debug/release builds');
-fs.writeFileSync(path.join(root, '_build', 'verification-summary.json'), JSON.stringify({
+fs.writeFileSync(summaryPath, JSON.stringify({
   status: 'passed', ciCommit: process.env.GITHUB_SHA || null,
   node: process.version, recordedAt: new Date().toISOString(),
   unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
-  cliModes: ['debug', 'release'], adversarialChecksPerMode: 33, grammarMutationsPerMode: 256,
+  cliModes: ['debug', 'release'],
+  adversarialChecksPerMode: debugAdversarial.checks,
+  grammarMutationsPerMode: debugAdversarial.mutations,
+  jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],
   publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');

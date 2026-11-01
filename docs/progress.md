@@ -2,6 +2,15 @@
 
 ## Current state (2026-11-01)
 
+### Latest audit: verification tooling (no new library release)
+
+- Object keys/escaping: 531 cases plus duplicate JSON keys pass in both build
+  modes and both output formats; retained as scripts/json-roundtrip.mjs.
+- Fixed stale hardcoded report count (33 instead of actual 35), deriving counts
+  from the harness. Failed new runs cannot leave an earlier success receipt.
+- Full local verification passed; deliberate failure probe passed. CI pending.
+- Runtime/API/version unchanged. Published library stays 0.1.14; no republish.
+
 ### Current release: 0.1.14
 
 - Reject forged numeric repr in caller-constructed Json before evaluation or

@@ -1,5 +1,28 @@
 # MoonJMES acceptance evidence
 
+## Post-0.1.14 object/escaping and report audit (2026-11-01)
+
+No new runtime defect was found in 531 key/escaping cases plus a duplicate JSON
+key case, each run in debug/release and compact/pretty output. The new
+scripts/json-roundtrip.mjs retains these checks in the standard verification
+pipeline. Cases include __proto__, constructor, quoted keys, U+0000..U+00FF keys,
+Unicode, merging and duplicate multi-select keys. Comparisons use independent
+Node objects and JSON parsing; they do not require an object-key output order.
+
+Found and fixed a verification defect: the machine-readable summary hardcoded
+33 adversarial checks although the harness executed 35. Counts now come from a
+structured harness result, with integer validation and debug/release agreement.
+A new run removes the previous success receipt before testing. An isolated probe
+seeded a passed receipt, deliberately used a missing compiler, and confirmed the
+failed run left no previous successful summary.
+
+Local full verification passed: 63 unit tests, examples, CLI, 35 boundary checks
+and 256 mutations per mode. The report now records 35 and 256. No production
+MoonBit code or module version changed; Mooncakes 0.1.14 remains the verified
+library release. These new verification scripts are GitHub changes only.
+Remote CI receipts pending for this audit revision.
+
+
 ## 0.1.14 numeric representation audit (2026-11-01)
 
 Core Json::number accepts a caller-supplied repr, and its serializer writes that

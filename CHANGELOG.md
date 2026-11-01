@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - verification tooling (2026-11-01)
+
+- derive report boundary/mutation counts from actual adversarial harness output;
+  remove the stale hardcoded count of 33 when 35 checks were being executed
+- remove a previous success summary before starting verification, so a failed
+  new run cannot leave a stale passed receipt; reject missing/mismatched counts
+- add object-key/escaping roundtrip checks in debug/release and compact/pretty
+  output, including prototype-like keys, duplicate keys and Unicode/control text
+- no runtime/API change; published library version remains 0.1.14
+
+
 ## 0.1.14 - 2026-11-01
 
 - validate caller-supplied Json numeric repr before evaluation and serialization;

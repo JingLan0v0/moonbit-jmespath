@@ -120,7 +120,8 @@ checks++;
 let seed=0x4d4f4f4e;
 const next=()=>{ seed=(Math.imul(seed,1664525)+1013904223)>>>0; return seed; };
 const tokens=['@','!','(',')','[',']','{','}',':',',','.', '|','&&','foo','`1`','&',"'月'"];
-const mutations=Array.from({length:256},()=>({expression:Array.from({length:1+next()%50},()=>tokens[next()%tokens.length]).join(''),data:{foo:[1,2]}}));
+const mutationCount=256;
+const mutations=Array.from({length:mutationCount},()=>({expression:Array.from({length:1+next()%50},()=>tokens[next()%tokens.length]).join(''),data:{foo:[1,2]}}));
 mutations.push({expression:'@',data:'survived'});
 const fuzz=invoke(['--batch','--compact','-'],JSON.stringify(mutations));
 assert.equal(fuzz.status,0,fuzz.stderr);
@@ -132,4 +133,5 @@ for(const r of fuzzReplies) {
   if(!r.ok) assert.equal(typeof r.error.code,'string');
 }
 assert.deepEqual(fuzzReplies.at(-1),{ok:true,result:'survived'});
-console.log(`PASS adversarial: ${checks} boundary/isolated-process checks and 256 deterministic grammar mutations`);
+console.log(`PASS adversarial: ${checks} boundary/isolated-process checks and ${mutationCount} deterministic grammar mutations`);
+console.log('ADVERSARIAL_SUMMARY '+JSON.stringify({checks,mutations:mutationCount}));

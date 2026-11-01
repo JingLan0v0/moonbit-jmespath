@@ -1,5 +1,14 @@
 # MoonJMES
 
+## Additional verification audit
+
+The repository now checks special object keys, duplicate fields and escaped text
+in both output formats and build modes. Verification reports use actual harness
+counts and discard an older success receipt when a new run starts. This audit
+changes test tooling only; the published library remains 0.1.14. See
+[acceptance evidence](docs/acceptance.md).
+
+
 ## 0.1.14 numeric representation validation
 
 Library callers can attach original numeric text through Json::number(..., repr=...).
