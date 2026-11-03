@@ -9,7 +9,9 @@
   artifact. Full verification pins both build paths and records them in receipts.
 - Full local verification passed with the unusable path retained: 63 units,
   35 boundary/256 mutation checks per mode and JSON roundtrips. Official 892/892
-  per mode and PowerShell passed. CI injects the same regression; receipt pending.
+  per mode and PowerShell passed. Source 21e44d5 is on original main;
+  Windows/Ubuntu CI 41655347262 passed with the injected-path regression.
+  Following docs-only commit records the receipt.
 - Runtime and published version stay 0.1.14; no new package publication.
 
 ### Previous audit: verification tooling (no new library release)

@@ -19,7 +19,10 @@ so both OS jobs exercise this regression. Local full verification passed with
 that unusable path still present: 63 units, 35 adversarial/256 mutation checks
 per mode, JSON roundtrips and scenarios. The receipt records the expected debug
 and release paths. Official 892/892 cases per mode and PowerShell smoke passed.
-Remote CI receipt pending.
+Source 21e44d575efb4d056ff7173cf9ebafe82289a6fe is on original main with
+history retained. [CI 41655347262](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41655347262)
+passed on Windows and Ubuntu, including the injected-path regression and both
+conformance modes. The following documentation-only commit records the receipt.
 No library version or runtime changes; no Mooncakes republish is required.
 
 
