@@ -1,5 +1,13 @@
 # MoonJMES
 
+## Verification target isolation
+
+Full verification explicitly tests the debug/release CLI files it builds,
+ignoring an inherited JMES_CLI_PATH override. The receipt records those paths.
+Standalone harnesses still allow this override for downloaded-package testing.
+This is a verification-only fix; the published library remains 0.1.14.
+
+
 ## Additional verification audit
 
 The repository now checks special object keys, duplicate fields and escaped text

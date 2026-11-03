@@ -1,5 +1,28 @@
 # MoonJMES acceptance evidence
 
+## Verification target and CLI boundary audit (2026-11-03)
+
+A local audit of 11 invalid CLI/I/O forms and three valid stdin/BOM forms passed
+in debug and release: duplicate/unknown options, extra arguments, option terminator,
+empty input, repeated BOM, wrong batch root and missing files behaved as expected.
+No runtime defect was found in those cases.
+
+Reproduced a verifier defect by setting JMES_CLI_PATH to a nonexistent script:
+the full verifier built its own CLI but the debug integration harness inherited
+the external target and failed. Release harnesses already selected their build.
+The full verifier now supplies both target paths explicitly, records their relative
+paths, and requires an explicit environment when invoking the adversarial harness.
+Standalone harness overrides are retained for downloaded-package testing.
+
+CI now injects an intentionally unusable inherited path during Verify project,
+so both OS jobs exercise this regression. Local full verification passed with
+that unusable path still present: 63 units, 35 adversarial/256 mutation checks
+per mode, JSON roundtrips and scenarios. The receipt records the expected debug
+and release paths. Official 892/892 cases per mode and PowerShell smoke passed.
+Remote CI receipt pending.
+No library version or runtime changes; no Mooncakes republish is required.
+
+
 ## Post-0.1.14 object/escaping and report audit (2026-11-01)
 
 No new runtime defect was found in 531 key/escaping cases plus a duplicate JSON

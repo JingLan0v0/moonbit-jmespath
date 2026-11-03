@@ -42,6 +42,9 @@ jobs:
       - name: Record environment
         run: moon version --all
       - name: Verify project
+        # Regression: full verification must select its own debug/release builds.
+        env:
+          JMES_CLI_PATH: ignored-external-cli.js
         run: node scripts/verify.mjs
       - name: Verify PowerShell usage
         if: runner.os == 'Windows'

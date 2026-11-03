@@ -19,7 +19,7 @@ function run(command, args, options = {}) {
   return result.stdout;
 }
 
-function runAdversarial(env = process.env) {
+function runAdversarial(env) {
   const output = run(process.execPath, ['scripts/adversarial.mjs'], { env });
   process.stdout.write(output);
   const marker = 'ADVERSARIAL_SUMMARY ';
@@ -48,6 +48,9 @@ console.log('PASS public API example: compile reuse, limits, serialization and e
 run(moon, ['build', 'cmd/main', '--target', 'js']);
 
 const cli = path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
+// Standalone harnesses may target another CLI, but full verification must test
+// the artifacts built above, regardless of an inherited JMES_CLI_PATH.
+const debugEnv = { ...process.env, JMES_CLI_PATH: cli };
 const scenarios = [
   ['cloud-inventory', "instances[?environment == 'prod' && state == 'running'].{id: id, zone: zone}"],
   ['deployments', "deployments[?decision == 'deny'].{service: service, reasons: reasons[*].code}"],
@@ -60,9 +63,9 @@ for (const [name, expression] of scenarios) {
   console.log(`PASS scenario: ${name}`);
 }
 
-process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs']));
-process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs']));
-const debugAdversarial = runAdversarial();
+process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], { env: debugEnv }));
+process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], { env: debugEnv }));
+const debugAdversarial = runAdversarial(debugEnv);
 
 run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
 const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
@@ -93,6 +96,7 @@ fs.writeFileSync(summaryPath, JSON.stringify({
   node: process.version, recordedAt: new Date().toISOString(),
   unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
   cliModes: ['debug', 'release'],
+  cliArtifacts: { debug: path.relative(root, cli), release: path.relative(root, releaseCli) },
   adversarialChecksPerMode: debugAdversarial.checks,
   grammarMutationsPerMode: debugAdversarial.mutations,
   jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],

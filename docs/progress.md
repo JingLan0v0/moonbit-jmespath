@@ -1,8 +1,18 @@
 # Project status and handoff
 
-## Current state (2026-11-01)
+## Current state (2026-11-03)
 
-### Latest audit: verification tooling (no new library release)
+### Latest audit: verification target isolation (2026-11-03)
+
+- CLI/I/O probe: 11 invalid and three valid forms passed in debug/release.
+- Fixed inherited JMES_CLI_PATH redirecting debug harnesses away from the built
+  artifact. Full verification pins both build paths and records them in receipts.
+- Full local verification passed with the unusable path retained: 63 units,
+  35 boundary/256 mutation checks per mode and JSON roundtrips. Official 892/892
+  per mode and PowerShell passed. CI injects the same regression; receipt pending.
+- Runtime and published version stay 0.1.14; no new package publication.
+
+### Previous audit: verification tooling (no new library release)
 
 - Object keys/escaping: 531 cases plus duplicate JSON keys pass in both build
   modes and both output formats; retained as scripts/json-roundtrip.mjs.

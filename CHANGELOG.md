@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased - verification target isolation (2026-11-03)
+
+- explicitly bind every full-verification CLI harness to the debug/release
+  artifact built by that run, preventing inherited JMES_CLI_PATH redirection
+- record relative CLI artifact paths in the verification receipt
+- exercise an intentionally unusable inherited CLI path in both CI jobs;
+  standalone harness overrides remain available for testing published packages
+- no runtime/API/version change; published library remains 0.1.14
+
+
 ## Unreleased - verification tooling (2026-11-01)
 
 - derive report boundary/mutation counts from actual adversarial harness output;
