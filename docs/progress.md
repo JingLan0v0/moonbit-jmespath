@@ -4,7 +4,7 @@
 
 ### 0.1.15 reference placement
 
-The parser rejects misplaced references before evaluation, including skipped branches and empty filters. See acceptance.md for release evidence.
+The parser rejects misplaced references before evaluation, including skipped branches and empty filters. Source 8f9e01b passed Windows and Ubuntu CI. Mooncakes 0.1.15 was published and verified from a fresh consumer in debug and release. See acceptance.md for release evidence.
 
 ### Earlier audit: verification target isolation (2026-11-03)
 

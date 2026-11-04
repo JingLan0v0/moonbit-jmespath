@@ -4,6 +4,10 @@
 
 In debug and release, 0.1.14 accepted misplaced references inside skipped boolean branches, a list on null and a filter on an empty array. The [JMESPath grammar](https://jmespath.org/specification.html#grammar) permits expression-type as a function argument. The parser now checks placement during compilation. Regressions verify syntax offsets and distinguish a misplaced reference from a valid argument passed to a function requiring another type.
 
+For source 8f9e01b60ab05b94b1b0d9a4e7c3107012a05fa7, debug and release each passed 64 unit tests, 892 official cases and 35 boundary checks. The four formerly accepted queries returned per-item syntax errors alongside a successful map result. PowerShell and all three scenarios passed. [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/41781749044).
+
+The 66-entry archive passed independent extraction and verification (SHA-256 d9027381d2724239c0c3423e8b8ccca6ebbbd62277390a73ce2877d3a8701498). Mooncakes returned 200 OK. A fresh consumer downloaded exact version 0.1.15, checked compile-time rejection and valid map behavior, and passed the retained regressions in both modes. [Mooncakes 0.1.15](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.15).
+
 ## Verification target and CLI boundary audit (2026-11-03)
 
 A local audit of 11 invalid CLI/I/O forms and three valid stdin/BOM forms passed
