@@ -1,5 +1,9 @@
 # MoonJMES acceptance evidence
 
+## 0.1.15 reference placement (2026-11-04)
+
+In debug and release, 0.1.14 accepted misplaced references inside skipped boolean branches, a list on null and a filter on an empty array. The [JMESPath grammar](https://jmespath.org/specification.html#grammar) permits expression-type as a function argument. The parser now checks placement during compilation. Regressions verify syntax offsets and distinguish a misplaced reference from a valid argument passed to a function requiring another type.
+
 ## Verification target and CLI boundary audit (2026-11-03)
 
 A local audit of 11 invalid CLI/I/O forms and three valid stdin/BOM forms passed

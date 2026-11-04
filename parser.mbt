@@ -93,7 +93,7 @@ fn Parser::parse_function(
     return Function(name, args)
   }
   while true {
-    args.push(self.parse_expression(1))
+    args.push(self.parse_expression(1, function_arg=true))
     if self.accept(RParen) {
       break
     }
@@ -203,9 +203,6 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
     CurrentToken => Current
     Star => Projection(ObjectWildcard(Current), Current)
     NotToken => Not(self.parse_expression(5))
-    // An expression reference captures a complete expression up to the argument
-    // delimiter, including comparisons, boolean operators and pipes.
-    Ampersand => ExpressionRef(self.parse_expression(1))
     LParen => {
       let expr = self.parse_expression(1)
       self.expect(RParen, ")")
@@ -260,6 +257,7 @@ fn Parser::parse_dot_rhs(self : Parser) -> Expr raise JmesPathError {
 fn Parser::parse_expression(
   self : Parser,
   min_precedence : Int,
+  function_arg? : Bool = false,
 ) -> Expr raise JmesPathError {
   self.recursion_depth += 1
   if self.recursion_depth > self.max_depth {
@@ -269,7 +267,13 @@ fn Parser::parse_expression(
       "expression exceeds max_ast_depth",
     )
   }
-  let mut left = self.parse_prefix()
+  // A reference is a function-arg alternative. Its body is a full ordinary
+  // expression, so only nested function calls can introduce further references.
+  let mut left = if function_arg && self.accept(Ampersand) {
+    ExpressionRef(self.parse_expression(1))
+  } else {
+    self.parse_prefix()
+  }
   if expr_depth(left) > self.max_depth {
     fail(
       "limit_exceeded",

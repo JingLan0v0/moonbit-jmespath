@@ -1,8 +1,12 @@
 # Project status and handoff
 
-## Current state (2026-11-03)
+## Current state (2026-11-04)
 
-### Latest audit: verification target isolation (2026-11-03)
+### 0.1.15 reference placement
+
+The parser rejects misplaced references before evaluation, including skipped branches and empty filters. See acceptance.md for release evidence.
+
+### Earlier audit: verification target isolation (2026-11-03)
 
 - CLI/I/O probe: 11 invalid and three valid forms passed in debug/release.
 - Fixed inherited JMES_CLI_PATH redirecting debug harnesses away from the built
@@ -25,7 +29,7 @@
   conformance modes. Following docs-only commit records the receipt.
 - Runtime/API/version unchanged. Published library stays 0.1.14; no republish.
 
-### Current release: 0.1.14
+### Previous release: 0.1.14
 
 - Reject forged numeric repr in caller-constructed Json before evaluation or
   bounded serialization; preserve matching precision text and batch isolation.

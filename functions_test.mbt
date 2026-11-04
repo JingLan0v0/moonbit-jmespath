@@ -228,3 +228,36 @@ test "expression reference delimiters nesting and lazy evaluation are preserved"
     Json::number(2.0),
   )
 }
+
+///|
+test "compile rejects misplaced references before data-dependent evaluation" {
+  for
+    (source, offset) in [
+      ("&foo", 0),
+      ("`true` || &foo", 10),
+      ("`false` && &foo", 11),
+      ("[&foo]", 1),
+      ("[?&foo]", 2),
+      ("map((&foo), @)", 5),
+      ("map(&(&foo), @)", 6),
+    ] {
+    let diagnostic = try {
+      @jmespath.compile(source) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some((d.code, d.offset))
+    }
+    assert_eq(diagnostic, Some(("syntax", offset)))
+  }
+  assert_eq(
+    @jmespath.search_json("map(&(@ || `0`), @)", "[null,2]"),
+    @json.parse("[0,2]"),
+  )
+  let code = try {
+    @jmespath.search_json("length(&foo)", "null") |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("invalid_type"))
+}

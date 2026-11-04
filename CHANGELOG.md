@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.15 - 2026-11-04
+
+Reject misplaced expression references during compilation, including in lazy branches, lists and filters. Direct reference arguments continue to support pipes, boolean expressions, grouping inside the reference and nested function calls.
+
 ## Unreleased - verification target isolation (2026-11-03)
 
 - explicitly bind every full-verification CLI harness to the debug/release

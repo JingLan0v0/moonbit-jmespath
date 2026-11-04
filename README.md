@@ -1,11 +1,15 @@
 # MoonJMES
 
+## 0.1.15 expression references
+
+Version 0.1.15 checks expression-reference placement at compile time. An & reference must begin a function argument. A misplaced reference now reports syntax even in a skipped boolean branch or an empty filter.
+
 ## Verification target isolation
 
 Full verification explicitly tests the debug/release CLI files it builds,
 ignoring an inherited JMES_CLI_PATH override. The receipt records those paths.
 Standalone harnesses still allow this override for downloaded-package testing.
-This is a verification-only fix; the published library remains 0.1.14.
+This is a verification-only fix; the verified version at that checkpoint was 0.1.14.
 
 
 ## Additional verification audit
@@ -13,7 +17,7 @@ This is a verification-only fix; the published library remains 0.1.14.
 The repository now checks special object keys, duplicate fields and escaped text
 in both output formats and build modes. Verification reports use actual harness
 counts and discard an older success receipt when a new run starts. This audit
-changes test tooling only; the published library remains 0.1.14. See
+changes test tooling only; the verified version at that checkpoint was 0.1.14. See
 [acceptance evidence](docs/acceptance.md).
 
 
