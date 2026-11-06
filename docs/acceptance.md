@@ -12,8 +12,21 @@ Local debug and release each passed 67 unit tests, all 892 pinned official cases
 80 boundary/isolation checks and 256 grammar mutations. The 45 added isolation
 checks combine five whitespace forms with nine expression contexts, each between
 two valid requests. JSON roundtrips, public API examples, three scenarios and the
-PowerShell wrapper passed. GitHub CI, package extraction, registry publication
-and fresh installation are pending for this release at this source checkpoint.
+PowerShell wrapper passed.
+
+Source commit `63f5a2ee35221c0d7f9463a6e5956c50590e6b5d` is on the original main
+branch, preserving its parent history. [CI 42173155305](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/42173155305)
+passed on Windows and Ubuntu. The following documentation-only commit records
+these receipts; the linked CI result is for the source commit above.
+
+The 66-entry archive excluded credentials, Git data, caches, toolchains and build
+outputs. Fresh extraction passed the complete verifier. Archive SHA-256 is
+`832b8859b671570f9bed8ba21fe4a87055b8ea5a8bfe458d92e8adf4fa89ebc1`.
+Mooncakes dry-run returned 202 success and formal publication returned 200 OK.
+After refreshing the registry index, a new consumer downloaded exact version
+0.1.16 and passed split-operator rejection, valid flatten, batch isolation and
+all retained release regressions in debug and release.
+[Mooncakes 0.1.16](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.16).
 
 ## 0.1.15 reference placement (2026-11-04)
 

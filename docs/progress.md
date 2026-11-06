@@ -8,9 +8,12 @@ Fixed separated empty brackets being accepted as flatten, including skipped
 branches and empty filters. Lexer/public API tests plus 45 isolated-process
 regressions now enforce contiguous `[]`. Both modes passed 67 unit tests,
 892 official cases, 80 boundary checks and 256 mutations, plus JSON roundtrips,
-API examples, scenarios and PowerShell. CI, clean archive verification, registry
-publication and fresh-consumer checks are pending at this source checkpoint.
-The previous verified registry release is 0.1.15. See acceptance.md for receipts.
+API examples, scenarios and PowerShell. Source commit 63f5a2e is on original main,
+and CI 42173155305 passed on Windows and Ubuntu. The 66-entry archive passed
+clean-extraction verification. Mooncakes returned 200 OK for 0.1.16, and a fresh
+consumer downloaded it and passed new and retained regressions in both modes.
+Current verified registry release is 0.1.16. The following docs-only commit records
+the receipts; see acceptance.md for the source SHA, CI link and archive hash.
 
 ### Earlier release: 0.1.15 reference placement
 
