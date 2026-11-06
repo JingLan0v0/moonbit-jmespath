@@ -68,3 +68,15 @@ test "filter spacing preserves literal content and valid adjacent markers" {
     lex(source, default_limits()) |> ignore
   }
 }
+
+///|
+test "flatten is one token only when brackets are adjacent" {
+  let adjacent = lex("@ []", default_limits())
+  assert_true(adjacent[1].kind is FlattenToken)
+  assert_eq(adjacent[1].offset, 2)
+  for space in [" ", "\t", "\r", "\n", " \r\n "] {
+    let separated = lex("[" + space + "]", default_limits())
+    assert_true(separated[0].kind is LBracket)
+    assert_true(separated[1].kind is RBracket)
+  }
+}

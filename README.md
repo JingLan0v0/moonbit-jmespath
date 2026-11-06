@@ -1,5 +1,15 @@
 # MoonJMES
 
+## 0.1.16 flatten syntax validation
+
+The flatten operator is the contiguous token `[]`. Previously `[ ]` and brackets
+split by tabs or newlines silently flattened arrays, including inside skipped
+boolean branches. The lexer now recognizes `[]` as one token and rejects split
+forms during compilation. Whitespace around `[]` and inside nonempty index,
+slice and wildcard brackets remains supported. Regression tests cover nested
+references, filters and preservation of valid batch neighbors.
+See [acceptance evidence](docs/acceptance.md) for verification/publication status.
+
 ## 0.1.15 expression references
 
 Version 0.1.15 checks expression-reference placement at compile time. An & reference must begin a function argument. A misplaced reference now reports syntax even in a skipped boolean branch or an empty filter.

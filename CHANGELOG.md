@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.16 - 2026-11-06
+
+- Tokenize contiguous `[]` as the flatten operator. Reject whitespace-separated
+  empty brackets at compile time, including root, postfix, references, filters,
+  groups and skipped boolean branches, per the JMESPath bracket-specifier grammar.
+- Preserve whitespace around flatten, nonempty brackets and literal bracket text.
+- Add lexer/public API regressions and 45 real-process batch-isolation cases in
+  each build mode. Parser depth and evaluation/output budgets remain enforced.
+
 ## 0.1.15 - 2026-11-04
 
 Reject misplaced expression references during compilation, including in lazy branches, lists and filters. Direct reference arguments continue to support pipes, boolean expressions, grouping inside the reference and nested function calls.

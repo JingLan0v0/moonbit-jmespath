@@ -209,11 +209,9 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
       expr
     }
     LBrace => self.parse_multi_hash()
+    FlattenToken => Projection(Flatten(Current), Current)
     LBracket =>
-      if self.accept(RBracket) {
-        Projection(Flatten(Current), Current)
-      } else if self.peek().kind is Star &&
-        self.tokens[self.pos + 1].kind is RBracket {
+      if self.peek().kind is Star && self.tokens[self.pos + 1].kind is RBracket {
         self.advance() |> ignore
         self.expect(RBracket, "]")
         Projection(ListWildcard(Current), Current)
@@ -293,13 +291,20 @@ fn Parser::parse_expression(
       }
       continue
     }
+    if self.accept(FlattenToken) {
+      left = Projection(Flatten(left), Current)
+      if expr_depth(left) > self.max_depth {
+        fail(
+          "limit_exceeded",
+          self.peek().offset,
+          "expression exceeds max_ast_depth",
+        )
+      }
+      continue
+    }
     if self.peek().kind is LBracket {
       self.advance() |> ignore
-      if self.accept(RBracket) {
-        left = Projection(Flatten(left), Current)
-      } else {
-        left = self.attach_bracket(left)
-      }
+      left = self.attach_bracket(left)
       if expr_depth(left) > self.max_depth {
         fail(
           "limit_exceeded",

@@ -1,5 +1,20 @@
 # MoonJMES acceptance evidence
 
+## 0.1.16 atomic flatten operator (2026-11-06)
+
+Version 0.1.15 reproducibly accepted `[ ]`, `@[ ]`, tab/newline-separated
+brackets, nested references and skipped branches in both debug and release.
+The [bracket-specifier grammar](https://jmespath.org/specification.html#grammar)
+defines contiguous `[]`. The lexer now emits an atomic flatten token, preserving
+valid projection semantics and rejecting split operators before evaluation.
+
+Local debug and release each passed 67 unit tests, all 892 pinned official cases,
+80 boundary/isolation checks and 256 grammar mutations. The 45 added isolation
+checks combine five whitespace forms with nine expression contexts, each between
+two valid requests. JSON roundtrips, public API examples, three scenarios and the
+PowerShell wrapper passed. GitHub CI, package extraction, registry publication
+and fresh installation are pending for this release at this source checkpoint.
+
 ## 0.1.15 reference placement (2026-11-04)
 
 In debug and release, 0.1.14 accepted misplaced references inside skipped boolean branches, a list on null and a filter on an empty array. The [JMESPath grammar](https://jmespath.org/specification.html#grammar) permits expression-type as a function argument. The parser now checks placement during compilation. Regressions verify syntax offsets and distinguish a misplaced reference from a valid argument passed to a function requiring another type.

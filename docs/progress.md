@@ -1,8 +1,18 @@
 # Project status and handoff
 
-## Current state (2026-11-04)
+## Current state (2026-11-06)
 
-### 0.1.15 reference placement
+### 0.1.16 atomic flatten operator
+
+Fixed separated empty brackets being accepted as flatten, including skipped
+branches and empty filters. Lexer/public API tests plus 45 isolated-process
+regressions now enforce contiguous `[]`. Both modes passed 67 unit tests,
+892 official cases, 80 boundary checks and 256 mutations, plus JSON roundtrips,
+API examples, scenarios and PowerShell. CI, clean archive verification, registry
+publication and fresh-consumer checks are pending at this source checkpoint.
+The previous verified registry release is 0.1.15. See acceptance.md for receipts.
+
+### Earlier release: 0.1.15 reference placement
 
 The parser rejects misplaced references before evaluation, including skipped branches and empty filters. Source 8f9e01b passed Windows and Ubuntu CI. Mooncakes 0.1.15 was published and verified from a fresh consumer in debug and release. See acceptance.md for release evidence.
 

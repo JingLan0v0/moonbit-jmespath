@@ -115,6 +115,16 @@ assert.equal(invalidTransport.stdout, '');
 assert.match(invalidTransport.stderr, /limit_exceeded/);
 checks++;
 
+// A malformed flatten operator must fail even in a skipped/empty context.
+// Both valid neighbors must survive every parse failure.
+for (const space of [' ', '\t', '\r', '\n', ' \r\n ']) {
+  const split = '['+space+']';
+  for (const expression of [split, '@'+split, '('+split+')', 'map(&'+split+', @)',
+    '`true` || '+split, '`false` && '+split, '[?@'+split+']', '{x:'+split+'}', "'月😀' | "+split]) {
+    isolated('split flatten '+JSON.stringify(expression), expression, [], 'syntax');
+  }
+}
+
 // Deterministic grammar mutations must be a result or a structured error,
 // never a crash. A trailing valid request checks recovery across all items.
 let seed=0x4d4f4f4e;

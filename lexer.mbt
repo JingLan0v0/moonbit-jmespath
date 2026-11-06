@@ -12,6 +12,7 @@ enum TokenKind {
   RParen
   LBracket
   RBracket
+  FlattenToken
   LBrace
   RBrace
   Comma
@@ -269,10 +270,16 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
         tokens.push({ kind: RParen, offset: start, })
         i += 1
       }
-      '[' => {
-        tokens.push({ kind: LBracket, offset: start, })
-        i += 1
-      }
+      '[' =>
+        // Flatten is the indivisible operator "[]", not an empty bracket
+        // expression. Whitespace may surround it, but cannot split it.
+        if i + 1 < chars.length() && chars[i + 1] == ']' {
+          tokens.push({ kind: FlattenToken, offset: start, })
+          i += 2
+        } else {
+          tokens.push({ kind: LBracket, offset: start, })
+          i += 1
+        }
       ']' => {
         tokens.push({ kind: RBracket, offset: start, })
         i += 1

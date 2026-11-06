@@ -261,3 +261,49 @@ test "compile rejects misplaced references before data-dependent evaluation" {
   }
   assert_eq(code, Some("invalid_type"))
 }
+
+///|
+test "compile rejects split flatten operators before evaluation" {
+  for space in [" ", "\t", "\r", "\n", " \r\n "] {
+    let split = "[" + space + "]"
+    for
+      source in [
+        split,
+        "@" + split,
+        "(" + split + ")",
+        "map(&" + split + ", @)",
+        "`true` || " + split,
+        "`false` && " + split,
+        "[?@" + split + "]",
+        "{x:" + split + "}",
+        "'月😀' | " + split,
+      ] {
+      let code = try {
+        @jmespath.compile(source) |> ignore
+        None
+      } catch {
+        @jmespath.JmesPathError(d) => Some(d.code)
+      }
+      assert_eq(code, Some("syntax"))
+    }
+  }
+}
+
+///|
+test "atomic flatten preserves projection chaining and literal bracket text" {
+  for source in ["[]", "@ []", "( [] )", "map(&[], @) | []"] {
+    assert_eq(@jmespath.search_json(source, "[[1],[2]]"), @json.parse("[1,2]"))
+  }
+  assert_eq(
+    @jmespath.search_json(
+      "items[].values[]", "{\"items\":[{\"values\":[1,2]},{\"values\":[3]}]}",
+    ),
+    @json.parse("[1,2,3]"),
+  )
+  assert_eq(@jmespath.search_json("@ [ * ]", "[1,2]"), @json.parse("[1,2]"))
+  assert_eq(@jmespath.search_json("@ [ 0 ]", "[1,2]"), Json::number(1.0))
+  assert_eq(@jmespath.search_json("@ [ : ]", "[1,2]"), @json.parse("[1,2]"))
+  assert_eq(@jmespath.search_json("'[ ]'", "null"), Json::string("[ ]"))
+  assert_eq(@jmespath.search_json("`\"[ ]\"`", "null"), Json::string("[ ]"))
+  assert_eq(@jmespath.search_json("\"[ ]\"", "{\"[ ]\":3}"), Json::number(3.0))
+}
