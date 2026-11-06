@@ -8,9 +8,12 @@ Fixed suffixes incorrectly continuing through parenthesized projections and
 unary negation incorrectly swallowing low-binding suffixes. No evaluator/API
 change. Both modes passed 13,560 differential composition cases, 70 unit tests,
 892 official cases, 288 new CLI regression cases, 80 boundary checks and 256
-mutations. Full verification and PowerShell passed. CI, archive, publication and
-fresh-consumer checks are pending at this source checkpoint. Previous verified
-registry version is 0.1.16; see acceptance.md for receipts.
+mutations. Full verification and PowerShell passed. Source ca9f7fd is synchronized
+to original main. CI 42175190843 passed on Windows and Ubuntu; the 66-entry archive
+passed clean-extraction verification. Mooncakes returned 200 OK for 0.1.17.
+A fresh consumer downloaded exact 0.1.17 and passed new and retained checks in
+both modes. Current verified registry version is 0.1.17. The following docs-only
+commit records receipts; see acceptance.md for the source SHA, CI link and hash.
 
 ### Earlier release: 0.1.16 atomic flatten operator
 

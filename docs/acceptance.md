@@ -19,8 +19,22 @@ and custom step/result-limit checks with compiled-query reuse after failure.
 
 Local debug/release each passed 70 unit tests, 892 pinned official cases,
 80 boundary/isolation checks, 256 mutations, JSON roundtrips, API examples and
-scenarios. PowerShell smoke passed. GitHub CI, clean archive verification,
-publication and fresh installation are pending at this source checkpoint.
+scenarios. PowerShell smoke passed.
+
+Source commit `ca9f7fd2cdd471842a70fba32b9d970400180a45` is synchronized to original
+main with parent history preserved. [CI 42175190843](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/42175190843)
+passed on Windows and Ubuntu. This evidence applies to the source commit;
+the following documentation-only commit records the receipts.
+
+The 66-entry archive excluded credentials, Git data, builds, caches, toolchains
+and the Python reference. Its independent extraction passed the full verifier.
+SHA-256 `4b8bca24abebc3bea6393ea0d68ee107eec33cbb8ef753de947683e5aa3f3511`.
+Mooncakes preflight returned 202 success and formal publication returned 200 OK.
+A fresh consumer downloaded exact 0.1.17 and passed grouping, negation,
+limit/reuse checks and retained regressions in both modes. An initial consumer
+test compile warning was corrected by parsing input outside its narrow error
+catch; no package change was needed.
+[Mooncakes 0.1.17](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.17).
 
 ## 0.1.16 atomic flatten operator (2026-11-06)
 
