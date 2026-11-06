@@ -1,4 +1,48 @@
 ///|
+test "parentheses end projection scope before subsequent suffixes" {
+  let data = @json.parse(
+    "{\"a\":[{\"b\":1},{\"b\":2}],\"items\":[{\"values\":[1,2]},{\"values\":[3,4]}]}",
+  )
+  for
+    (expression, expected) in [
+      ("(a[*])[0]", "{\"b\":1}"),
+      ("(a[*]).b", "null"),
+      ("a[*].b", "[1,2]"),
+      ("(a[*])[*].b", "[1,2]"),
+      ("((a[*]))[-1].b", "2"),
+      ("(a[*])[?b == `2`].b", "[2]"),
+      ("(items[*].values)[0]", "[1,2]"),
+      ("items[*].values[0]", "[1,3]"),
+      ("(items[*].values)[0][0]", "1"),
+      ("map(&(a[*])[0].b, [@])", "[1]"),
+    ] {
+    assert_eq(@jmespath.search(expression, data), @json.parse(expected))
+  }
+}
+
+///|
+test "negation respects suffix precedence and active projection tails" {
+  let data = @json.parse("{\"a\":[{\"b\":1},{\"b\":2}]}")
+  for
+    (expression, expected) in [
+      ("!a.b", "null"),
+      ("!(a.b)", "true"),
+      ("!a[]", "null"),
+      ("!(a[])", "false"),
+      ("!a[?@]", "null"),
+      ("!(a[?@])", "false"),
+      ("!a[0]", "false"),
+      ("!a[*].b", "false"),
+      ("!(a[*]).b", "null"),
+      ("!a[*][]", "null"),
+      ("!a[*][?b].b", "true"),
+      ("!a.*", "null"),
+    ] {
+    assert_eq(@jmespath.search(expression, data), @json.parse(expected))
+  }
+}
+
+///|
 test "multi-select preserves null but evaluates other false-like inputs" {
   for expression in ["[foo,bar]", "{a:foo}", "[unknown_function()]"] {
     assert_eq(@jmespath.search(expression, Json::null()), Json::null())

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.17 - 2026-11-06
+
+- Keep projection lexical scope separate from AST shape, so a suffix following
+  a parenthesized projection applies to its complete result.
+- Respect unary negation binding relative to dot, flatten, filters and indexes,
+  while preserving suffixes owned by an active projection.
+- Add fixed API examples, compiled-query resource/reuse regressions and 288 CLI
+  grouping/precedence cases per build mode. No new evaluator frames or public API.
+
 ## 0.1.16 - 2026-11-06
 
 - Tokenize contiguous `[]` as the flatten operator. Reject whitespace-separated

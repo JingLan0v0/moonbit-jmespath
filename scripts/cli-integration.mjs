@@ -60,6 +60,27 @@ assert.equal(semanticRun.status, 0, semanticRun.stderr);
 assert.equal(semanticRun.stderr, '');
 assert.deepEqual(JSON.parse(semanticRun.stdout), semanticCases.map(([, ,result])=>({ok:true,result})));
 
+// Parentheses stop projection scope. Suffixes then act on the complete value.
+// Use JS array operations as an independent oracle, including missing/null keys.
+const groupingCases = [];
+for (let size = 0; size < 24; size++) {
+  const rows = Array.from({length:size},(_,i)=>i%4===0?{}:{b:i%4===1?null:i%4-2});
+  const data = {a:rows};
+  const projected = rows.map(x=>x.b).filter(x=>x!==null && x!==undefined);
+  for (const [expression,result] of [
+    ['(a[*])[0]', rows[0]??null], ['(a[*]).b', null],
+    ['a[*].b', projected], ['(a[*])[*].b', projected],
+    ['(a[*].b)[0]', projected[0]??null], ['(a[*].b)[::-1]', [...projected].reverse()],
+    ['!a.b', null], ['!(a.b)', true], ['!a[]', null],
+    ['!a[?@]', null], ['!a[*].b', projected.length===0], ['!(a[*]).b', null],
+  ]) groupingCases.push({expression,data,result});
+}
+const groupingRun = invoke(['--batch','--compact','-'], JSON.stringify(groupingCases.map(({expression,data})=>({expression,data}))));
+assert.equal(groupingRun.status,0,groupingRun.stderr);
+assert.equal(groupingRun.stderr,'');
+assert.deepEqual(JSON.parse(groupingRun.stdout),groupingCases.map(({result})=>({ok:true,result})));
+console.log(`PASS projection grouping and unary precedence: ${groupingCases.length} cases`);
+
 // References capture complete expressions and stop at function delimiters.
 const referenceData = [{id:0,b:2},{id:1,a:1},{id:2,a:1}];
 const referenceCases = [

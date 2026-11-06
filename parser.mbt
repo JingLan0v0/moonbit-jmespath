@@ -45,7 +45,7 @@ fn precedence(kind : TokenKind) -> Int {
     PipeToken => 1
     OrToken => 2
     AndToken => 3
-    EqToken | NeToken | LtToken | LeToken | GtToken | GeToken => 4
+    EqToken | NeToken | LtToken | LeToken | GtToken | GeToken => 5
     _ => 0
   }
 }
@@ -202,7 +202,7 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
     LiteralToken(value) => Literal(value)
     CurrentToken => Current
     Star => Projection(ObjectWildcard(Current), Current)
-    NotToken => Not(self.parse_expression(5))
+    NotToken => Not(self.parse_expression(46))
     LParen => {
       let expr = self.parse_expression(1)
       self.expect(RParen, ")")
@@ -267,11 +267,15 @@ fn Parser::parse_expression(
   }
   // A reference is a function-arg alternative. Its body is a full ordinary
   // expression, so only nested function calls can introduce further references.
+  let grouped = self.peek().kind is LParen
   let mut left = if function_arg && self.accept(Ampersand) {
     ExpressionRef(self.parse_expression(1))
   } else {
     self.parse_prefix()
   }
+  // Parentheses close a projection's lexical scope even though the returned
+  // AST still contains a Projection. Subsequent suffixes use the whole value.
+  let mut projection_open = !grouped && has_projection(left)
   if expr_depth(left) > self.max_depth {
     fail(
       "limit_exceeded",
@@ -280,8 +284,19 @@ fn Parser::parse_expression(
     )
   }
   while true {
-    if self.accept(Dot) {
-      left = attach_projection(left, self.parse_dot_rhs())
+    if self.peek().kind is Dot {
+      // An active projection owns its suffixes; otherwise dot binds below !.
+      if min_precedence > 40 && !projection_open {
+        break
+      }
+      self.advance() |> ignore
+      let right = self.parse_dot_rhs()
+      left = if projection_open {
+        attach_projection(left, right)
+      } else {
+        Subexpression(left, right)
+      }
+      projection_open = has_projection(left)
       if expr_depth(left) > self.max_depth {
         fail(
           "limit_exceeded",
@@ -291,8 +306,14 @@ fn Parser::parse_expression(
       }
       continue
     }
-    if self.accept(FlattenToken) {
+    if self.peek().kind is FlattenToken {
+      // Flatten ends an existing projection and binds below unary negation.
+      if min_precedence > 9 {
+        break
+      }
+      self.advance() |> ignore
       left = Projection(Flatten(left), Current)
+      projection_open = true
       if expr_depth(left) > self.max_depth {
         fail(
           "limit_exceeded",
@@ -303,8 +324,21 @@ fn Parser::parse_expression(
       continue
     }
     if self.peek().kind is LBracket {
+      let binding = if self.tokens[self.pos + 1].kind is Question {
+        21
+      } else {
+        55
+      }
+      if min_precedence > binding && !projection_open {
+        break
+      }
       self.advance() |> ignore
-      left = self.attach_bracket(left)
+      left = if projection_open {
+        self.attach_bracket(left)
+      } else {
+        self.parse_bracket_postfix(left)
+      }
+      projection_open = has_projection(left)
       if expr_depth(left) > self.max_depth {
         fail(
           "limit_exceeded",
@@ -332,6 +366,7 @@ fn Parser::parse_expression(
       GeToken => Compare(Ge, left, right)
       _ => fail("syntax", operator.offset, "invalid operator")
     }
+    projection_open = false
     if expr_depth(left) > self.max_depth {
       fail(
         "limit_exceeded",

@@ -9,3 +9,9 @@ user's temporary directory and are not copied into MoonJMES source archives or
 release artifacts.
 
 No source code from another JMESPath implementation is included.
+
+The 2026-11-06 composition audit compared generated queries against
+[jmespath.py 1.0.1](https://github.com/jmespath/jmespath.py/tree/1.0.1)
+(MIT license) in an ignored local test directory and consulted the upstream
+JavaScript parser's binding powers. These implementations are test references,
+not runtime dependencies, and are not redistributed in this package.

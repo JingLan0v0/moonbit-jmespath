@@ -1,4 +1,27 @@
 ///|
+test "grouped projections preserve resource limits and compiled query reuse" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 16, }
+  let query = @jmespath.compile("!(@[*])", limits~)
+  let code = try {
+    query.search(Json::array(Array::make(32, Json::number(1.0)))) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("limit_exceeded"))
+  assert_eq(query.search(@json.parse("[1]")), Json::boolean(false))
+  assert_eq(query.search(@json.parse("[]")), Json::boolean(true))
+  let results = { ..@jmespath.default_limits(), max_results: 1, }
+  let code = try {
+    @jmespath.search_json("(@[*])[0]", "[1,2,3]", limits=results) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(code, Some("limit_exceeded"))
+}
+
+///|
 test "execution nesting has an explicit boundary and reusable state" {
   let allowed = "to_array(".repeat(127) + "@" + ")".repeat(127)
   assert_eq(

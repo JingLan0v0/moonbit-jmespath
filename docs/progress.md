@@ -2,7 +2,17 @@
 
 ## Current state (2026-11-06)
 
-### 0.1.16 atomic flatten operator
+### 0.1.17 projection scope and unary precedence
+
+Fixed suffixes incorrectly continuing through parenthesized projections and
+unary negation incorrectly swallowing low-binding suffixes. No evaluator/API
+change. Both modes passed 13,560 differential composition cases, 70 unit tests,
+892 official cases, 288 new CLI regression cases, 80 boundary checks and 256
+mutations. Full verification and PowerShell passed. CI, archive, publication and
+fresh-consumer checks are pending at this source checkpoint. Previous verified
+registry version is 0.1.16; see acceptance.md for receipts.
+
+### Earlier release: 0.1.16 atomic flatten operator
 
 Fixed separated empty brackets being accepted as flatten, including skipped
 branches and empty filters. Lexer/public API tests plus 45 isolated-process

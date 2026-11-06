@@ -1,5 +1,27 @@
 # MoonJMES acceptance evidence
 
+## 0.1.17 projection scope and unary precedence (2026-11-06)
+
+Both 0.1.16 build modes returned `[]` for `(a[*])[0]` on
+`{"a":[{"b":1},{"b":2}]}`, rather than the first object. `(a[*]).b` also kept
+projecting and returned `[1,2]` instead of null. Separately, unary negation
+incorrectly absorbed dot, flatten and filter suffixes, so `!a.b` returned true
+instead of null. Parentheses now close lexical projection scope; operator binding
+matches the [upstream parser](https://github.com/jmespath/jmespath.py/blob/1.0.1/jmespath/parser.py).
+No runtime grouping node or extra evaluator frame is introduced.
+
+A seeded local composition audit compared 13,560 valid-expression/data pairs per
+mode with jmespath.py 1.0.1, checking successful values and success/error outcomes,
+and found no differences after repair. It does not claim exhaustive equivalence
+or identical diagnostics. The reference is an ignored test dependency.
+Committed regressions include 288 CLI examples per mode, fixed public API cases,
+and custom step/result-limit checks with compiled-query reuse after failure.
+
+Local debug/release each passed 70 unit tests, 892 pinned official cases,
+80 boundary/isolation checks, 256 mutations, JSON roundtrips, API examples and
+scenarios. PowerShell smoke passed. GitHub CI, clean archive verification,
+publication and fresh installation are pending at this source checkpoint.
+
 ## 0.1.16 atomic flatten operator (2026-11-06)
 
 Version 0.1.15 reproducibly accepted `[ ]`, `@[ ]`, tab/newline-separated

@@ -1,5 +1,15 @@
 # MoonJMES
 
+## 0.1.17 grouping and negation precedence
+
+Parentheses now end a projection's scope. Given `{"a":[{"b":1},{"b":2}]}`,
+`(a[*])[0]` returns `{"b":1}` rather than `[]`, and `(a[*]).b` returns null
+rather than `[1,2]`. The ungrouped `a[*].b` still projects over each item.
+Unary `!` now binds above dot, flatten and filter suffixes, while indexes and
+active projection tails retain their binding. Use `!(a.b)` to negate a full path;
+`!a.b` accesses `b` on the boolean produced by `!a` and returns null.
+See [acceptance evidence](docs/acceptance.md) for verification/publication status.
+
 ## 0.1.16 flatten syntax validation
 
 The flatten operator is the contiguous token `[]`. Previously `[ ]` and brackets
