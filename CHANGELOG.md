@@ -1,5 +1,12 @@
 # Changelog
 
+## Documentation audit - 2026-11-10
+
+- Correct stale current-release links and verification counts in both READMEs.
+- Record a fresh local verification and 60,384 function/composition comparisons
+  per build mode, including reviewed Python reference differences.
+- No runtime change or new registry release; published version stays 0.1.17.
+
 ## 0.1.17 - 2026-11-06
 
 - Keep projection lexical scope separate from AST shape, so a suffix following

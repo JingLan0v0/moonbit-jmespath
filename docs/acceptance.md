@@ -1,5 +1,43 @@
 # MoonJMES acceptance evidence
 
+## Follow-up function/composition audit (2026-11-10)
+
+Rechecked local and remote main at `7ac06e10c25fa7c3899896414e24e3d3440e5436`;
+the working tree was initially clean and the runtime remains 0.1.17.
+This round actually ran full verification, release unit tests, both official
+conformance modes and PowerShell smoke: 70 units per mode, 892 official cases
+per mode, 80 boundary checks and 256 mutations per mode, 288 grouping cases,
+531 key/escape cases in each output format, API examples and all three scenarios.
+Initial restricted-network conformance failed; the authorized network retry
+passed. These are new local results, not reused release/CI receipts.
+
+A new seeded function/composition probe (seed 20261110, depth 5, 16 datasets)
+executed 60,384 expression/data pairs in each mode against jmespath.py 1.0.1.
+Both modes produced the same 15 differences, all reviewed against the
+[specification](https://jmespath.org/specification.html):
+
+- Seven cases: Python permits string ordering or raises a host TypeError for
+  number/string ordering. The specification's ordering operators apply only to
+  numbers; MoonJMES correctly returns null for other types.
+- Three cases: Python merge accepts a later array argument through dict.update;
+  MoonJMES correctly requires objects and reports invalid_type.
+- Five cases: Python contains treats true as numeric 1; MoonJMES correctly
+  distinguishes JSON booleans from numbers.
+
+No new runtime defect was established within this coverage. This is not a claim
+of zero bugs or exact equivalence to Python. Comparisons cover successful values
+and success/failure status, not equal error categories or offsets.
+The ignored local script/report are `_build/function-composition-20261110.py`
+and `.json`; the fresh reference dependency is `_build/reference-python-20261110`.
+Script SHA-256: `0a017c194c770c24d6211ef2c7204011108038230bc24e3139c32341181c8501`.
+The original reference cache was unreadable, so a fresh exact 1.0.1 was installed.
+
+Corrected both READMEs' stale current-version link (0.1.10 to 0.1.17) and stale
+52/33 test counts (70/80). This is a documentation-only update, with no package
+publication or fresh-consumer claim for this round. Historical publication and
+consumer evidence remains in the 0.1.17 section below. CI for this documentation
+commit must be checked separately; historical CI is not its receipt.
+
 ## 0.1.17 projection scope and unary precedence (2026-11-06)
 
 Both 0.1.16 build modes returned `[]` for `(a[*])[0]` on

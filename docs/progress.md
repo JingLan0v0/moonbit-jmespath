@@ -1,6 +1,19 @@
 # Project status and handoff
 
-## Current state (2026-11-06)
+## Current state (2026-11-10)
+
+### Function/composition follow-up (documentation only)
+
+Rechecked original main at 7ac06e1 and reran full local verification, release
+units, debug/release official cases and PowerShell successfully. New seeded
+function compositions tested 60,384 pairs per mode. All 15 differences per mode
+were reference implementation deviations (seven nonnumeric ordering, three merge
+argument-type and five bool/number contains cases); no new MoonJMES runtime bug
+was established. See acceptance.md for scope, script hash and actual receipts.
+Corrected stale README version/counts. Runtime and verified registry version
+remain 0.1.17; no republish or fresh consumer install was performed this round.
+The following release evidence is historical, not newly executed publication.
+
 
 ### 0.1.17 projection scope and unary precedence
 

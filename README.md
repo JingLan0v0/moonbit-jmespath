@@ -275,8 +275,8 @@ expanded occurrence; iterative JSON equality consumes the query work budget.
 insertion, and batch successes share an output budget with room reserved for
 errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
 
-Verification covers 52 unit tests, three scenarios, and, in **each** CLI build
-mode, 33 adversarial checks plus 256 deterministic grammar mutations. Test
+Verification covers 70 unit tests, three scenarios, and, in **each** CLI build
+mode, 80 adversarial checks plus 256 deterministic grammar mutations. Test
 subprocesses have a timeout and heap cap. CI enforces warning-free checks and
 exact official error categories in both modes, on Windows and Ubuntu, and saves
 downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
@@ -284,7 +284,7 @@ downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
 
 MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
 query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.10 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.10)
+implementations. Version [0.1.17 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.17)
 and verified from a fresh consumer in debug and release. Older versions remain available
 for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
 
