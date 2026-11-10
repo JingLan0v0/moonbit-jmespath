@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-10)
 
+### Persistent optimization workflow
+
+See [optimization plan and checkpoint](optimization-plan.md) for recurring
+"continue optimizing" requests. Planning stage P0 is complete; the next item is
+P1: promote the local equality audit into a reproducible committed harness.
+All implementation phases remain pending. Runtime and verified package stay
+0.1.17. Update that plan's checkpoint after each future round.
+
 ### Function/composition follow-up (documentation only)
 
 Rechecked original main at 7ac06e1 and reran full local verification, release
