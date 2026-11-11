@@ -12,7 +12,8 @@ artifacts. Known Python-reference deviations have explicit specification-based
 expectations, not blanket exemptions. No Python or local audit cache is needed.
 Both modes passed locally, along with full verification, release units, official
 compliance and PowerShell. Failure-path probes passed as recorded in acceptance.md.
-Remote CI for this change has not yet been verified. Runtime/package stay 0.1.17;
+Source 88b6e0b passed Windows/Ubuntu CI 43001037541 from clean checkouts.
+The following documentation-only commit records that result. Runtime/package stay 0.1.17;
 no new publication or new runtime defect is claimed.
 
 ### Reproducible equality checks (test tooling only)

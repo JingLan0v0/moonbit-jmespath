@@ -29,7 +29,10 @@ Full local verification, 70 unit tests per mode, official 892/892 cases per mode
 and PowerShell smoke passed. Existing equality, boundary, grammar mutation,
 grouping, serialization, API and scenario checks remained green. The initial
 official-suite download was blocked by DNS in the restricted environment; the
-network-enabled retry passed. Remote CI for this change is not yet verified.
+network-enabled retry passed. Source `88b6e0b09aed6eda69f944dd14f9d0bfddacfea2`
+passed Windows and Ubuntu CI from clean checkouts:
+[run 43001037541](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43001037541).
+The following documentation-only commit records these source receipts.
 This changes test tooling/docs only: runtime and published package remain 0.1.17,
 with no new registry publication or fresh-consumer receipt claimed.
 
