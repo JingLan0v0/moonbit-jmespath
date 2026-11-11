@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased - equality verification (2026-11-11)
+
+- Retain deterministic deep equality, key-order, type distinction and contains
+  checks in a standalone Node harness, integrated into both verification modes.
+- Record actual query counts; save replayable semantic/process failures and
+  upload them with CI evidence. Clear stale receipts on a new run.
+- Test tooling only; library and published package remain 0.1.17.
+
 ## Documentation audit - 2026-11-10
 
 - Correct stale current-release links and verification counts in both READMEs.

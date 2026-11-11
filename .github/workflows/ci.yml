@@ -61,5 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: acceptance-${{ matrix.os }}
-          path: _build/*-summary.json
+          path: |
+            _build/*-summary.json
+            _build/equality-*-failure.json
           retention-days: 30

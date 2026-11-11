@@ -1,5 +1,24 @@
 # MoonJMES acceptance evidence
 
+## Committed equality harness (2026-11-11)
+
+Promoted the independent canonical-JSON equality audit into a standalone Node
+script. Full verification pins its debug/release artifacts and checks actual
+pair/query counts agree. Each mode passed 4,125 pairs and 20,625 queries covering
+type distinctions, object key order, nested structures, Unicode and contains.
+No Python dependency or ignored local audit fixture is required.
+
+An isolated fake CLI returning incorrect values produced exit 1, a failed report
+and one replayable case. The real CLI replay passed when invoked outside the
+repository. A missing CLI then replaced that successful receipt with failure and
+preserved the attempted batch. CI now uploads saved cases with summaries.
+
+Full local verification and release unit tests passed (70 units per mode), as
+did official 892/892 cases in both modes, 80 boundary/256 mutation checks per
+mode, grouping/escaping checks, API examples, scenarios and PowerShell. CI is
+pending at this source checkpoint. This is test tooling only; there is no new
+Mooncakes publication or fresh-consumer claim. Published runtime stays 0.1.17.
+
 ## Follow-up function/composition audit (2026-11-10)
 
 Rechecked local and remote main at `7ac06e10c25fa7c3899896414e24e3d3440e5436`;

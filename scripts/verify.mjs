@@ -19,6 +19,20 @@ function run(command, args, options = {}) {
   return result.stdout;
 }
 
+function runEquality(env, release = false) {
+  const output = run(process.execPath, ['scripts/equality-properties.mjs', ...(release ? ['--release'] : [])], { env });
+  process.stdout.write(output);
+  const marker = 'EQUALITY_SUMMARY ';
+  const lines = output.split(/\r?\n/).filter(line => line.startsWith(marker));
+  if (lines.length !== 1) throw new Error('Missing or duplicate equality summary');
+  const counts = JSON.parse(lines[0].slice(marker.length));
+  if (!Number.isSafeInteger(counts.pairs) || counts.pairs <= 0 ||
+      !Number.isSafeInteger(counts.queries) || counts.queries !== counts.pairs * 5) {
+    throw new Error('Invalid equality counts');
+  }
+  return counts;
+}
+
 function runAdversarial(env) {
   const output = run(process.execPath, ['scripts/adversarial.mjs'], { env });
   process.stdout.write(output);
@@ -66,6 +80,7 @@ for (const [name, expression] of scenarios) {
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], { env: debugEnv }));
 process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], { env: debugEnv }));
 const debugAdversarial = runAdversarial(debugEnv);
+const debugEquality = runEquality(debugEnv);
 
 run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
 const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
@@ -76,6 +91,10 @@ process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], {
   env: { ...process.env, JMES_CLI_PATH: releaseCli },
 }));
 const releaseAdversarial = runAdversarial({ ...process.env, JMES_CLI_PATH: releaseCli });
+const releaseEquality = runEquality({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
+if (!isDeepStrictEqual(debugEquality, releaseEquality)) {
+  throw new Error('Debug/release equality coverage differs');
+}
 if (!isDeepStrictEqual(debugAdversarial, releaseAdversarial)) {
   throw new Error('Debug/release adversarial coverage differs');
 }
@@ -99,6 +118,7 @@ fs.writeFileSync(summaryPath, JSON.stringify({
   cliArtifacts: { debug: path.relative(root, cli), release: path.relative(root, releaseCli) },
   adversarialChecksPerMode: debugAdversarial.checks,
   grammarMutationsPerMode: debugAdversarial.mutations,
+  equalityPairsPerMode: debugEquality.pairs, equalityQueriesPerMode: debugEquality.queries,
   jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],
   publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');
