@@ -99,6 +99,9 @@ for (const [name, expression] of scenarios) {
 process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], { env: debugEnv }));
 process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], { env: debugEnv }));
 const debugAdversarial = runAdversarial(debugEnv);
+process.stdout.write(run(process.execPath, ['--test', 'scripts/minimize-failure.test.mjs'], {
+  env: {...debugEnv, JMES_REDUCER_TEST_MODE: 'debug'},
+}));
 const debugEquality = runEquality(debugEnv);
 const debugComposition = runComposition(debugEnv);
 
@@ -111,6 +114,9 @@ process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], {
   env: { ...process.env, JMES_CLI_PATH: releaseCli },
 }));
 const releaseAdversarial = runAdversarial({ ...process.env, JMES_CLI_PATH: releaseCli });
+process.stdout.write(run(process.execPath, ['--test', 'scripts/minimize-failure.test.mjs'], {
+  env: {...process.env, JMES_CLI_PATH: releaseCli, JMES_REDUCER_TEST_MODE: 'release'},
+}));
 const releaseEquality = runEquality({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
 const releaseComposition = runComposition({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
 if (!isDeepStrictEqual(debugComposition, releaseComposition)) {
@@ -144,6 +150,7 @@ fs.writeFileSync(summaryPath, JSON.stringify({
   grammarMutationsPerMode: debugAdversarial.mutations,
   equalityPairsPerMode: debugEquality.pairs, equalityQueriesPerMode: debugEquality.queries,
   compositionPerMode: debugComposition,
+  failureReducerModes: ['debug', 'release'],
   jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],
   publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');

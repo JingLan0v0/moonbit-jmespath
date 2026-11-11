@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased - bounded failure reduction (2026-11-11)
+
+- Add a separate reducer for saved equality/composition failures, with attempt
+  and time limits, repeat confirmation, stable failure categories and replay output.
+- Recompute expectations when supported JSON inputs shrink; preserve expression
+  text and opaque fixtures, including requests needed to reproduce batch failures.
+- Extract the composition corpus/oracles without changing its fingerprint, and
+  retain reducer unit/integration checks plus an injected-defect regression fixture.
+- Test tooling only; runtime and published package remain 0.1.17.
+
 ## Unreleased - composition verification (2026-11-11)
 
 - Retain a bounded seeded expression generator with independent expected values:

@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {"expression": "left == right", "data": {"left": true, "right": 1}, "result": false}
+  ]
+}

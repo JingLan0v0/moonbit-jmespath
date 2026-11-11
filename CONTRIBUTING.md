@@ -91,4 +91,56 @@ Node old-space limit and at most 250 requests. These bounds apply to this test
 workload, not every possible query. Failures save the mismatched case (including
 expected error code where applicable), or the attempted batch if the process
 fails. Replay and CLI overrides work like the equality harness; no automatic
-minimization is performed. Setup failures also replace stale successful reports.
+minimization is started by the property harness. Setup failures also replace stale
+successful reports. Use the separate reducer below when a failure needs diagnosis.
+
+## Reducing a saved failure
+
+After a property harness saves a failure, run the reducer against the same CLI:
+
+```sh
+node scripts/minimize-failure.mjs --suite equality --input _build/equality-debug-failure.json
+node scripts/equality-properties.mjs --replay _build/equality-debug-minimized.json
+node scripts/minimize-failure.mjs --suite composition --input _build/composition-release-failure.json --release
+node scripts/composition-properties.mjs --release --replay _build/composition-release-minimized.json
+```
+
+The reducer removes requests while preserving order and tries smaller JSON data.
+It recalculates expectations using independent equality or generated-composition
+oracles. Unknown expressions and fixed normative fixtures retain their original
+data and expectation; only their surrounding batch is reduced. Expression text
+is never edited. The original input file is preserved; do not use the generated
+output path as input (copy it to another name first).
+
+The baseline and every accepted candidate must reproduce the same failure
+signature twice. Semantic signatures include the expression and error category;
+process signatures distinguish timeout, output limit, exit status/signal and
+protocol failure. These categories do not prove an identical underlying cause,
+and two observations cannot rule out all flakiness. A different syntax/type error
+or timeout cannot replace a result mismatch. Reduction is greedy and bounded,
+not a guarantee of a globally smallest reproducer.
+
+Defaults are 100 CLI attempts and a 60-second search budget. Each subprocess uses
+the same 15-second timeout, 192 MiB old-space limit and 8 MiB output cap throughout
+the search. The reducer conservatively reserves time for two probes before trying
+a candidate; it may stop early rather than shorten a timeout and create a false
+failure. `--max-attempts` (2–1,000), `--max-ms` (1–120,000) and `--timeout-ms`
+(1–15,000) adjust these bounds; choose a total budget greater than twice the
+timeout. Setup, file I/O and process scheduling are not hard real-time guarantees.
+Input is capped at 4 MiB, 250 cases, depth 128 and 100,000 structural nodes.
+
+`--output-dir DIR` changes the default `_build` destination. A summary reports
+actual attempts, sizes, stop reason, failure signature and opaque fixture count.
+Old outputs/receipts are cleared before a recognized run; setup failures leave a
+failed receipt instead of a stale reproducer. Exit 0 means a repeatedly confirmed
+reproducer was saved (possibly unchanged); it does **not** mean the library passed.
+Exit 2 means no stable reproducer was established or the initial budget was too
+small. Exit 1 means invalid setup/input. Replay against a failing CLI should still
+fail; replay against the repaired CLI should pass.
+
+`node --test scripts/minimize-failure.test.mjs` tests the reducer and its command
+line using deliberate defects, dependency-sensitive batches and the real CLI.
+Full verification runs it in both build modes. The retained Boolean/number
+fixture is a regression for an injected test defect, not a newly discovered
+library bug. When diagnosing a real bug, retain the reviewed reduced input as a
+fixed regression and recheck its expectation before implementing the repair.

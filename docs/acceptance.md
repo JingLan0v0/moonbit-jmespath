@@ -1,5 +1,38 @@
 # MoonJMES acceptance evidence
 
+## Bounded reproducer reduction (2026-11-11)
+
+Added a standalone reducer for saved equality/composition failures. It removes
+batch requests in order and tries smaller JSON data only where an independent
+oracle can recalculate expectations. Generated composition evaluators now share
+their corpus module with the harness; its SHA-256 remains
+`e7124f3752d663692fb5111742f09910a0c00999e54f78c4416f73ce71abf4d4`.
+Unknown/normative expressions retain their original data. No expression text is
+rewritten, and the original file is preserved.
+
+Baseline failures and accepted reductions must reproduce twice with the same
+signature. The tests verify ordered batch dependencies, rejection of changed
+failure categories, updated expectations, opaque fixtures, unstable/nonreproducing
+inputs, attempt/time budgets, Unicode/prototype-key handling and malformed
+responses. Process signatures classify symptoms, not a proof of the same root
+cause; search is bounded and does not promise a global minimum.
+
+Each mode passed all 12 reducer tests. Command-line integration injected a
+bool/number defect, reduced away irrelevant input, compared it to the committed
+fixture, and replayed the result: the injected CLI failed and the real CLI passed.
+Generated-composition input reduction also recalculated its expected result and
+replayed successfully against the real CLI. Missing programs, malformed inputs
+and mismatched saved expectations failed without leaving stale output. A
+nonreproducing input returned exit 2 rather than a successful-reduction claim.
+The bool/number fixture is an injected test defect, not a newly found runtime bug.
+
+Full local verification passed in debug/release, including 20,625 equality and
+8,207 composition queries per mode, 80 boundary/256 mutation checks, grouping,
+serialization, API examples and scenarios. Both modes passed 70 library units
+and 892/892 official compliance cases; PowerShell smoke passed. Remote source CI
+is not yet verified. This is test tooling/docs only, with no Mooncakes publication
+or fresh-consumer claim; the published runtime remains 0.1.17.
+
 ## Committed composition harness (2026-11-11)
 
 Seed `0x20261111` constructs 512 depth-bounded expression trees (472 unique

@@ -65,4 +65,5 @@ jobs:
             _build/*-summary.json
             _build/equality-*-failure.json
             _build/composition-*-failure.json
+            _build/*-minimized.json
           retention-days: 30

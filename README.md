@@ -245,6 +245,8 @@ Full verification also runs 20,625 equality queries and 8,207 composition querie
 per build mode, with deterministic inputs, independent expected values and
 replayable failure reports. See [CONTRIBUTING.md](CONTRIBUTING.md) for standalone
 commands and coverage limits.
+Saved failures can be reduced with bounded attempts and repeat confirmation;
+see [failure reduction](CONTRIBUTING.md#reducing-a-saved-failure) for replay and limits.
 Architecture and trust boundaries are in
 [docs/architecture.md](docs/architecture.md).
 
