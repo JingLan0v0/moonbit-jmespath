@@ -16,7 +16,10 @@ preserved the attempted batch. CI now uploads saved cases with summaries.
 Full local verification and release unit tests passed (70 units per mode), as
 did official 892/892 cases in both modes, 80 boundary/256 mutation checks per
 mode, grouping/escaping checks, API examples, scenarios and PowerShell. CI is
-pending at this source checkpoint. This is test tooling only; there is no new
+passed on Windows and Ubuntu for source `8e0510480d19ceb7dae2a2cff502cc041fd83bbf`:
+[run 42963695185](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/42963695185).
+Clean checkouts ran the committed harness without local audit caches. The following
+documentation-only commit records these source receipts. This is test tooling only; there is no new
 Mooncakes publication or fresh-consumer claim. Published runtime stays 0.1.17.
 
 ## Follow-up function/composition audit (2026-11-10)

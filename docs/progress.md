@@ -9,7 +9,8 @@ verification modes with actual counts, failure capture and replay. Each mode
 passed 4,125 pairs / 20,625 queries. Deliberate wrong-output and missing-process
 probes verified failure receipts and replay from outside the repository.
 Full local checks, release units, both official suites and PowerShell passed.
-CI for this change is pending at this checkpoint. Runtime/package remain 0.1.17;
+Source 8e05104 passed Windows/Ubuntu CI 42963695185 from clean checkouts.
+The following documentation-only commit records that source evidence. Runtime/package remain 0.1.17;
 no new publication. See CONTRIBUTING.md for standalone and replay commands.
 
 ### Function/composition follow-up (documentation only)
