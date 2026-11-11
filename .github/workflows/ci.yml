@@ -64,4 +64,5 @@ jobs:
           path: |
             _build/*-summary.json
             _build/equality-*-failure.json
+            _build/composition-*-failure.json
           retention-days: 30

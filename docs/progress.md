@@ -2,6 +2,19 @@
 
 ## Current state (2026-11-11)
 
+### Reproducible composition checks (test tooling only)
+
+`scripts/composition-properties.mjs` adds a controlled seeded grammar with
+independent expected-value closures: 8,192 generated queries and 15 explicit
+normative cases per mode. Full verification compares corpus hashes and category
+counts across debug/release; failures are captured for standalone replay and CI
+artifacts. Known Python-reference deviations have explicit specification-based
+expectations, not blanket exemptions. No Python or local audit cache is needed.
+Both modes passed locally, along with full verification, release units, official
+compliance and PowerShell. Failure-path probes passed as recorded in acceptance.md.
+Remote CI for this change has not yet been verified. Runtime/package stay 0.1.17;
+no new publication or new runtime defect is claimed.
+
 ### Reproducible equality checks (test tooling only)
 
 The equality audit is now `scripts/equality-properties.mjs`, integrated into both

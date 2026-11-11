@@ -1,5 +1,38 @@
 # MoonJMES acceptance evidence
 
+## Committed composition harness (2026-11-11)
+
+Seed `0x20261111` constructs 512 depth-bounded expression trees (472 unique
+expressions), each evaluated on 16 datasets, plus 15 normative fixtures. All
+8,207 queries passed in each mode. The 14 generator categories include grouping,
+negation, functions, Boolean expressions, pipes, projections, indexing, filters,
+map references and flattening. Expected values are calculated by independent
+closures, without parsing generated text or invoking a reference evaluator.
+The controlled grammar supplements, rather than replaces, official compliance.
+Both modes produced corpus SHA-256
+`e7124f3752d663692fb5111742f09910a0c00999e54f78c4416f73ce71abf4d4`.
+
+Explicit fixtures check previously reviewed reference deviations in nonnumeric
+ordering, Boolean/number contains and merge argument types. They also distinguish
+map from projection null handling, grouped from ungrouped projection indexing,
+and a failing map request from its healthy batch neighbor. See CONTRIBUTING.md
+for specification references, bounded execution and replay commands.
+
+An isolated incorrect-output CLI produced exit 1 and a single replayable case.
+A nonexistent CLI captured the attempted 250-request batch; the real CLI replayed
+both successfully from outside the repository. A deliberately wrong error code
+was rejected; the saved expected-error case replayed successfully. Invalid replay
+JSON replaced the previous success report with a setup failure while preserving
+the original input. No automatic minimization is implemented.
+
+Full local verification, 70 unit tests per mode, official 892/892 cases per mode
+and PowerShell smoke passed. Existing equality, boundary, grammar mutation,
+grouping, serialization, API and scenario checks remained green. The initial
+official-suite download was blocked by DNS in the restricted environment; the
+network-enabled retry passed. Remote CI for this change is not yet verified.
+This changes test tooling/docs only: runtime and published package remain 0.1.17,
+with no new registry publication or fresh-consumer receipt claimed.
+
 ## Committed equality harness (2026-11-11)
 
 Promoted the independent canonical-JSON equality audit into a standalone Node

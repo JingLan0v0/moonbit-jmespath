@@ -241,6 +241,10 @@ node scripts/verify.mjs
 ```
 
 The GitHub Actions matrix runs on Windows and Ubuntu with the pinned compiler.
+Full verification also runs 20,625 equality queries and 8,207 composition queries
+per build mode, with deterministic inputs, independent expected values and
+replayable failure reports. See [CONTRIBUTING.md](CONTRIBUTING.md) for standalone
+commands and coverage limits.
 Architecture and trust boundaries are in
 [docs/architecture.md](docs/architecture.md).
 

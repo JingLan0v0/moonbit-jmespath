@@ -56,3 +56,39 @@ expected results; it does not minimize cases automatically. Reports identify the
 mode, actual count and replay status. Each run clears an older success receipt.
 `JMES_CLI_PATH` may select a standalone artifact; full verification always pins
 the artifacts it builds. CI uploads summaries and generated failure cases.
+
+## Composition checks
+
+`scripts/composition-properties.mjs` constructs 512 bounded expression trees
+(depth 1–4) using seed `0x20261111`, each evaluated against 16 datasets. The
+8,192 generated cases cover grouping, negation, functions, Boolean operators,
+pipes, projections, indexes, filters, expression references and flattening.
+Expressions may repeat; reports count unique expressions separately. Independent
+JavaScript closures calculate expected values without parsing expression text or
+calling a reference JMESPath implementation. This controlled grammar supplements
+the official suite; it does not cover the entire language or resource limits.
+
+Another 15 fixed cases distinguish map/projection behavior, grouped projections,
+error isolation and previously reviewed Python-reference differences. Per the
+[JMESPath specification](https://jmespath.org/specification.html), ordering of
+nonnumeric values returns null, contains distinguishes booleans from numbers, and
+merge requires every argument to be an object. These are explicit assertions,
+not broad exception filters. Python/pip and local audit caches are not required.
+Any new reference disagreement must be reduced and checked against the relevant
+specification rule before changing an expectation or reporting a runtime bug.
+
+Build the CLI as above, then run:
+
+```sh
+node scripts/composition-properties.mjs
+node scripts/composition-properties.mjs --release
+node scripts/composition-properties.mjs --replay _build/composition-debug-failure.json
+```
+
+Full verification includes both modes and compares actual counts, category
+coverage and corpus SHA-256. Each subprocess has a 15-second timeout, a 192 MiB
+Node old-space limit and at most 250 requests. These bounds apply to this test
+workload, not every possible query. Failures save the mismatched case (including
+expected error code where applicable), or the attempted batch if the process
+fails. Replay and CLI overrides work like the equality harness; no automatic
+minimization is performed. Setup failures also replace stale successful reports.

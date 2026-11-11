@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - composition verification (2026-11-11)
+
+- Retain a bounded seeded expression generator with independent expected values:
+  8,192 combinations plus 15 normative cases in each build mode.
+- Check category counts and corpus fingerprints across modes, save replayable
+  failures, and include them in CI artifacts. Explicitly assert known reference
+  deviations instead of treating a third-party evaluator as an absolute oracle.
+- Test tooling only; library and published package remain 0.1.17.
+
 ## Unreleased - equality verification (2026-11-11)
 
 - Retain deterministic deep equality, key-order, type distinction and contains

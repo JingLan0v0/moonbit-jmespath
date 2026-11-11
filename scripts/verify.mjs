@@ -33,6 +33,25 @@ function runEquality(env, release = false) {
   return counts;
 }
 
+function runComposition(env, release = false) {
+  const output = run(process.execPath, ['scripts/composition-properties.mjs', ...(release ? ['--release'] : [])], { env });
+  process.stdout.write(output);
+  const marker = 'COMPOSITION_SUMMARY ';
+  const lines = output.split(/\r?\n/).filter(line => line.startsWith(marker));
+  if (lines.length !== 1) throw new Error('Missing or duplicate composition summary');
+  const counts = JSON.parse(lines[0].slice(marker.length));
+  const coverage = Object.values(counts.coverage || {});
+  if (counts.generatedQueries !== 8192 || counts.normativeQueries !== 15 ||
+      counts.queries !== counts.generatedQueries + counts.normativeQueries ||
+      !Number.isSafeInteger(counts.expressions) || counts.expressions < 1 || counts.expressions > 512 ||
+      counts.seed !== 0x20261111 || !/^[a-f0-9]{64}$/.test(counts.corpusHash) ||
+      coverage.length !== 14 || coverage.some(n => !Number.isSafeInteger(n) || n <= 0) ||
+      coverage.reduce((a, b) => a + b, 0) !== counts.generatedQueries) {
+    throw new Error('Invalid composition coverage');
+  }
+  return counts;
+}
+
 function runAdversarial(env) {
   const output = run(process.execPath, ['scripts/adversarial.mjs'], { env });
   process.stdout.write(output);
@@ -81,6 +100,7 @@ process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], { en
 process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], { env: debugEnv }));
 const debugAdversarial = runAdversarial(debugEnv);
 const debugEquality = runEquality(debugEnv);
+const debugComposition = runComposition(debugEnv);
 
 run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
 const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
@@ -92,6 +112,10 @@ process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], {
 }));
 const releaseAdversarial = runAdversarial({ ...process.env, JMES_CLI_PATH: releaseCli });
 const releaseEquality = runEquality({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
+const releaseComposition = runComposition({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
+if (!isDeepStrictEqual(debugComposition, releaseComposition)) {
+  throw new Error('Debug/release composition corpus or coverage differs');
+}
 if (!isDeepStrictEqual(debugEquality, releaseEquality)) {
   throw new Error('Debug/release equality coverage differs');
 }
@@ -119,6 +143,7 @@ fs.writeFileSync(summaryPath, JSON.stringify({
   adversarialChecksPerMode: debugAdversarial.checks,
   grammarMutationsPerMode: debugAdversarial.mutations,
   equalityPairsPerMode: debugEquality.pairs, equalityQueriesPerMode: debugEquality.queries,
+  compositionPerMode: debugComposition,
   jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],
   publicApiExampleModes: ['debug', 'release'],
 }, null, 2)+'\n');
