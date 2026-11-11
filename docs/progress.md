@@ -14,7 +14,9 @@ Both modes passed 12 reducer tests, full verification, 70 library units and 892
 official cases, plus PowerShell smoke. Composition corpus extraction preserved
 its fingerprint and coverage. The retained minimized bool/number fixture tests
 a deliberately injected defect; no new runtime defect or release is claimed.
-Source CI for this change is not yet verified. Published runtime remains 0.1.17.
+Source 3212648 passed Windows/Ubuntu CI 43012204548 from clean checkouts.
+The following documentation-only commit records that source evidence.
+Published runtime remains 0.1.17.
 
 ### Reproducible composition checks (test tooling only)
 

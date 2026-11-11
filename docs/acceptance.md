@@ -29,8 +29,11 @@ The bool/number fixture is an injected test defect, not a newly found runtime bu
 Full local verification passed in debug/release, including 20,625 equality and
 8,207 composition queries per mode, 80 boundary/256 mutation checks, grouping,
 serialization, API examples and scenarios. Both modes passed 70 library units
-and 892/892 official compliance cases; PowerShell smoke passed. Remote source CI
-is not yet verified. This is test tooling/docs only, with no Mooncakes publication
+and 892/892 official compliance cases; PowerShell smoke passed.
+Source `321264882ac2514e1fb831ed10050b915f02a241` passed Windows/Ubuntu CI:
+[run 43012204548](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43012204548).
+The following documentation-only commit records these source receipts.
+This is test tooling/docs only, with no Mooncakes publication
 or fresh-consumer claim; the published runtime remains 0.1.17.
 
 ## Committed composition harness (2026-11-11)
