@@ -27,25 +27,34 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
+      - name: Read MoonBit version
+        id: toolchain
+        shell: bash
+        run: echo "version=$(node -p "require('./toolchain.json').moonbit_install_version")" >> "$GITHUB_OUTPUT"
       - name: Install pinned MoonBit on Linux
         if: runner.os == 'Linux'
         uses: hustcer/setup-moonbit@v1.22
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: '0.10.14+7d59c7ec9'
-          core-version: '0.10.14+7d59c7ec9'
+          version: '${{ steps.toolchain.outputs.version }}'
+          core-version: '${{ steps.toolchain.outputs.version }}'
       - name: Install pinned MoonBit on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/install-moonbit-ci.ps1
       - name: Record environment
-        run: moon version --all
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path _build -Force | Out-Null
+          moon version --all | Tee-Object -FilePath _build/moon-version.txt
       - name: Verify project
         # Regression: full verification must select its own debug/release builds.
         env:
           JMES_CLI_PATH: ignored-external-cli.js
         run: node scripts/verify.mjs
+      - name: Test release build
+        run: moon test --target js --release --deny-warn
       - name: Verify PowerShell usage
         if: runner.os == 'Windows'
         shell: pwsh
@@ -62,6 +71,7 @@ jobs:
         with:
           name: acceptance-${{ matrix.os }}
           path: |
+            _build/moon-version.txt
             _build/*-summary.json
             _build/equality-*-failure.json
             _build/composition-*-failure.json

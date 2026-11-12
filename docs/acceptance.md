@@ -1,5 +1,26 @@
 # MoonJMES acceptance evidence
 
+## MoonBit toolchain compatibility (2026-11-12)
+
+The Windows audit of commit `bce192b` with MoonBit `0.10.20+65efd5b93`
+passed regular JS builds, tests and examples. The formatter check failed
+under the new formatting rules, and the strict check rejected deprecated
+trailing `derive(...)` declarations. This change migrates the source syntax,
+regenerates the interfaces and updates both CI installers from `toolchain.json`.
+
+The local Windows run used the pinned installer and verified 18 binary checksums.
+`moon version --all` reported `moon 0.1.20261104 (940aa18 2026-11-04)`,
+`moonc v0.10.20+65efd5b93 (2026-11-05)` and
+`moonrun 0.1.20261104 (940aa18 2026-11-04)`. Node.js was `24.14.0`.
+
+Formatting, strict JS checks, debug/release builds, 70 unit tests per mode
+and 892 official JMESPath cases per mode passed. The public API example,
+three query scenarios, PowerShell smoke checks and the existing isolation
+and resource-limit regressions also passed. The verification workflow records
+the actual compiler version in the artifact for each OS.
+See the [GitHub Actions history](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
+for runs by commit.
+
 ## Bounded reproducer reduction (2026-11-11)
 
 Added a standalone reducer for saved equality/composition failures. It removes

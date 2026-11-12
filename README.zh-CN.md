@@ -90,8 +90,11 @@ MoonJMES 将完整的词法分析、语法解析、抽象语法树和执行器�
 
 从 Mooncakes 安装：
 
-当前仅支持 **JS 后端**。CI 固定使用 MoonBit `0.10.14+7d59c7ec9` 和 Node.js
-`24.14.0`，详见 `toolchain.json`。`moon add` 安装的是库依赖，不会安装全局 CLI。
+当前仅支持 **JS 后端**。GitHub 主分支和 CI 使用 `toolchain.json` 固定的
+MoonBit `0.10.20+65efd5b93` 和 Node.js `24.14.0`。运行 `moon version --all`
+确认实际版本。主分支使用了新版语法，MoonBit `0.10.14` 无法编译。
+安装方法见 [MoonBit 官方下载页](https://www.moonbitlang.com/download/)。
+`moon add` 安装库依赖，CLI 使用下方源码命令运行。
 
 ```powershell
 moon add JingLan0v0/jmespath
@@ -124,7 +127,9 @@ let result = query.search(input)
 
 ## PowerShell 使用方式
 
-仓库提供 `scripts/moon.ps1`，会优先使用本地固定版本的 MoonBit 工具链，也可以回退到系统中的 `moon`：
+仓库提供 `scripts/moon.ps1`。它依次查找 `MOON_BIN`、项目相邻 `.tools`
+目录中与 `toolchain.json` 匹配的工具链、系统 PATH 中的 `moon`。使用独立
+安装目录时，可以同时设置 `MOON_BIN` 和 `MOON_HOME`。
 
 首次使用先克隆并进入仓库：
 
@@ -134,7 +139,8 @@ cd moonbit-jmespath
 ```
 
 ```powershell
-.\scripts\moon.ps1 check --target js
+.\scripts\moon.ps1 version --all
+.\scripts\moon.ps1 check --target js --deny-warn
 .\scripts\moon.ps1 test --target js
 .\scripts\moon.ps1 run cmd/main --target js -- "instances[?state == 'running'].id" examples/cloud-inventory.json
 ```

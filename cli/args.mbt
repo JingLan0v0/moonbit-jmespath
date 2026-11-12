@@ -1,10 +1,11 @@
 ///|
+#derive(Eq, Debug)
 pub(all) enum Command {
   Help
   Version
   Query(expression~ : String, path~ : String, compact~ : Bool)
   Batch(path~ : String, compact~ : Bool)
-} derive(Eq, Debug)
+}
 
 ///|
 pub(all) suberror CliError {

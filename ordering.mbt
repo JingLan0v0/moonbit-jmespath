@@ -3,7 +3,7 @@
 // Core Array::sort_by's comparator cannot raise on this pinned toolchain.
 fn[T] bounded_sort(
   items : Array[T],
-  compare : (T, T) -> Int raise JmesPathError,
+  compare : (T, T) -> Int32 raise JmesPathError,
   state : EvalState,
 ) -> Array[T] raise JmesPathError {
   let length = items.length()

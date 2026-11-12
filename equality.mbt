@@ -1,7 +1,7 @@
 ///|
 priv enum EqualityFrame {
   Pair(Json, Json)
-  Arrays(Array[Json], Array[Json], Int)
+  Arrays(Array[Json], Array[Json], Int32)
   Objects(Iter[(String, Json)], Map[String, Json])
 }
 
@@ -23,7 +23,7 @@ fn json_equal(
           (Null, Null) | (True, True) | (False, False) => ()
           (Number(x, ..), Number(y, ..)) => if x != y { return false }
           (String(x), String(y)) => {
-            state.charge(Int::max(x.length(), y.length()))
+            state.charge(Int32::max(x.length(), y.length()))
             if x != y {
               return false
             }

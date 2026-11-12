@@ -130,8 +130,12 @@ The package documentation is available at
 [mooncakes.io/docs/JingLan0v0/jmespath](https://mooncakes.io/docs/JingLan0v0/jmespath).
 
 `moon add` installs a library dependency, not a global CLI executable. This
-release supports the **JS backend**; CI pins MoonBit `0.10.14+7d59c7ec9` and
-Node.js `24.14.0` (see `toolchain.json`). To run the CLI, clone this repository
+release supports the **JS backend**. For GitHub main, use MoonBit
+`0.10.20+65efd5b93` and Node.js `24.14.0`, as pinned in `toolchain.json`.
+Run `moon version --all` to confirm the selected compiler. The source on main
+uses newer syntax and fails to compile with MoonBit `0.10.14`.
+Install the toolchain using the [official download instructions](https://www.moonbitlang.com/download/).
+To run the CLI, clone this repository
 and query the included file:
 
 ```bash

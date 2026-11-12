@@ -1,10 +1,10 @@
 ///|
-fn render_error(code : String, offset : Int, message : String) -> String {
+fn render_error(code : String, offset : Int32, message : String) -> String {
   "moon-jmes: \{code} at \{offset}: \{message}\n"
 }
 
 ///|
-fn run() -> Int raise {
+fn run() -> Int32 raise {
   let args : Array[String] = []
   for arg in arguments() {
     args.push(arg)

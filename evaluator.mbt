@@ -1,9 +1,9 @@
 ///|
 priv struct EvalState {
   limits : Limits
-  mut steps : Int
-  mut results : Int
-  mut depth : Int
+  mut steps : Int32
+  mut results : Int32
+  mut depth : Int32
 }
 
 ///|
@@ -12,7 +12,10 @@ fn EvalState::tick(self : EvalState) -> Unit raise JmesPathError {
 }
 
 ///|
-fn EvalState::charge(self : EvalState, count : Int) -> Unit raise JmesPathError {
+fn EvalState::charge(
+  self : EvalState,
+  count : Int32,
+) -> Unit raise JmesPathError {
   if count > self.limits.max_steps - self.steps {
     fail("limit_exceeded", 0, "evaluation exceeds max_steps")
   }
@@ -22,7 +25,7 @@ fn EvalState::charge(self : EvalState, count : Int) -> Unit raise JmesPathError 
 ///|
 fn EvalState::add_results(
   self : EvalState,
-  count : Int,
+  count : Int32,
 ) -> Unit raise JmesPathError {
   if count > self.limits.max_results - self.results {
     fail("limit_exceeded", 0, "evaluation exceeds max_results")
@@ -46,7 +49,7 @@ fn json_bool(value : Bool) -> Json {
 }
 
 ///|
-fn normalize_positive(value : Int?, length : Int, default : Int) -> Int {
+fn normalize_positive(value : Int32?, length : Int32, default : Int32) -> Int32 {
   let mut result = value.unwrap_or(default)
   if result < 0 {
     result += length
@@ -63,9 +66,9 @@ fn normalize_positive(value : Int?, length : Int, default : Int) -> Int {
 ///|
 fn slice_array(
   items : Array[Json],
-  start : Int?,
-  stop : Int?,
-  step : Int?,
+  start : Int32?,
+  stop : Int32?,
+  step : Int32?,
   state : EvalState,
 ) -> Array[Json] raise JmesPathError {
   let stride = step.unwrap_or(1)

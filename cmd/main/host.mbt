@@ -29,7 +29,7 @@ extern "js" fn write_stderr(text : String) -> Unit =
   #|}
 
 ///|
-extern "js" fn set_exit(code : Int) -> Unit =
+extern "js" fn set_exit(code : Int32) -> Unit =
   #|(code) => { if (process.exitCode !== 2) process.exitCode = code; }
 
 ///|

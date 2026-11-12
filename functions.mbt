@@ -1,8 +1,8 @@
 ///|
 fn require_arity(
   name : String,
-  actual : Int,
-  expected : Int,
+  actual : Int32,
+  expected : Int32,
 ) -> Unit raise JmesPathError {
   if actual != expected {
     fail(
@@ -16,8 +16,8 @@ fn require_arity(
 ///|
 fn require_min_arity(
   name : String,
-  actual : Int,
-  minimum : Int,
+  actual : Int32,
+  minimum : Int32,
 ) -> Unit raise JmesPathError {
   if actual < minimum {
     fail(
@@ -51,7 +51,7 @@ fn homogeneous_order(
   values : Array[Json],
   name : String,
   state : EvalState,
-) -> Int raise JmesPathError {
+) -> Int32 raise JmesPathError {
   if values.is_empty() {
     return 0
   }
@@ -82,9 +82,9 @@ fn homogeneous_order(
 fn compare_ordered(
   left : Json,
   right : Json,
-  kind : Int,
+  kind : Int32,
   state : EvalState,
-) -> Int raise JmesPathError {
+) -> Int32 raise JmesPathError {
   state.tick()
   if kind == 1 {
     guard left is Number(a, ..) && right is Number(b, ..) else { return 0 }

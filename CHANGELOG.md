@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - MoonBit toolchain compatibility (2026-11-12)
+
+- Update source declarations and generated interfaces for MoonBit
+  `0.10.20+65efd5b93`, including the current trait derivation and integer syntax.
+- Pin Windows and Ubuntu CI to the same release, record `moon version --all`
+  as a CI artifact, and run strict release tests on the JS backend.
+- Select the matching local toolchain in the PowerShell wrapper and document the
+  compiler requirements for building GitHub main.
+
 ## Unreleased - bounded failure reduction (2026-11-11)
 
 - Add a separate reducer for saved equality/composition failures, with attempt

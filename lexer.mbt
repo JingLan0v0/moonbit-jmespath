@@ -1,10 +1,11 @@
 ///|
+#derive(Eq, Debug)
 enum TokenKind {
   Identifier(String)
   QuotedIdentifier(String)
   RawString(String)
   LiteralToken(Json)
-  NumberToken(Int)
+  NumberToken(Int32)
   Dot
   Star
   CurrentToken
@@ -30,13 +31,14 @@ enum TokenKind {
   Question
   Ampersand
   Eof
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 struct Token {
   kind : TokenKind
-  offset : Int
-} derive(Eq, Debug)
+  offset : Int32
+}
 
 ///|
 fn is_space(c : Char) -> Bool {
@@ -59,7 +61,7 @@ fn is_identifier_continue(c : Char) -> Bool {
 }
 
 ///|
-fn parse_int_text(text : String, offset : Int) -> Int raise JmesPathError {
+fn parse_int_text(text : String, offset : Int32) -> Int32 raise JmesPathError {
   let chars = text.to_array()
   let mut value = 0
   let mut i = 0
@@ -91,7 +93,10 @@ fn parse_int_text(text : String, offset : Int) -> Int raise JmesPathError {
 }
 
 ///|
-fn decode_json_string(raw : String, offset : Int) -> String raise JmesPathError {
+fn decode_json_string(
+  raw : String,
+  offset : Int32,
+) -> String raise JmesPathError {
   let wrapped = "\"" + raw + "\""
   let parsed = parse_json_bounded(wrapped) catch {
     JmesPathError(d) =>

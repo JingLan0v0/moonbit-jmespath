@@ -1,9 +1,10 @@
 ///|
+#derive(Eq, Debug)
 pub(all) struct Diagnostic {
   code : String
-  offset : Int
+  offset : Int32
   message : String
-} derive(Eq, Debug)
+}
 
 ///|
 pub(all) suberror JmesPathError {
@@ -13,19 +14,20 @@ pub(all) suberror JmesPathError {
 ///|
 fn[T] fail(
   code : String,
-  offset : Int,
+  offset : Int32,
   message : String,
 ) -> T raise JmesPathError {
   raise JmesPathError({ code, offset, message, })
 }
 
 ///|
+#derive(Eq, Debug)
 pub(all) struct Limits {
-  max_expression_chars : Int
-  max_ast_depth : Int
-  max_steps : Int
-  max_results : Int
-} derive(Eq, Debug)
+  max_expression_chars : Int32
+  max_ast_depth : Int32
+  max_steps : Int32
+  max_results : Int32
+}
 
 ///|
 pub fn default_limits() -> Limits {
@@ -38,6 +40,7 @@ pub fn default_limits() -> Limits {
 }
 
 ///|
+#derive(Eq, Debug)
 enum CompareOp {
   Eq
   Ne
@@ -45,16 +48,17 @@ enum CompareOp {
   Le
   Gt
   Ge
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 enum Expr {
   Current
   Field(String)
   Literal(Json)
   Subexpression(Expr, Expr)
-  Index(Expr, Int)
-  Slice(Expr, Int?, Int?, Int?)
+  Index(Expr, Int32)
+  Slice(Expr, Int32?, Int32?, Int32?)
   ListWildcard(Expr)
   ObjectWildcard(Expr)
   Flatten(Expr)
@@ -69,7 +73,7 @@ enum Expr {
   MultiHash(Array[(String, Expr)])
   Function(String, Array[Expr])
   ExpressionRef(Expr)
-} derive(Eq, Debug)
+}
 
 ///|
 pub struct Compiled {

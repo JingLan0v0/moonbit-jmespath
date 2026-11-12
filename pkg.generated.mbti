@@ -3,6 +3,7 @@ package "JingLan0v0/jmespath"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -10,15 +11,15 @@ pub fn compile(String, limits? : Limits) -> Compiled raise JmesPathError
 
 pub fn default_limits() -> Limits
 
-pub fn parse_json_bounded(String) -> Json raise JmesPathError
+pub fn parse_json_bounded(String) -> @json.Json raise JmesPathError
 
-pub fn search(String, Json, limits? : Limits) -> Json raise JmesPathError
+pub fn search(String, @json.Json, limits? : Limits) -> @json.Json raise JmesPathError
 
-pub fn search_batch(Json, limits? : Limits) -> Json raise JmesPathError
+pub fn search_batch(@json.Json, limits? : Limits) -> @json.Json raise JmesPathError
 
-pub fn search_json(String, String, limits? : Limits) -> Json raise JmesPathError
+pub fn search_json(String, String, limits? : Limits) -> @json.Json raise JmesPathError
 
-pub fn stringify_bounded(Json, pretty? : Bool) -> String raise JmesPathError
+pub fn stringify_bounded(@json.Json, pretty? : Bool) -> String raise JmesPathError
 
 pub fn version() -> String
 
@@ -28,7 +29,8 @@ pub(all) suberror JmesPathError {
 }
 
 // Types and methods
-type CompareOp derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type CompareOp
 pub fn CompareOp::equal(Self, Self) -> Bool
 pub fn CompareOp::not_equal(Self, Self) -> Bool
 pub fn CompareOp::to_repr(Self) -> @debug.Repr
@@ -38,39 +40,44 @@ pub struct Compiled {
   expr : Expr
   limits : Limits
 }
-pub fn Compiled::search(Self, Json) -> Json raise JmesPathError
+pub fn Compiled::search(Self, @json.Json) -> @json.Json raise JmesPathError
 pub fn Compiled::source(Self) -> String
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Diagnostic {
   code : String
-  offset : Int
+  offset : Int32
   message : String
-} derive(Eq, @debug.Debug)
+}
 pub fn Diagnostic::equal(Self, Self) -> Bool
 pub fn Diagnostic::not_equal(Self, Self) -> Bool
 pub fn Diagnostic::to_repr(Self) -> @debug.Repr
 
-type Expr derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type Expr
 pub fn Expr::equal(Self, Self) -> Bool
 pub fn Expr::not_equal(Self, Self) -> Bool
 pub fn Expr::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Limits {
-  max_expression_chars : Int
-  max_ast_depth : Int
-  max_steps : Int
-  max_results : Int
-} derive(Eq, @debug.Debug)
+  max_expression_chars : Int32
+  max_ast_depth : Int32
+  max_steps : Int32
+  max_results : Int32
+}
 pub fn Limits::equal(Self, Self) -> Bool
 pub fn Limits::not_equal(Self, Self) -> Bool
 pub fn Limits::to_repr(Self) -> @debug.Repr
 
-type Token derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type Token
 pub fn Token::equal(Self, Self) -> Bool
 pub fn Token::not_equal(Self, Self) -> Bool
 pub fn Token::to_repr(Self) -> @debug.Repr
 
-type TokenKind derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type TokenKind
 pub fn TokenKind::equal(Self, Self) -> Bool
 pub fn TokenKind::not_equal(Self, Self) -> Bool
 pub fn TokenKind::to_repr(Self) -> @debug.Repr

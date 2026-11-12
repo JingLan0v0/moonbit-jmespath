@@ -17,17 +17,16 @@ process {
 
 end {
   $projectRoot = Split-Path $PSScriptRoot -Parent
-  $toolchains = @(
-    (Join-Path (Split-Path $projectRoot -Parent) '.tools/moonjmes-toolchain'),
-    (Join-Path (Split-Path $projectRoot -Parent) '.tools/moon')
-  )
-  $localToolchain = $toolchains | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_ 'bin/moon.exe')
-  } | Select-Object -First 1
+  $toolchain = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'toolchain.json') | ConvertFrom-Json
+  $localToolchain = Join-Path (Split-Path $projectRoot -Parent) ".tools/moonjmes-$($toolchain.moonbit_install_version)"
+  $localMoon = Join-Path $localToolchain 'bin/moon.exe'
+  $previousMoonHome = $env:MOON_HOME
 
-  if ($localToolchain) {
+  if ($env:MOON_BIN) {
+    $moonExecutable = (Get-Command $env:MOON_BIN -CommandType Application -ErrorAction Stop).Source
+  } elseif (Test-Path -LiteralPath $localMoon -PathType Leaf) {
     $env:MOON_HOME = $localToolchain
-    $moonExecutable = Join-Path $localToolchain 'bin/moon.exe'
+    $moonExecutable = $localMoon
   } else {
     $moonExecutable = (Get-Command moon -ErrorAction Stop).Source
   }
@@ -42,6 +41,7 @@ end {
     $result = $LASTEXITCODE
   } finally {
     Pop-Location
+    $env:MOON_HOME = $previousMoonHome
   }
   exit $result
 }

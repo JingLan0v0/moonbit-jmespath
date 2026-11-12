@@ -1,6 +1,15 @@
 # Project status and handoff
 
-## Current state (2026-11-11)
+## Current state (2026-11-12)
+
+### MoonBit toolchain compatibility
+
+GitHub main targets the JS backend with MoonBit `0.10.20+65efd5b93`.
+Current declaration syntax and regenerated interfaces restore the formatter
+and strict checks on this version. Windows and Ubuntu CI read the compiler pin
+from `toolchain.json` and record the installed version in their artifacts.
+See [acceptance evidence](acceptance.md#moonbit-toolchain-compatibility-2026-11-12)
+for the local test results and the CI history.
 
 ### Bounded failure reduction (test tooling only)
 

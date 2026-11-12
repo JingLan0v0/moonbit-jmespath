@@ -2,9 +2,12 @@ $ErrorActionPreference = 'Stop'
 if (-not $env:RUNNER_TEMP -or -not $env:GITHUB_PATH -or -not $env:GITHUB_ENV) {
   throw 'This installer is intended for GitHub Actions runners.'
 }
-$version = '0.10.14%2B7d59c7ec9'
-$installRoot = Join-Path $env:RUNNER_TEMP 'moonjmes-toolchain'
-$downloadRoot = Join-Path $env:RUNNER_TEMP 'moonjmes-downloads'
+$projectRoot = Split-Path $PSScriptRoot -Parent
+$toolchain = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'toolchain.json') | ConvertFrom-Json
+$release = $toolchain.moonbit_install_version
+$version = [Uri]::EscapeDataString($release)
+$installRoot = Join-Path $env:RUNNER_TEMP "moonjmes-$release"
+$downloadRoot = Join-Path $env:RUNNER_TEMP "moonjmes-downloads-$release"
 New-Item -ItemType Directory -Path $downloadRoot -Force | Out-Null
 
 function Get-OfficialFile([string]$RelativePath, [string]$Destination) {

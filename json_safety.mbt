@@ -1,18 +1,21 @@
 ///|
 priv enum JsonFrame {
-  Value(Json, Int)
-  Items(Iter[Json], Int)
-  Members(Iter[(String, Json)], Int)
+  Value(Json, Int32)
+  Items(Iter[Json], Int32)
+  Members(Iter[(String, Json)], Int32)
 }
 
 ///|
 priv struct JsonBudget {
-  mut nodes : Int
-  mut units : Int
+  mut nodes : Int32
+  mut units : Int32
 }
 
 ///|
-fn JsonBudget::add(self : JsonBudget, count : Int) -> Unit raise JmesPathError {
+fn JsonBudget::add(
+  self : JsonBudget,
+  count : Int32,
+) -> Unit raise JmesPathError {
   if count > 16777216 - self.units {
     fail("limit_exceeded", 0, "JSON output estimate exceeds 16 Mi UTF-16 units")
   }
@@ -74,7 +77,7 @@ fn validate_number_repr(
 fn measure_json(
   value : Json,
   pretty : Bool,
-  initial_depth? : Int = 0,
+  initial_depth~ : Int32 = 0,
 ) -> JsonBudget raise JmesPathError {
   let budget = { nodes: 0, units: 0, }
   let stack : Array[JsonFrame] = [Value(value, initial_depth)]
@@ -160,7 +163,7 @@ fn check_json_size(value : Json, pretty : Bool) -> Unit raise JmesPathError {
 /// output-size estimate. Pretty output uses two spaces and is also bounded.
 pub fn stringify_bounded(
   value : Json,
-  pretty? : Bool = false,
+  pretty~ : Bool = false,
 ) -> String raise JmesPathError {
   check_json_size(value, pretty)
   value.stringify(indent=if pretty { 2 } else { 0 })

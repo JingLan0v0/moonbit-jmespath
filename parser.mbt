@@ -1,9 +1,9 @@
 ///|
 priv struct Parser {
   tokens : Array[Token]
-  mut pos : Int
-  max_depth : Int
-  mut recursion_depth : Int
+  mut pos : Int32
+  max_depth : Int32
+  mut recursion_depth : Int32
 }
 
 ///|
@@ -40,7 +40,7 @@ fn Parser::expect(
 }
 
 ///|
-fn precedence(kind : TokenKind) -> Int {
+fn precedence(kind : TokenKind) -> Int32 {
   match kind {
     PipeToken => 1
     OrToken => 2
@@ -145,7 +145,7 @@ fn Parser::parse_slice_or_index(
   self : Parser,
   base : Expr,
 ) -> Expr raise JmesPathError {
-  let mut start : Int? = None
+  let mut start : Int32? = None
   if self.peek().kind is NumberToken(value) {
     start = Some(value)
     self.advance() |> ignore
@@ -154,8 +154,8 @@ fn Parser::parse_slice_or_index(
     }
   }
   self.expect(Colon, ":")
-  let mut stop : Int? = None
-  let mut step : Int? = None
+  let mut stop : Int32? = None
+  let mut step : Int32? = None
   if self.peek().kind is NumberToken(value) {
     stop = Some(value)
     self.advance() |> ignore
@@ -254,8 +254,8 @@ fn Parser::parse_dot_rhs(self : Parser) -> Expr raise JmesPathError {
 ///|
 fn Parser::parse_expression(
   self : Parser,
-  min_precedence : Int,
-  function_arg? : Bool = false,
+  min_precedence : Int32,
+  function_arg~ : Bool = false,
 ) -> Expr raise JmesPathError {
   self.recursion_depth += 1
   if self.recursion_depth > self.max_depth {
@@ -380,7 +380,7 @@ fn Parser::parse_expression(
 }
 
 ///|
-fn expr_depth(expr : Expr) -> Int {
+fn expr_depth(expr : Expr) -> Int32 {
   match expr {
     Current | Field(_) | Literal(_) => 1
     Not(a)
@@ -396,11 +396,11 @@ fn expr_depth(expr : Expr) -> Int {
     | Pipe(a, b)
     | Or(a, b)
     | And(a, b)
-    | Compare(_, a, b) => 1 + Int::max(expr_depth(a), expr_depth(b))
+    | Compare(_, a, b) => 1 + Int32::max(expr_depth(a), expr_depth(b))
     MultiList(items) | Function(_, items) => {
       let mut depth = 1
       for item in items {
-        depth = Int::max(depth, 1 + expr_depth(item))
+        depth = Int32::max(depth, 1 + expr_depth(item))
       }
       depth
     }
@@ -408,7 +408,7 @@ fn expr_depth(expr : Expr) -> Int {
       let mut depth = 1
       for entry in entries {
         let (_, item) = entry
-        depth = Int::max(depth, 1 + expr_depth(item))
+        depth = Int32::max(depth, 1 + expr_depth(item))
       }
       depth
     }
