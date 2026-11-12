@@ -235,16 +235,16 @@ in the JSON response on stdout, as described above.
 ## Verification
 
 ```bash
-moon fmt --check
-moon check --target js
-moon test --target js
-moon info --target js
-node scripts/conformance.mjs
-node scripts/conformance.mjs --release
 node scripts/verify.mjs
 ```
 
-The GitHub Actions matrix runs on Windows and Ubuntu with the pinned compiler.
+Run this from a Git checkout with the pinned MoonBit and Node.js on PATH, or
+set `MOON_BIN` and `MOON_HOME` for a separate toolchain. GitHub Actions runs the
+same command on Windows and Ubuntu. The report at
+`_build/verification-summary.json` records each check, its status and available
+counts, plus the source commit and toolchain. The official suite downloads the
+pinned vectors on first use. [Verification setup and exit codes](CONTRIBUTING.md#verification)
+
 Full verification also runs 20,625 equality queries and 8,207 composition queries
 per build mode, with deterministic inputs, independent expected values and
 replayable failure reports. See [CONTRIBUTING.md](CONTRIBUTING.md) for standalone

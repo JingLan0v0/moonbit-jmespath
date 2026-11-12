@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - unified verification (2026-11-12)
+
+- Use one verification command locally and in CI for strict checks, both JS
+  build modes, examples, official conformance and Windows PowerShell smoke.
+- Reuse each mode's CLI for conformance and record source, toolchain, counts
+  and per-step status in a report that survives early failure.
+
 ## Unreleased - MoonBit toolchain compatibility (2026-11-12)
 
 - Update source declarations and generated interfaces for MoonBit

@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-12)
 
+### Unified verification
+
+Run `node scripts/verify.mjs` for the same full check used by Windows and
+Ubuntu CI. The JSON report records the source SHA and working tree state,
+toolchain, build mode, timings, status and available counts for each check.
+The official suites reuse the existing CLI artifacts. Windows includes the
+PowerShell smoke test. See the [local verification results](acceptance.md#unified-verification-2026-11-12).
+
 ### MoonBit toolchain compatibility
 
 GitHub main targets the JS backend with MoonBit `0.10.20+65efd5b93`.
@@ -313,6 +321,6 @@ The parser rejects misplaced references before evaluation, including skipped bra
 
 1. Check working tree and remote main without discarding user changes.
 2. Do not repeat successful checks unless code/build inputs changed or a new concern warrants it. toolchain.json pins the compiler and Node version.
-3. For code changes run `node scripts/verify.mjs`, compliance with and without `--release`, and PowerShell smoke. MOON_BIN may point to the local toolchain; set MOON_HOME to the same installation.
+3. For code changes run `node scripts/verify.mjs`. It includes both compliance modes and the Windows PowerShell smoke check. Set MOON_BIN and MOON_HOME to the same installation if using a separate toolchain.
 4. Push normal commits, verify the exact remote SHA and both CI jobs, and record their URLs. For a future release, follow publishing.md; all recorded releases are already published and must not be overwritten. A dry run is not publication, and a timeout requires checking the registry before retrying.
 5. Install the exact published version in a new consumer project and exercise library batch isolation and bounded serialization. Update evidence only after observing the result. Do not guarantee organizer acceptance.

@@ -1,20 +1,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
-const summaryPath = path.join(root, '_build', 'verification-summary.json');
-// A failed new run must not leave a previous successful receipt behind.
-fs.rmSync(summaryPath, { force: true });
+const buildDir = path.join(root, '_build');
+const summaryPath = path.join(buildDir, 'verification-summary.json');
+const modes = ['debug', 'release'];
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 120000, ...options });
   if (result.error) throw result.error;
   if (result.status !== 0) {
     process.stderr.write(result.stdout || '');
     process.stderr.write(result.stderr || '');
-    throw new Error(`${command} ${args.join(' ')} failed`);
+    const diagnostic = (result.stderr || result.stdout || '').trim().slice(-1200);
+    const error = new Error(`${command} ${args.join(' ')} failed (${result.status ?? result.signal})${diagnostic ? ': ' + diagnostic : ''}`);
+    error.exitCode = result.status;
+    throw error;
   }
   return result.stdout;
 }
@@ -66,91 +71,202 @@ function runAdversarial(env) {
   return counts;
 }
 
-run(moon, ['fmt', '--check']);
-run(moon, ['check', '--target', 'js', '--deny-warn']);
-const unitTests = run(moon, ['test', '--target', 'js', '--deny-warn']);
-process.stdout.write(unitTests);
-run(moon, ['info', '--target', 'js']);
-for (const mode of [[], ['--release']]) {
-  const output = run(moon, ['run', 'examples/library', '--target', 'js', ...mode]);
-  if (output.trim().replaceAll('\r', '') !== '["Ada"]\n[]\nerror: invalid_type') {
-    throw new Error(`Public API example mismatch: ${output}`);
-  }
+const steps = [];
+function add(id, mode, check, { applicable = true, networkAware = false } = {}) {
+  steps.push({ receipt: { id, mode, status: applicable ? 'not_run' : 'not_applicable' }, check, networkAware });
 }
-console.log('PASS public API example: compile reuse, limits, serialization and error handling');
-run(moon, ['build', 'cmd/main', '--target', 'js']);
+const report = {
+  schemaVersion: 2,
+  status: 'running',
+  source: null,
+  ciCommit: process.env.GITHUB_SHA || null,
+  platform: process.platform,
+  node: process.version,
+  toolchain: null,
+  target: 'js',
+  modes,
+  startedAt: new Date().toISOString(),
+};
 
-const cli = path.join(root, '_build', 'js', 'debug', 'build', 'cmd', 'main', 'main.js');
-// Standalone harnesses may target another CLI, but full verification must test
-// the artifacts built above, regardless of an inherited JMES_CLI_PATH.
-const debugEnv = { ...process.env, JMES_CLI_PATH: cli };
+add('source', null, () => {
+  if (run('git', ['rev-parse', '--show-prefix']).trim()) {
+    throw new Error('Run full verification from a MoonJMES Git checkout');
+  }
+  report.source = {
+    sha: run('git', ['rev-parse', 'HEAD']).trim(),
+    dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
+  };
+});
+add('prepare-reports', null, () => {
+  for (const mode of modes) {
+    for (const suite of ['conformance', 'equality', 'composition']) {
+      fs.rmSync(path.join(buildDir, `${suite}-${mode}-summary.json`), { force: true });
+    }
+    for (const suite of ['equality', 'composition']) {
+      fs.rmSync(path.join(buildDir, `${suite}-${mode}-failure.json`), { force: true });
+    }
+  }
+  fs.rmSync(path.join(buildDir, 'moon-version.txt'), { force: true });
+});
+add('toolchain', null, () => {
+  report.toolchain = run(moon, ['version', '--all']).trim();
+  if (!report.toolchain) throw new Error('Missing MoonBit version information');
+  fs.writeFileSync(path.join(buildDir, 'moon-version.txt'), report.toolchain + '\n');
+  console.log(report.toolchain);
+});
+add('format', null, () => run(moon, ['fmt', '--check']));
+add('check', null, () => run(moon, ['check', '--target', 'js', '--deny-warn']));
+add('interfaces', null, () => {
+  run(moon, ['info', '--target', 'js']);
+  run('git', ['diff', '--exit-code', '--', '*.mbti']);
+  const untracked = run('git', ['ls-files', '--others', '--exclude-standard', '--', '*.mbti']).trim();
+  if (untracked) throw new Error('Untracked generated interfaces: ' + untracked);
+});
+
 const scenarios = [
   ['cloud-inventory', "instances[?environment == 'prod' && state == 'running'].{id: id, zone: zone}"],
   ['deployments', "deployments[?decision == 'deny'].{service: service, reasons: reasons[*].code}"],
   ['costs', 'sort_by(services, &monthly_cost)[*].{service: name, monthly_cost: monthly_cost}'],
 ];
-for (const [name, expression] of scenarios) {
-  const actual = JSON.parse(run(process.execPath, [cli, '--compact', expression, `examples/${name}.json`]));
-  const expected = JSON.parse(fs.readFileSync(path.join(root, 'examples', 'expected', `${name}.json`), 'utf8'));
-  if (!isDeepStrictEqual(actual, expected)) throw new Error(`${name} output mismatch`);
-  console.log(`PASS scenario: ${name}`);
-}
-
-process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], { env: debugEnv }));
-process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], { env: debugEnv }));
-const debugAdversarial = runAdversarial(debugEnv);
-process.stdout.write(run(process.execPath, ['--test', 'scripts/minimize-failure.test.mjs'], {
-  env: {...debugEnv, JMES_REDUCER_TEST_MODE: 'debug'},
-}));
-const debugEquality = runEquality(debugEnv);
-const debugComposition = runComposition(debugEnv);
-
-run(moon, ['build', 'cmd/main', '--target', 'js', '--release']);
-const releaseCli = path.join(root, '_build', 'js', 'release', 'build', 'cmd', 'main', 'main.js');
-process.stdout.write(run(process.execPath, ['scripts/cli-integration.mjs'], {
-  env: { ...process.env, JMES_CLI_PATH: releaseCli },
-}));
-process.stdout.write(run(process.execPath, ['scripts/json-roundtrip.mjs'], {
-  env: { ...process.env, JMES_CLI_PATH: releaseCli },
-}));
-const releaseAdversarial = runAdversarial({ ...process.env, JMES_CLI_PATH: releaseCli });
-process.stdout.write(run(process.execPath, ['--test', 'scripts/minimize-failure.test.mjs'], {
-  env: {...process.env, JMES_CLI_PATH: releaseCli, JMES_REDUCER_TEST_MODE: 'release'},
-}));
-const releaseEquality = runEquality({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
-const releaseComposition = runComposition({ ...process.env, JMES_CLI_PATH: releaseCli }, true);
-if (!isDeepStrictEqual(debugComposition, releaseComposition)) {
-  throw new Error('Debug/release composition corpus or coverage differs');
-}
-if (!isDeepStrictEqual(debugEquality, releaseEquality)) {
-  throw new Error('Debug/release equality coverage differs');
-}
-if (!isDeepStrictEqual(debugAdversarial, releaseAdversarial)) {
-  throw new Error('Debug/release adversarial coverage differs');
-}
-
-if (process.env.VERIFY_PUBLISH === '1') {
-  const publish = spawnSync(moon, ['publish', '--dry-run'], { cwd: root, encoding: 'utf8' });
-  const detail = (publish.stdout || '') + (publish.stderr || '');
-  // Moon 0.1.20260920 exits non-zero after a server-confirmed 202 dry-run.
-  if (publish.status !== 0 && !detail.includes('Dry run completed successfully')) {
-    process.stderr.write(detail);
-    throw new Error('Mooncakes publish dry-run failed');
+const artifacts = Object.fromEntries(modes.map(mode => [
+  mode, path.join(buildDir, 'js', mode, 'build', 'cmd', 'main', 'main.js'),
+]));
+const coverage = {};
+function testCounts(output, totalPattern, passedPattern) {
+  const total = Number(output.match(totalPattern)?.[1]);
+  const passed = Number(output.match(passedPattern)?.[1]);
+  if (!Number.isSafeInteger(total) || total <= 0 || passed !== total) {
+    throw new Error('Missing test counts or some tests did not pass');
   }
-  console.log('PASS Mooncakes publish dry-run');
+  return { total, passed };
 }
-console.log('PASS MoonBit checks, tests, examples, interfaces, and debug/release builds');
-fs.writeFileSync(summaryPath, JSON.stringify({
-  status: 'passed', ciCommit: process.env.GITHUB_SHA || null,
-  node: process.version, recordedAt: new Date().toISOString(),
-  unitTests: unitTests.trim(), scenarios: scenarios.map(x=>x[0]),
-  cliModes: ['debug', 'release'],
-  cliArtifacts: { debug: path.relative(root, cli), release: path.relative(root, releaseCli) },
-  adversarialChecksPerMode: debugAdversarial.checks,
-  grammarMutationsPerMode: debugAdversarial.mutations,
-  equalityPairsPerMode: debugEquality.pairs, equalityQueriesPerMode: debugEquality.queries,
-  compositionPerMode: debugComposition,
-  failureReducerModes: ['debug', 'release'],
-  jsonRoundtripModes: ['debug', 'release'], jsonRoundtripFormats: ['compact', 'pretty'],
-  publicApiExampleModes: ['debug', 'release'],
-}, null, 2)+'\n');
+
+for (const mode of modes) {
+  const release = mode === 'release';
+  const flags = release ? ['--release'] : [];
+  const cli = artifacts[mode];
+  // Always test the artifact built for this mode, even with an inherited override.
+  const env = { ...process.env, JMES_CLI_PATH: cli, JMES_REDUCER_TEST_MODE: mode };
+  function runHarness(script) {
+    const output = run(process.execPath, [`scripts/${script}.mjs`], { env });
+    process.stdout.write(output);
+    return output;
+  }
+  add('unit', mode, () => {
+    const output = run(moon, ['test', '--target', 'js', '--deny-warn', ...flags]);
+    process.stdout.write(output);
+    return testCounts(output, /Total tests: (\d+)/, /passed: (\d+)/);
+  });
+  add('public-api', mode, () => {
+    const output = run(moon, ['run', 'examples/library', '--target', 'js', ...flags]);
+    if (output.trim().replaceAll('\r', '') !== '["Ada"]\n[]\nerror: invalid_type') {
+      throw new Error(`Public API example mismatch: ${output}`);
+    }
+    return { examples: 1 };
+  });
+  add('build-cli', mode, () => {
+    run(moon, ['build', 'cmd/main', '--target', 'js', ...flags]);
+    return { artifact: path.relative(root, cli) };
+  });
+  add('scenarios', mode, () => {
+    for (const [name, expression] of scenarios) {
+      const actual = JSON.parse(run(process.execPath, [cli, '--compact', expression, `examples/${name}.json`]));
+      const expected = JSON.parse(fs.readFileSync(path.join(root, 'examples', 'expected', `${name}.json`), 'utf8'));
+      if (!isDeepStrictEqual(actual, expected)) throw new Error(`${name} output mismatch`);
+      console.log(`PASS scenario: ${name}`);
+    }
+    return { passed: scenarios.length };
+  });
+  add('cli', mode, () => {
+    const output = runHarness('cli-integration');
+    const groupingCases = Number(output.match(/PASS projection grouping and unary precedence: (\d+) cases/)?.[1]);
+    if (!Number.isSafeInteger(groupingCases) || groupingCases <= 0) throw new Error('Missing CLI grouping count');
+    return { groupingCases };
+  });
+  add('json-roundtrip', mode, () => {
+    const output = runHarness('json-roundtrip');
+    const counts = {};
+    for (const format of ['compact', 'pretty']) {
+      const match = output.match(new RegExp(`PASS JSON roundtrip ${format}: (\\d+) key/escape cases and duplicate JSON key case passed`));
+      const queries = Number(match?.[1]);
+      if (!Number.isSafeInteger(queries) || queries <= 0) throw new Error(`Missing ${format} roundtrip count`);
+      counts[format] = { queries, duplicateKeyCases: 1 };
+    }
+    return counts;
+  });
+  add('adversarial', mode, () => (coverage[mode] = { adversarial: runAdversarial(env) }).adversarial);
+  add('failure-reducer', mode, () => {
+    const output = run(process.execPath, ['--test', '--test-reporter=tap', 'scripts/minimize-failure.test.mjs'], { env });
+    process.stdout.write(output);
+    return testCounts(output, /^# tests (\d+)$/m, /^# pass (\d+)$/m);
+  });
+  add('equality', mode, () => (coverage[mode].equality = runEquality(env, release)));
+  add('composition', mode, () => (coverage[mode].composition = runComposition(env, release)));
+}
+add('compare-coverage', null, () => {
+  if (!isDeepStrictEqual(coverage.debug, coverage.release)) {
+    throw new Error('Debug and release exercised different property-test coverage');
+  }
+});
+add('powershell', 'debug', () => {
+  process.stdout.write(run('pwsh', ['-NoProfile', '-File', 'scripts/powershell-smoke.ps1'], {
+    env: { ...process.env, MOON_BIN: moon },
+  }));
+}, { applicable: process.platform === 'win32' });
+
+for (const mode of modes) {
+  add('conformance', mode, () => {
+    const childReport = path.join(buildDir, `conformance-${mode}-summary.json`);
+    function readCounts() {
+      const { total, passed, revision } = JSON.parse(fs.readFileSync(childReport, 'utf8'));
+      return { total, passed, revision };
+    }
+    try {
+      process.stdout.write(run(process.execPath, ['scripts/conformance.mjs', '--cli', artifacts[mode],
+        ...(mode === 'release' ? ['--release'] : [])]));
+    } catch (error) {
+      if (fs.existsSync(childReport)) error.details = readCounts();
+      throw error;
+    }
+    const counts = readCounts();
+    if (counts.total !== 892 || counts.passed !== counts.total) throw new Error('Invalid conformance counts');
+    return counts;
+  }, { networkAware: true });
+}
+
+report.steps = steps.map(step => step.receipt);
+function writeReport() {
+  const pending = `${summaryPath}.${randomUUID()}.tmp`;
+  fs.writeFileSync(pending, JSON.stringify(report, null, 2) + '\n');
+  fs.renameSync(pending, summaryPath);
+}
+fs.mkdirSync(buildDir, { recursive: true });
+writeReport();
+for (const { receipt, check, networkAware } of steps) {
+  if (receipt.status === 'not_applicable') continue;
+  receipt.status = 'running';
+  receipt.startedAt = new Date().toISOString();
+  writeReport();
+  const label = receipt.mode ? `${receipt.id} (${receipt.mode})` : receipt.id;
+  try {
+    const details = check();
+    if (details && typeof details === 'object') receipt.details = details;
+    receipt.status = 'passed';
+    console.log(`PASS ${label}`);
+  } catch (error) {
+    receipt.status = networkAware && error.exitCode === 3 ? 'network_blocked' : 'failed';
+    receipt.error = error.message;
+    if (error.details) receipt.details = error.details;
+    report.status = receipt.status;
+    process.exitCode = receipt.status === 'network_blocked' ? 3 : 1;
+    console.error(`${receipt.status}: ${label}: ${error.message}`);
+  } finally {
+    receipt.finishedAt = new Date().toISOString();
+    writeReport();
+  }
+  if (process.exitCode) break;
+}
+if (report.status === 'running') report.status = 'passed';
+report.finishedAt = new Date().toISOString();
+writeReport();
+console.log(`Verification ${report.status}: ${summaryPath}`);

@@ -20,6 +20,12 @@ a subprocess timeout. If raw content download fails, it tries GitHub's official
 contents API at the same pinned commit. No upstream test vectors are
 redistributed in this repository.
 
+Full verification supplies the artifact it already built with `--cli FILE`.
+Set `JMES_CONFORMANCE_CACHE` to select an isolated cache directory for diagnosis.
+The summary records `network_blocked` with exit 3 if neither download route
+provides the vectors, and `failed` with exit 1 for build, CLI, data or assertion
+errors.
+
 Covered files: basic, boolean, current, escape, filters, functions,
 identifiers, indices, literal, multiselect, pipe, slice, syntax, unicode, and
 wildcard. The upstream benchmark data is intentionally excluded because it is

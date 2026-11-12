@@ -43,28 +43,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/install-moonbit-ci.ps1
-      - name: Record environment
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path _build -Force | Out-Null
-          moon version --all | Tee-Object -FilePath _build/moon-version.txt
-      - name: Verify project
+      - name: Run full verification
         # Regression: full verification must select its own debug/release builds.
         env:
           JMES_CLI_PATH: ignored-external-cli.js
         run: node scripts/verify.mjs
-      - name: Test release build
-        run: moon test --target js --release --deny-warn
-      - name: Verify PowerShell usage
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: ./scripts/powershell-smoke.ps1
-      - name: Run official JMESPath compliance suite
-        run: node scripts/conformance.mjs
-      - name: Run official JMESPath compliance suite in release mode
-        run: node scripts/conformance.mjs --release
-      - name: Check generated interfaces
-        run: git diff --exit-code -- '*.mbti'
       - name: Save acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4

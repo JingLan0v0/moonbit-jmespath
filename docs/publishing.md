@@ -7,9 +7,9 @@ Use the existing account session; never commit or paste credentials.json.
 
 1. Keep moon.mod and model.mbt version() identical. Published versions cannot be
    overwritten; preserve older releases for comparison.
-2. Use toolchain.json. Run moon fmt, moon info --target js, scripts/verify.mjs,
-   and scripts/conformance.mjs in debug and --release modes. On Windows also
-   run scripts/powershell-smoke.ps1.
+2. Use toolchain.json. Format and regenerate interfaces when needed, then run
+   `node scripts/verify.mjs` for the debug/release builds, tests, official
+   suite and Windows PowerShell check.
 3. Review git diff --check, generated interfaces, limits and changelog. Push
    normal commits to main and verify Windows/Ubuntu CI on that commit.
 4. Run ./scripts/moon.ps1 publish --dry-run (or moon publish --dry-run).

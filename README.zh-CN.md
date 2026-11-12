@@ -193,16 +193,15 @@ Windows 下可运行 `./examples/run.ps1`，脚本会将实际结果与仓库中
 ## 验证
 
 ```powershell
-.\scripts\moon.ps1 fmt --check
-.\scripts\moon.ps1 check --target js
-.\scripts\moon.ps1 test --target js
-.\scripts\moon.ps1 info --target js
 node scripts/verify.mjs
-node scripts/conformance.mjs
-node scripts/conformance.mjs --release
 ```
 
-GitHub Actions 使用固定编译器版本，在 Windows 和 Ubuntu 上执行构建、测试、示例、接口一致性检查和全部官方合规用例。
+在 Git 检出目录运行。请使用 PATH 中的固定版本 MoonBit 和 Node.js，或设置
+`MOON_BIN` 与 `MOON_HOME` 指向同一套独立工具链。Windows 和 Ubuntu 的 GitHub
+Actions 使用同一命令，检查调试版、发布版及全部官方用例，Windows 还检查 PowerShell。
+结果写入 `_build/verification-summary.json`，包含源码提交、工作区状态、工具链及
+每项检查的结果与计数。首次运行官方用例需要下载固定修订版的测试数据。
+[验收设置与退出码](CONTRIBUTING.md#verification)
 
 ## 九月验收问题的修复（0.1.2）
 

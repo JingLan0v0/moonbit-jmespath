@@ -5,20 +5,27 @@ in MoonBit; Node-specific I/O belongs in `cmd/main/host.mbt`. Preserve public
 resource limits and existing Git history. Read `AGENTS.md` and `docs/progress.md`
 when resuming work.
 
-Before submitting a change, run:
+## Verification
+
+Run the same verification command as CI from a Git checkout.
 
 ```text
-moon fmt
-moon info --target js
 node scripts/verify.mjs
-node scripts/conformance.mjs
-node scripts/conformance.mjs --release
 ```
 
 `moon` must be on PATH or set `MOON_BIN` to its executable and `MOON_HOME` to
-the matching installation. On Windows, also run `./scripts/powershell-smoke.ps1`.
-Use `scripts/moon.ps1` for individual Moon commands when using the local toolchain.
-Commit generated `.mbti` changes only when the intended API changes.
+the matching installation. The Windows run also requires `pwsh`. Run `moon fmt`
+to apply formatting changes and `moon info --target js` to regenerate interfaces
+when needed. Stage intended `.mbti` updates before verification so the interface
+check can compare the generated output with the staged baseline.
+
+The report at `_build/verification-summary.json` includes the source SHA, a dirty
+working tree flag, Node and MoonBit versions, and timestamps and counts per
+check. The command exits with 0 after all applicable checks pass, 1 on a failure,
+and 3 if the pinned test vectors are unavailable through both download routes.
+Later steps show `not_run` after an early stop. The PowerShell check shows
+`not_applicable` on other platforms. Keep one verification run per checkout
+because the build and diagnostic files are shared.
 
 Add behavioral regressions for bug fixes. Test normal values, boundary values,
 and failure isolation. Runtime crash fixes must include a subprocess with a

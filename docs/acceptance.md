@@ -1,5 +1,24 @@
 # MoonJMES acceptance evidence
 
+## Unified verification (2026-11-12)
+
+`node scripts/verify.mjs` runs the same checks locally and in CI. It reuses
+each mode's CLI for the pinned official suite, records actual counts and
+writes the report after each check. Local Windows verification passed with
+MoonBit `0.10.20+65efd5b93` and Node.js `24.14.0`. Both modes passed 70
+unit tests, 892 official cases and the existing property, CLI and API checks.
+The PowerShell check and query scenarios passed.
+
+In an isolated checkout, a missing Moon executable failed with exit 1,
+replaced the seeded success report and left later steps marked `not_run`.
+A missing CLI artifact also failed with exit 1. A deliberately incorrect CLI
+response recorded 800 failures out of the 892 pinned cases and exited with 1.
+A simulated download outage with an empty cache exited with 3, recorded
+`network_blocked`, retained earlier passing checks and marked the remaining
+official suite `not_run`.
+
+[GitHub Actions history](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
+
 ## MoonBit toolchain compatibility (2026-11-12)
 
 The Windows audit of commit `bce192b` with MoonBit `0.10.20+65efd5b93`
