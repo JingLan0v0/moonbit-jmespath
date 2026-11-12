@@ -22,9 +22,12 @@ redistributed in this repository.
 
 Full verification supplies the artifact it already built with `--cli FILE`.
 Set `JMES_CONFORMANCE_CACHE` to select an isolated cache directory for diagnosis.
-The summary records `network_blocked` with exit 3 if neither download route
-provides the vectors, and `failed` with exit 1 for build, CLI, data or assertion
-errors.
+Each cache entry and download is checked against the SHA-256 of its pinned
+upstream file. A corrupt cache entry triggers a new download, and the contents
+API can recover from a bad raw response. The cache is replaced after validation.
+The summary records `network_blocked` with exit 3 when both routes fail to
+download a needed file. Invalid upstream bytes, build, CLI and assertion errors
+report `failed` with exit 1.
 
 Covered files: basic, boolean, current, escape, filters, functions,
 identifiers, indices, literal, multiselect, pipe, slice, syntax, unicode, and

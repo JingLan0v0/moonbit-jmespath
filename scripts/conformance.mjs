@@ -2,16 +2,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 
-const revision = '53abcc37901891cf4308fcd910eab287416c4609';
-const files = [
-  'basic.json', 'boolean.json', 'current.json', 'escape.json',
-  'filters.json', 'functions.json', 'identifiers.json', 'indices.json',
-  'literal.json', 'multiselect.json', 'pipe.json', 'slice.json',
-  'syntax.json', 'unicode.json', 'wildcard.json',
-];
+import { DownloadUnavailable, loadVectors, pinnedFiles, revision } from './lib/conformance-vectors.mjs';
+
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
 const args = process.argv.slice(2);
@@ -22,45 +16,6 @@ const cache = path.resolve(process.env.JMES_CONFORMANCE_CACHE ?? path.join(os.tm
 const report = { status: 'running', revision, mode, total: null, passed: null, failures: [],
   ciCommit: process.env.GITHUB_SHA || null, startedAt: new Date().toISOString() };
 const networkBlockedExit = 3;
-class DownloadUnavailable extends Error {}
-
-async function loadVectors(name, downloadBudget) {
-  const target = path.join(cache, name);
-  if (fs.existsSync(target)) return JSON.parse(fs.readFileSync(target, 'utf8'));
-  async function download(url) {
-    const signal = AbortSignal.any([downloadBudget, AbortSignal.timeout(12000)]);
-    const response = await fetch(url, { signal });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.text();
-  }
-  const raw = `https://raw.githubusercontent.com/jmespath/jmespath.test/${revision}/tests/${name}`;
-  let text;
-  try {
-    text = await download(raw);
-  } catch (rawError) {
-    // Same upstream file and exact revision, through GitHub's contents API.
-    const api = `https://api.github.com/repos/jmespath/jmespath.test/contents/tests/${name}?ref=${revision}`;
-    let body;
-    try {
-      body = await download(api);
-    } catch (apiError) {
-      throw new DownloadUnavailable(`Cannot download pinned vectors ${name}: ${rawError.message}; ${apiError.message}`);
-    }
-    const file = JSON.parse(body);
-    if (file.encoding !== 'base64' || typeof file.content !== 'string') throw new Error(`Invalid upstream content: ${name}`);
-    text = Buffer.from(file.content, 'base64').toString('utf8');
-  }
-  const vectors = JSON.parse(text);
-  if (!Array.isArray(vectors)) throw new Error(`Invalid test data: ${name}`);
-  const temporary = `${target}.${randomUUID()}.tmp`;
-  try {
-    fs.writeFileSync(temporary, text);
-    fs.renameSync(temporary, target);
-  } finally {
-    fs.rmSync(temporary, { force: true });
-  }
-  return vectors;
-}
 
 async function verify() {
   let cli = path.join(root, '_build', 'js', mode, 'build', 'cmd', 'main', 'main.js');
@@ -82,8 +37,8 @@ async function verify() {
   const cases = [];
   const requests = [];
   const downloadBudget = AbortSignal.timeout(45000);
-  for (const name of files) {
-    for (const group of await loadVectors(name, downloadBudget)) {
+  for (const [name, digest] of Object.entries(pinnedFiles)) {
+    for (const group of await loadVectors(name, digest, cache, downloadBudget)) {
       for (const test of group.cases) {
         cases.push({ file: name, ...test });
         requests.push({ expression: test.expression, data: group.given });

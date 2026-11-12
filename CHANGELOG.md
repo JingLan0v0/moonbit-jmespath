@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - conformance cache integrity
+
+- Check cached and downloaded vectors against per-file hashes of the pinned
+  upstream revision. Recover from corrupt cache entries with verified downloads.
+- Test offline cache hits, recovery through the contents API and failed
+  downloads without using the network in CI regression tests.
+
 ## Unreleased - early verification failures
 
 - Clear stale suite reports and toolchain evidence before checking Git
