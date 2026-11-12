@@ -10,6 +10,8 @@ Input-derived results can share caller collections. The first copy of each
 literal charges its JSON nodes to the step budget. Tests cover mutation,
 repeated literal visits, input revalidation, retry after failure and the
 depth boundary. See [library ownership](usage.md#reproducible-library-example).
+Source commit `3c3bcf4` passed Windows and Ubuntu CI. Mooncakes 0.1.18 passed
+fresh consumer checks in both modes. [Release evidence](acceptance.md#compiled-json-literal-ownership-0118)
 
 ### Unified verification
 

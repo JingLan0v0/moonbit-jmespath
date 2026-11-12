@@ -16,6 +16,20 @@ passed on MoonBit `0.10.20+65efd5b93` and Node `24.14.0`, including 74 unit test
 and 892 official cases in each mode, the PowerShell smoke check and existing
 resource and isolation tests.
 
+The source commit `3c3bcf4545a997c20fc00abbd308e53518b4d65f` passed
+[Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43168706198).
+The 75-entry archive excluded credentials, Git data, build output, caches and
+toolchains. An independent extraction passed strict checking, both 74-test
+suites and the release CLI build. Archive SHA-256
+`2ee8ae82e7c8cad73834690799ecd13e0bb5d3b219982e095f1b3760123dab5d`.
+
+Mooncakes returned 202 for preflight and 200 for publication. With the Git index
+download stalled, a fresh consumer used Moon's HTTP metadata mode
+(`MOON_REGISTRY_API=1`) to download the exact public version. Strict checking
+and debug/release execution passed mutation isolation, live input sharing,
+bounded serialization and batch error recovery.
+[Mooncakes 0.1.18](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.18)
+
 ## Unified verification (2026-11-12)
 
 `node scripts/verify.mjs` runs the same checks locally and in CI. It reuses
