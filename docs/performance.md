@@ -46,3 +46,23 @@ the median. Batch compilation in isolation provides a comparison point for
 total batch cost. Different allocations and garbage collection can affect
 each measurement. Use the regular verification command to check semantics and
 resource boundaries. Performance measurements have no CI time threshold.
+
+## Batch reuse in 0.1.19
+
+The single-entry reuse slot improved repeated requests on a Windows x64 host
+using Node.js 24.14.0 and MoonBit 0.10.20+65efd5b93. The comparison used the
+release builds from `7039b33` and `9ee0f09`. Each workload ran in fresh child
+processes for five pairs, alternating which revision ran first. Values are
+the median of the five run medians and the median of the five process peaks.
+
+| Batch workload | Before (ms) | After (ms) | Before peak RSS (KiB) | After peak RSS (KiB) |
+| --- | ---: | ---: | ---: | ---: |
+| 512 repeated expressions | 1.134 | 0.569 | 55,908 | 54,632 |
+| 512 distinct expressions | 1.134 | 1.154 | 55,704 | 55,560 |
+| 8,192 repeated expressions | 17.020 | 7.463 | 132,176 | 120,656 |
+
+The distinct-expression paired timing ratios ranged from 0.984 to 1.053.
+The chosen reuse slot holds one compiled expression of up to 1,024 UTF-16
+units for the duration of the batch. It targets groups of identical requests
+with little retained state. These measurements describe the listed workloads
+on this host.

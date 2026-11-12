@@ -226,8 +226,8 @@ Actions 使用同一命令，检查调试版、发布版及全部官方用例，
 
 0.1.3 还限制执行调用深度为 128，并用非递归遍历检查 JSON 输入与结果：深度不超过 256（根节点为 0）、展开节点不超过 1,000,000、保守输出估算不超过 16 Mi 个 UTF-16 单元。批次成功响应共享 500,000 节点和 8 Mi 单元预算，另行预留错误响应空间。超出剩余预算的请求返回该项错误，后续小请求仍继续执行。批次包装层也计入深度。详见 [资源限制说明](docs/resource-limits.md)。
 
-0.1.18 已发布到 Mooncakes。全新消费者项目已安装该版本并通过调试与发布模式验证。
-[Mooncakes 0.1.18](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.18) · [变更记录](CHANGELOG.md)
+0.1.19 已发布到 Mooncakes。全新消费者项目已安装该版本并通过调试与发布模式验证。
+[Mooncakes 0.1.19](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.19) · [变更记录](CHANGELOG.md)
 
 库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
 

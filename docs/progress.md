@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-12)
 
+### Bounded batch reuse (0.1.19)
+
+Batch search can reuse one short compiled expression. Work budgets and
+literal copies are fresh for each request. Paired release benchmarks showed
+lower median latency for repeated requests. Windows and Ubuntu CI passed for
+`9ee0f09`. The published 0.1.19 passed fresh consumer checks in both modes.
+[Performance evidence](performance.md#batch-reuse-in-0119) · [Release evidence](acceptance.md#bounded-batch-reuse-0119)
+
 ### Compiled JSON literal ownership (0.1.18)
 
 Each search lazily copies evaluated array and object literals by source

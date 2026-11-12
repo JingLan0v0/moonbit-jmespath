@@ -1,5 +1,23 @@
 # MoonJMES acceptance evidence
 
+## Bounded batch reuse (0.1.19)
+
+The single-slot reuse change passed full local verification and
+[Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43172199029)
+on source commit `9ee0f09c2b4b9aa0d8abb891363d023e669325bc`. Each mode passed
+77 unit tests and 892 official cases. Regression coverage includes separate
+per-request work budgets, long expressions, and isolation of mutable literal
+results. [Paired performance measurements](performance.md#batch-reuse-in-0119)
+
+The 80-entry archive passed strict checks and both 77-test suites after
+independent extraction. Archive SHA-256
+`776edff7c149ed52a9a13225fac6f450734adf326c20335f347f20d697da18fa`.
+Mooncakes returned 202 for preflight and 200 for publication. A fresh consumer
+downloaded the exact version through Moon's HTTP metadata mode and passed
+strict checking and debug/release execution. It checked successful neighbors
+around a work-limit failure and independence of returned literal arrays.
+[Mooncakes 0.1.19](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.19)
+
 ## Compiled JSON literal ownership (0.1.18)
 
 Before the fix, the public regression failed after changing a returned
