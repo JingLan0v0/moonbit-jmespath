@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - property-test replays
+
+- Keep original failure cases and full-suite reports intact when replaying
+  equality or composition checks. Save each replay's report in its own directory.
+
 ## Unreleased - report writes
 
 - Publish verification and conformance reports only after writing complete JSON.

@@ -101,6 +101,42 @@ test('shrinking preserves Unicode scalars and own prototype-named keys', () => {
   assert.equal(Object.getPrototypeOf(c).a, undefined);
 });
 
+function checkReplayEvidence(suite, { temp, mode, source, fake, cli }) {
+  const build = path.join(temp, '_build');
+  fs.mkdirSync(build, {recursive: true});
+  const stem = `${suite}-${mode}`;
+  const failure = path.join(build, `${stem}-failure.json`);
+  const summary = path.join(build, `${stem}-summary.json`);
+  const original = fs.readFileSync(source, 'utf8');
+  const priorSummary = '{"status":"failed","original":true}\n';
+  fs.writeFileSync(failure, original);
+  fs.writeFileSync(summary, priorSummary);
+
+  const receipts = [];
+  for (const [artifact, status] of [[fake, 1], [cli, 0]]) {
+    const result = spawnSync(process.execPath, [path.join(temp, 'scripts', `${suite}-properties.mjs`),
+      ...(mode === 'release' ? ['--release'] : []), '--replay', failure],
+    {cwd: temp, env: {...process.env, JMES_CLI_PATH: artifact}, encoding: 'utf8', timeout: 30000});
+    if (result.error) throw result.error;
+    assert.equal(result.status, status, result.stderr);
+    assert.equal(fs.readFileSync(failure, 'utf8'), original, 'original failure file');
+    assert.equal(fs.readFileSync(summary, 'utf8'), priorSummary, 'original full-suite summary');
+    const reportPath = result.stdout.match(/^Replay report: (.+)$/m)?.[1];
+    assert.ok(reportPath, result.stdout);
+    assert.equal(path.dirname(path.dirname(reportPath)), path.join(build, 'replays'));
+    const receipt = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    assert.equal(receipt.status, status ? 'failed' : 'passed');
+    assert.equal(receipt.replay, failure);
+    if (status) {
+      assert.equal(path.dirname(receipt.failure), path.dirname(reportPath));
+      assert.deepEqual(JSON.parse(fs.readFileSync(receipt.failure, 'utf8')).cases, JSON.parse(original).cases);
+    }
+    receipts.push(reportPath);
+  }
+  assert.notEqual(receipts[0], receipts[1]);
+  assert.equal(JSON.parse(fs.readFileSync(receipts[0], 'utf8')).status, 'failed');
+}
+
 test('CLI saves only confirmed reproducers, replays them and clears stale artifacts', () => {
   const tempBase = fs.realpathSync(os.tmpdir());
   const temp = fs.mkdtempSync(path.join(tempBase, 'moonjmes-reducer-'));
@@ -116,6 +152,13 @@ test('CLI saves only confirmed reproducers, replays them and clears stale artifa
   {cwd: temp, env: {...process.env, JMES_CLI_PATH: artifact}, encoding: 'utf8', timeout: 30000});
   const read = p => JSON.parse(fs.readFileSync(p, 'utf8'));
   try {
+    fs.mkdirSync(path.join(temp, 'scripts/lib'), {recursive: true});
+    for (const file of [
+      'equality-properties.mjs', 'composition-properties.mjs',
+      'lib/composition-corpus.mjs', 'lib/property-artifacts.mjs', 'lib/write-json.mjs',
+    ]) {
+      fs.copyFileSync(path.join(root, 'scripts', file), path.join(temp, 'scripts', file));
+    }
     fs.writeFileSync(input, JSON.stringify({cases: [{...witness.cases[0], data: {left: true, right: 1, noise: 'padding'.repeat(50)}}]}));
     const original = fs.readFileSync(input, 'utf8');
     fs.writeFileSync(fake, `const fs=require('node:fs');const cases=JSON.parse(fs.readFileSync(0,'utf8'));console.log(JSON.stringify(cases.map(c=>({ok:true,result:c.data.left===true&&c.data.right===1?true:JSON.stringify(c.data.left??null)===JSON.stringify(c.data.right??null)}))));`);
@@ -124,11 +167,7 @@ test('CLI saves only confirmed reproducers, replays them and clears stale artifa
     assert.equal(read(report).status, 'reduced');
     assert.deepEqual(read(output).cases, witness.cases);
     assert.equal(fs.readFileSync(input, 'utf8'), original);
-    const replay = artifact => spawnSync(process.execPath, [path.join(root, 'scripts/equality-properties.mjs'),
-      ...(mode === 'release' ? ['--release'] : []), '--replay', output],
-    {cwd: temp, env: {...process.env, JMES_CLI_PATH: artifact}, encoding: 'utf8', timeout: 30000});
-    assert.equal(replay(fake).status, 1);
-    assert.equal(replay(cli).status, 0);
+    checkReplayEvidence('equality', { temp, mode, source: output, fake, cli });
     r = run(cli);
     assert.equal(r.status, 2, r.stderr);
     assert.equal(read(report).status, 'not_reproduced');
@@ -162,12 +201,7 @@ test('CLI saves only confirmed reproducers, replays them and clears stale artifa
     const minimized = read(compositionOutput).cases[0];
     assert.equal(minimized.data, null);
     assert.deepEqual({result: minimized.result}, expectedFor('composition', minimized, minimized.data));
-    for (const artifact of [fake, cli]) {
-      r = spawnSync(process.execPath, [path.join(root, 'scripts/composition-properties.mjs'),
-        ...(mode === 'release' ? ['--release'] : []), '--replay', compositionOutput],
-      {cwd: temp, env: {...process.env, JMES_CLI_PATH: artifact}, encoding: 'utf8', timeout: 30000});
-      assert.equal(r.status, artifact === fake ? 1 : 0, r.stderr);
-    }
+    checkReplayEvidence('composition', { temp, mode, source: compositionOutput, fake, cli });
   } finally {
     assert.equal(path.dirname(temp), tempBase);
     assert.ok(path.basename(temp).startsWith('moonjmes-reducer-'));

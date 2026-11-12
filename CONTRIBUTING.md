@@ -65,8 +65,10 @@ node scripts/equality-properties.mjs --replay _build/equality-debug-failure.json
 
 Failures exit nonzero and save a single mismatched case, or the complete batch
 when the process/transport fails. Replay executes those saved requests with their
-expected results; it does not minimize cases automatically. Reports identify the
-mode, actual count and replay status. Each run clears an older success receipt.
+expected results. Each replay prints its report path under
+`_build/replays/<suite>-<mode>-*/` and keeps the input, full-suite reports and
+earlier replays intact. Reports identify the mode, actual count and replay
+status. Full runs replace their previous suite reports.
 `JMES_CLI_PATH` may select a standalone artifact; full verification always pins
 the artifacts it builds. CI uploads summaries and generated failure cases.
 
@@ -103,9 +105,9 @@ coverage and corpus SHA-256. Each subprocess has a 15-second timeout, a 192 MiB
 Node old-space limit and at most 250 requests. These bounds apply to this test
 workload, not every possible query. Failures save the mismatched case (including
 expected error code where applicable), or the attempted batch if the process
-fails. Replay and CLI overrides work like the equality harness; no automatic
-minimization is started by the property harness. Setup failures also replace stale
-successful reports. Use the separate reducer below when a failure needs diagnosis.
+fails. Replay and CLI overrides work like the equality harness. Setup failures
+write a failed report in the current run's directory. Use the separate reducer
+below when a failure needs diagnosis.
 
 ## Reducing a saved failure
 

@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { cases, initialSeed, expressions, coverage, generatedQueries, fixtures, corpusHash } from './lib/composition-corpus.mjs';
 import { spawnSync } from 'node:child_process';
+import { propertyArtifactPaths } from './lib/property-artifacts.mjs';
+import { writeJsonAtomically } from './lib/write-json.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
@@ -14,13 +16,11 @@ for (let i = 0; i < args.length; i++) {
   else throw new Error('Usage: node scripts/composition-properties.mjs [--release] [--replay FILE]');
 }
 const cli = process.env.JMES_CLI_PATH || path.join(root, `_build/js/${mode}/build/cmd/main/main.js`);
-const report = path.join(root, `_build/composition-${mode}-summary.json`);
-const failure = path.join(root, `_build/composition-${mode}-failure.json`);
-fs.mkdirSync(path.dirname(report), {recursive: true});
+const { report, failure } = propertyArtifactPaths(root, 'composition', mode, replayPath);
+if (replayPath) console.log(`Replay report: ${report}`);
 fs.rmSync(report, {force: true});
 let passed = 0, active = [], batchStart = 0;
 try {
-  // Read before removing: replay may point to the failure file itself.
   const selected = replayPath ? JSON.parse(fs.readFileSync(replayPath, 'utf8')).cases : cases;
   assert.ok(Array.isArray(selected) && selected.length > 0 && selected.length <= cases.length, 'Invalid replay cases');
   for (const c of selected) {
@@ -54,18 +54,21 @@ try {
     }
   }
 } catch (error) {
-  // Invalid replay input is a setup failure; preserve its original contents.
-  if (active.length) fs.writeFileSync(failure, JSON.stringify({schemaVersion: 1, mode, seed: initialSeed, corpusHash, batchStart, passed, cases: active}, null, 2) + '\n');
-  fs.writeFileSync(report, JSON.stringify({status: 'failed', mode, passed, failure: active.length ? failure : null,
-    error: String(error.message).slice(0, 1200), recordedAt: new Date().toISOString()}, null, 2) + '\n');
-  console.error(`FAIL composition ${mode}: ${String(error.message).slice(0, 1200)}`);
+  const diagnostic = String(error.message).slice(0, 1200);
+  console.error(`FAIL composition ${mode}: ${diagnostic}`);
+  if (active.length) {
+    writeJsonAtomically(failure, {schemaVersion: 1, mode, seed: initialSeed, corpusHash, batchStart, passed, cases: active});
+    console.error(`Replay input: ${failure}`);
+  }
+  writeJsonAtomically(report, {status: 'failed', mode, passed, failure: active.length ? failure : null,
+    replay: replayPath || null, error: diagnostic, recordedAt: new Date().toISOString()});
   process.exit(1);
 }
 const counts = {queries: passed, generatedQueries: replayPath ? null : generatedQueries,
   normativeQueries: replayPath ? null : fixtures.length, expressions: replayPath ? null : expressions.size,
   seed: initialSeed, corpusHash, coverage: replayPath ? null : coverage};
-fs.writeFileSync(report, JSON.stringify({status: 'passed', mode, ...counts, replay: replayPath || null,
+writeJsonAtomically(report, {status: 'passed', mode, ...counts, replay: replayPath || null,
   cli: path.relative(root, cli), node: process.version, ciCommit: process.env.GITHUB_SHA || null,
-  recordedAt: new Date().toISOString()}, null, 2) + '\n');
+  recordedAt: new Date().toISOString()});
 console.log(`PASS composition ${mode}: ${passed} queries`);
 console.log('COMPOSITION_SUMMARY ' + JSON.stringify(counts));

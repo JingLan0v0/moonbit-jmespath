@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import { propertyArtifactPaths } from './lib/property-artifacts.mjs';
+import { writeJsonAtomically } from './lib/write-json.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
@@ -13,13 +15,9 @@ for (let i=0; i<args.length; i++) {
   else throw new Error('Usage: node scripts/equality-properties.mjs [--release] [--replay FILE]');
 }
 const cli = process.env.JMES_CLI_PATH || path.join(root, `_build/js/${mode}/build/cmd/main/main.js`);
-const report = path.join(root, `_build/equality-${mode}-summary.json`);
-const failure = path.join(root, `_build/equality-${mode}-failure.json`);
-fs.mkdirSync(path.dirname(report), {recursive:true});
+const { report, failure } = propertyArtifactPaths(root, 'equality', mode, replayPath);
+if (replayPath) console.log(`Replay report: ${report}`);
 fs.rmSync(report, {force:true});
-// Read before removing the previous failure: --replay may use that same path.
-const replay = replayPath ? JSON.parse(fs.readFileSync(replayPath, 'utf8')) : null;
-fs.rmSync(failure, {force:true});
 let seed=0x1011e9;
 const next=n=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed%n;};
 const leaves=[null,false,true,0,1,-1,1.25,1e100,1e-100,'','0','false','é','e\u0301','😀','\u0000','a\nb',[],{}];
@@ -59,17 +57,18 @@ for(const [left,right] of pairs){
   for(const [expression,result] of [['left == right',eq],['right == left',eq],['left != right',!eq],['contains([left], right)',eq],['contains([right], left)',eq]])cases.push({expression,data:{left,right},result});
 }
 
-const selected = replay ? replay.cases : cases;
-assert.ok(Array.isArray(selected) && selected.length>0 && selected.length<=cases.length, 'Invalid replay cases');
-for(const c of selected) {
-  assert.equal(typeof c.expression,'string');
-  assert.ok(Object.hasOwn(c,'data'));
-  assert.equal(typeof c.result,'boolean');
-}
 let passed=0;
 let active=[];
 let batchStart=0;
 try {
+  const selected = replayPath ? JSON.parse(fs.readFileSync(replayPath, 'utf8')).cases : cases;
+  assert.ok(Array.isArray(selected) && selected.length > 0 && selected.length <= cases.length, 'Invalid replay cases');
+  for (const c of selected) {
+    assert.equal(typeof c.expression, 'string');
+    assert.ok(Object.hasOwn(c, 'data'));
+    assert.equal(typeof c.result, 'boolean');
+  }
+  fs.rmSync(failure, { force: true });
   for(let start=0; start<selected.length; start+=250) {
     active=selected.slice(start,start+250);
     batchStart=start;
@@ -91,14 +90,19 @@ try {
     }
   }
 } catch(error) {
-  fs.writeFileSync(failure,JSON.stringify({schemaVersion:1,mode,seed:'0x1011e9',batchStart,passed,cases:active},null,2)+'\n');
-  fs.writeFileSync(report,JSON.stringify({status:'failed',mode,passed,failure,recordedAt:new Date().toISOString()},null,2)+'\n');
-  console.error(`FAIL equality ${mode}: ${String(error.message).slice(0,1200)}\nReplay input: ${failure}`);
+  const diagnostic = String(error.message).slice(0, 1200);
+  console.error(`FAIL equality ${mode}: ${diagnostic}`);
+  if (active.length) {
+    writeJsonAtomically(failure, {schemaVersion:1,mode,seed:'0x1011e9',batchStart,passed,cases:active});
+    console.error(`Replay input: ${failure}`);
+  }
+  writeJsonAtomically(report, {status: 'failed', mode, passed, failure: active.length ? failure : null,
+    replay: replayPath || null, error: diagnostic, recordedAt: new Date().toISOString()});
   process.exit(1);
 }
-const counts={pairs:replay?null:pairs.length,queries:passed};
-fs.writeFileSync(report,JSON.stringify({status:'passed',mode,...counts,seed:'0x1011e9',replay:replayPath||null,
+const counts={pairs:replayPath?null:pairs.length,queries:passed};
+writeJsonAtomically(report, {status:'passed',mode,...counts,seed:'0x1011e9',replay:replayPath||null,
   cli:path.relative(root,cli),node:process.version,ciCommit:process.env.GITHUB_SHA||null,
-  recordedAt:new Date().toISOString()},null,2)+'\n');
+  recordedAt:new Date().toISOString()});
 console.log(`PASS equality ${mode}: ${passed} queries`);
 console.log('EQUALITY_SUMMARY '+JSON.stringify(counts));
