@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { runConformanceCheck } from './lib/conformance-report.mjs';
+import { revision } from './lib/conformance-vectors.mjs';
 
 function makeFixture(t) {
   const temp = fs.realpathSync(os.tmpdir());
@@ -15,7 +17,10 @@ function makeFixture(t) {
   });
 
   const project = path.resolve(import.meta.dirname, '..');
-  for (const file of ['scripts/verify.mjs', 'examples/demo.mjs']) {
+  for (const file of [
+    'scripts/verify.mjs', 'examples/demo.mjs',
+    'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
+  ]) {
     const destination = path.join(fixture, file);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.copyFileSync(path.join(project, file), destination);
@@ -94,4 +99,57 @@ test('an output limit keeps bounded diagnostics from both streams', t => {
     assert.match(child.stderr, diagnostic);
   }
   assert.equal(report.steps.find(step => step.id === 'format')?.status, 'not_run');
+});
+
+test('a damaged conformance report cannot hide the subprocess failure', t => {
+  const fixture = makeFixture(t);
+  const reportPath = path.join(fixture, 'conformance-debug-summary.json');
+  const options = { mode: 'debug', artifact: 'debug/main.js', reportPath };
+  const failure = Object.assign(new Error('conformance subprocess failed: download ended early'), { exitCode: 3 });
+  const run = () => { throw failure; };
+  for (const content of [
+    undefined, '{"status":',
+    JSON.stringify({ status: 'network_blocked', mode: 'debug', revision }),
+  ]) {
+    if (content !== undefined) fs.writeFileSync(reportPath, content);
+    assert.throws(() => runConformanceCheck(run, options), error => {
+      assert.equal(error.cause, failure);
+      assert.notEqual(error.exitCode, 3);
+      assert.match(error.message, /download ended early/);
+      assert.match(error.message, /conformance-debug-summary\.json/);
+      return true;
+    });
+  }
+});
+
+test('a matching conformance report preserves the network-blocked result', t => {
+  const fixture = makeFixture(t);
+  const reportPath = path.join(fixture, 'conformance-release-summary.json');
+  const counts = { revision, total: null, passed: null };
+  fs.writeFileSync(reportPath, JSON.stringify({ mode: 'release', status: 'network_blocked', ...counts }));
+  const failure = Object.assign(new Error('both downloads unavailable'), { exitCode: 3 });
+  assert.throws(() => runConformanceCheck((command, args) => {
+    assert.equal(command, process.execPath);
+    assert.deepEqual(args, ['scripts/conformance.mjs', '--cli', 'release/main.js', '--release']);
+    throw failure;
+  }, { mode: 'release', artifact: 'release/main.js', reportPath }), error => {
+    assert.equal(error, failure);
+    assert.equal(error.exitCode, 3);
+    assert.deepEqual(error.details, counts);
+    return true;
+  });
+});
+
+test('success requires the expected conformance status, mode, revision, and counts', t => {
+  const fixture = makeFixture(t);
+  const reportPath = path.join(fixture, 'conformance-debug-summary.json');
+  const options = { mode: 'debug', artifact: 'debug/main.js', reportPath };
+  const counts = { revision, total: 892, passed: 892 };
+  const summary = { status: 'passed', mode: 'debug', ...counts };
+  for (const override of [{ status: 'failed' }, { mode: 'release' }, { revision: 'stale' }, { passed: 891 }]) {
+    fs.writeFileSync(reportPath, JSON.stringify({ ...summary, ...override }));
+    assert.throws(() => runConformanceCheck(() => '', options), /Invalid conformance/);
+  }
+  fs.writeFileSync(reportPath, JSON.stringify(summary));
+  assert.deepEqual(runConformanceCheck(() => '', options), counts);
 });

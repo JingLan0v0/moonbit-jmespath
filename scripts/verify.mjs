@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { runDemo } from '../examples/demo.mjs';
+import { runConformanceCheck } from './lib/conformance-report.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
@@ -212,23 +213,10 @@ add('powershell', 'debug', () => {
 }, { applicable: process.platform === 'win32' });
 
 for (const mode of modes) {
-  add('conformance', mode, () => {
-    const childReport = path.join(buildDir, `conformance-${mode}-summary.json`);
-    function readCounts() {
-      const { total, passed, revision } = JSON.parse(fs.readFileSync(childReport, 'utf8'));
-      return { total, passed, revision };
-    }
-    try {
-      process.stdout.write(run(process.execPath, ['scripts/conformance.mjs', '--cli', artifacts[mode],
-        ...(mode === 'release' ? ['--release'] : [])]));
-    } catch (error) {
-      if (fs.existsSync(childReport)) error.details = readCounts();
-      throw error;
-    }
-    const counts = readCounts();
-    if (counts.total !== 892 || counts.passed !== counts.total) throw new Error('Invalid conformance counts');
-    return counts;
-  }, { networkAware: true });
+  add('conformance', mode, () => runConformanceCheck(run, {
+    mode, artifact: artifacts[mode],
+    reportPath: path.join(buildDir, `conformance-${mode}-summary.json`),
+  }), { networkAware: true });
 }
 
 report.steps = steps.map(step => step.receipt);

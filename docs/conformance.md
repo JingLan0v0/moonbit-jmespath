@@ -35,6 +35,9 @@ wildcard. The upstream benchmark data is intentionally excluded because it is
 performance input rather than a conformance assertion.
 
 Each mode writes a JSON summary under `_build/`; CI uploads these with the
-general verification summary as one artifact per operating system. A successful
-compliance run validates standard semantics; adversarial resource boundaries
-are tested separately by `scripts/adversarial.mjs`.
+general verification summary as one artifact per operating system. Full
+verification checks that the summary matches the mode, pinned revision, and
+subprocess outcome. If the summary is missing or invalid, the run fails and the
+general report includes any original subprocess error alongside the summary
+error. A successful compliance run validates standard semantics; adversarial
+resource boundaries are tested separately by `scripts/adversarial.mjs`.

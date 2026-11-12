@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - conformance reports
+
+- Require a matching suite summary for a conformance result and preserve the
+  original subprocess error when the summary is missing or invalid.
+
 ## Unreleased - subprocess diagnostics
 
 - Retain bounded stdout and stderr excerpts in the verification log and report
