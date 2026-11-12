@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - performance benchmarks
+
+- Add reproducible JS benchmarks for compilation, compiled search, sorting,
+  long strings, serialization, batch queries and full CLI startup.
+- Record fixed workload sizes, raw timing samples, build mode, source revision,
+  host and toolchain, and peak RSS for library cases.
+
 ## 0.1.18 - isolate compiled JSON literals (2026-11-12)
 
 - Keep mutable array and object literals private to each search, including

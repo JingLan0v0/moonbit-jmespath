@@ -27,6 +27,9 @@ Later steps show `not_run` after an early stop. The PowerShell check shows
 `not_applicable` on other platforms. Keep one verification run per checkout
 because the build and diagnostic files are shared.
 
+Run `node scripts/benchmark.mjs` for the release performance baseline.
+[Workloads and comparison procedure](docs/performance.md)
+
 Add behavioral regressions for bug fixes. Test normal values, boundary values,
 and failure isolation. Runtime crash fixes must include a subprocess with a
 timeout in both debug and release; a passing unit test alone is insufficient.
