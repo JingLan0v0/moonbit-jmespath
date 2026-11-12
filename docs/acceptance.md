@@ -1,5 +1,31 @@
 # MoonJMES acceptance evidence
 
+## Delivery recheck (0.1.20)
+
+GitHub main was public and matched `fb6cc50e41d9623809aff27106fe35c9cd97ce9f`
+when reviewed. The clean-checkout receipt and both CI jobs for that commit
+passed. The receipt includes 79 unit tests, 892 official cases, and six
+demonstration checks per build mode. GitHub reports Apache-2.0 for the
+repository. [CI for the reviewed checkout](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43198683156)
+
+The published 0.1.20 archive comes from
+`9dcf7009733a757f3d815727c6e0be176e6d2ddc`. A fresh download from Mooncakes
+matched the recorded SHA-256 and the package-manager copy. All 81 archive
+files matched the release commit after normalizing line endings. The
+archive includes the license and third-party notices and excludes
+toolchains, Git metadata, build output, credentials and downloaded test
+vectors. The reviewed main commit adds documentation, the checked demo and
+verification integration after the release commit.
+
+A new consumer installed the exact version from the verified registry cache.
+Strict checking and debug/release runs passed Unicode diagnostic offsets,
+bounded serialization and batch isolation. [Mooncakes 0.1.20](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20)
+
+The repository review verifies engineering delivery. Final form submission,
+organizer acceptance and payment each require their own receipt. The project
+record contains the participant's October initial approval notice.
+[Competition evidence and status](competition.md)
+
 ## Function error locations (0.1.20)
 
 The function-offset regressions reproduced the old zero offset for nested

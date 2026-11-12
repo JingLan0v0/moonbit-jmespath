@@ -2,6 +2,13 @@
 
 ## Current state (2026-11-12)
 
+### Delivery recheck
+
+The clean checkout and both CI jobs passed for `fb6cc50`. The 0.1.20
+registry archive matched its release checksum and all 81 files matched
+the release source. A fresh consumer passed both JS build modes.
+[Delivery evidence](acceptance.md#delivery-recheck-0120)
+
 ### Quick start and checked demos
 
 The English and Chinese READMEs lead with installation, a minimal library
