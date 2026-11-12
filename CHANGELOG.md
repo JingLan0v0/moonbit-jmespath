@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - subprocess diagnostics
+
+- Retain bounded stdout and stderr excerpts in the verification log and report
+  when a subprocess cannot finish, including timeout and output-limit errors.
+
 ## Unreleased - conformance cache integrity
 
 - Check cached and downloaded vectors against per-file hashes of the pinned

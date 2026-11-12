@@ -13,7 +13,15 @@ const modes = ['debug', 'release'];
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 120000, ...options });
-  if (result.error) throw result.error;
+  if (result.error) {
+    const excerpts = [];
+    for (const stream of ['stdout', 'stderr']) {
+      const tail = result[stream]?.trim().slice(-1200);
+      if (tail) excerpts.push(stream + ': ' + tail);
+    }
+    const diagnostic = [result.error.message, ...excerpts].join('\n');
+    throw new Error(diagnostic, { cause: result.error });
+  }
   if (result.status !== 0) {
     process.stderr.write(result.stdout || '');
     process.stderr.write(result.stderr || '');
