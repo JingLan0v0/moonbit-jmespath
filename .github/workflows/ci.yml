@@ -27,6 +27,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.14.0'
+      - name: Check reports on early verification failure
+        run: node --test scripts/verification-report.test.mjs
       - name: Read MoonBit version
         id: toolchain
         shell: bash

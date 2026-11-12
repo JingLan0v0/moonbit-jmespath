@@ -27,6 +27,9 @@ Later steps show `not_run` after an early stop. The PowerShell check shows
 `not_applicable` on other platforms. Keep one verification run per checkout
 because the build and diagnostic files are shared.
 
+Verification clears its previous suite reports before checking Git metadata.
+The benchmark reports and separately saved minimized fixtures are kept.
+
 Run `node scripts/benchmark.mjs` for the release performance baseline.
 [Workloads and comparison procedure](docs/performance.md)
 

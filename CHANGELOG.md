@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - early verification failures
+
+- Clear stale suite reports and toolchain evidence before checking Git
+  metadata. Cover that failure path in Windows and Ubuntu CI.
+
 ## Unreleased - quick start and checked demos
 
 - Organize the English and Chinese READMEs around installation, working

@@ -89,15 +89,7 @@ const report = {
   startedAt: new Date().toISOString(),
 };
 
-add('source', null, () => {
-  if (run('git', ['rev-parse', '--show-prefix']).trim()) {
-    throw new Error('Run full verification from a MoonJMES Git checkout');
-  }
-  report.source = {
-    sha: run('git', ['rev-parse', 'HEAD']).trim(),
-    dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
-  };
-});
+// Retire evidence from the preceding run even when Git validation fails.
 add('prepare-reports', null, () => {
   for (const mode of modes) {
     for (const suite of ['conformance', 'equality', 'composition']) {
@@ -108,6 +100,15 @@ add('prepare-reports', null, () => {
     }
   }
   fs.rmSync(path.join(buildDir, 'moon-version.txt'), { force: true });
+});
+add('source', null, () => {
+  if (run('git', ['rev-parse', '--show-prefix']).trim()) {
+    throw new Error('Run full verification from a MoonJMES Git checkout');
+  }
+  report.source = {
+    sha: run('git', ['rev-parse', 'HEAD']).trim(),
+    dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
+  };
 });
 add('toolchain', null, () => {
   report.toolchain = run(moon, ['version', '--all']).trim();
