@@ -56,6 +56,7 @@ enum Expr {
   Current
   Field(String)
   Literal(Json)
+  ContainerLiteral(Int32, Json)
   Subexpression(Expr, Expr)
   Index(Expr, Int32)
   Slice(Expr, Int32?, Int32?, Int32?)
@@ -102,7 +103,7 @@ fn validate_limits(limits : Limits) -> Unit raise JmesPathError {
 
 ///|
 pub fn version() -> String {
-  "0.1.17"
+  "0.1.18"
 }
 
 ///|

@@ -199,7 +199,11 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
       }
     QuotedIdentifier(name) => Field(name)
     RawString(value) => Literal(Json::string(value))
-    LiteralToken(value) => Literal(value)
+    LiteralToken(value) =>
+      match value {
+        Array(_) | Object(_) => ContainerLiteral(token.offset, value)
+        _ => Literal(value)
+      }
     CurrentToken => Current
     Star => Projection(ObjectWildcard(Current), Current)
     NotToken => Not(self.parse_expression(46))
@@ -382,7 +386,7 @@ fn Parser::parse_expression(
 ///|
 fn expr_depth(expr : Expr) -> Int32 {
   match expr {
-    Current | Field(_) | Literal(_) => 1
+    Current | Field(_) | Literal(_) | ContainerLiteral(_, _) => 1
     Not(a)
     | ExpressionRef(a)
     | Index(a, _)

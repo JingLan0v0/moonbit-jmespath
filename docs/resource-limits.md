@@ -8,7 +8,7 @@ The library targets MoonBit's JS backend. Resource errors are reported as
 | Expression length | 16,384 Unicode scalar values by default | Count before allocating tokenization array; configurable in Limits |
 | Parser recursion and AST depth | 256 maximum | Checked while parsing and constructing nodes; configurable downward |
 | Active evaluator calls | 128 hard cap | Separate from AST depth because function evaluation uses multiple host frames |
-| Logical evaluation work | 1,000,000 by default | AST visits, equality visits/string comparisons, reductions, array membership, join and merge iterations |
+| Logical evaluation work | 1,000,000 by default | AST visits, equality visits/string comparisons, reductions, array membership, join and merge iterations, and one step per JSON node on the first copy of each container literal per search |
 | Materialized result elements | 100,000 by default | Cumulative array elements and unique object keys; referenced subtrees also have output guards |
 | In-memory JSON input/result | Depth 256, root at 0; 1,000,000 expanded nodes | Iterative traversal; shared references count per occurrence |
 | Output estimate | 16,777,216 UTF-16 units | Conservative estimate includes escaping and pretty indentation; checked before serialization |

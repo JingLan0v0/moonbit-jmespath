@@ -25,7 +25,21 @@ dependency version in your module configuration for reproducibility.
 starts fresh evaluation counters. `search` compiles and evaluates once.
 `search_json` parses JSON text before searching. `stringify_bounded` validates
 the expanded JSON before serializing it. None of these APIs mutate input JSON.
-Treat compiled queries and input collections as read-only while evaluating.
+Each search reads the current input, validates it again, and starts fresh
+evaluation state after a previous success or error.
+
+Returned arrays and objects may share collections with the supplied input.
+For example, `search("items", input)` can return the same array stored under
+`items`, so changing it can affect later searches on that input. Batch results
+can share input collections in the same way. Treat input and shared results as
+read-only while evaluating. Make a separate copy when you need a result that
+can be modified independently of the input.
+
+Since 0.1.18, each search copies an evaluated array or object literal once.
+Mutating a returned literal cannot affect later searches on the same
+`Compiled` query. Results within one search can share that per-call copy.
+Copying charges one work step per literal JSON node on its first evaluation,
+so callers with very tight `max_steps` may need to raise that limit.
 
 Since 0.1.6, `parse_json_bounded(text)` exposes the shared preflight/decoder.
 Use `search_batch(parse_json_bounded(text))` for a text batch with the same

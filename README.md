@@ -1,5 +1,11 @@
 # MoonJMES
 
+## 0.1.18 compiled query reuse
+
+Changing a returned JSON literal no longer affects later searches on the same
+compiled query. Each search copies an evaluated array or object literal once.
+Results can still share collections with caller input. [Library ownership and work limits](docs/usage.md)
+
 ## 0.1.17 grouping and negation precedence
 
 Parentheses now end a projection's scope. Given `{"a":[{"b":1},{"b":2}]}`,

@@ -1,5 +1,21 @@
 # MoonJMES acceptance evidence
 
+## Compiled JSON literal ownership (0.1.18)
+
+Before the fix, the public regression failed after changing a returned
+literal's nested object and appending to its array. The next search returned
+the changed data. Container literals now have one lazy copy per search,
+including nested collections. Copy work uses the existing step budget.
+Input-derived results can share input arrays and objects, and each search
+validates the current input.
+
+The four public regressions cover mutation isolation, live input and cycle
+revalidation, repeated evaluation of one literal and retry after a work limit,
+and the allowed 256-level JSON boundary. Full local Windows verification
+passed on MoonBit `0.10.20+65efd5b93` and Node `24.14.0`, including 74 unit tests
+and 892 official cases in each mode, the PowerShell smoke check and existing
+resource and isolation tests.
+
 ## Unified verification (2026-11-12)
 
 `node scripts/verify.mjs` runs the same checks locally and in CI. It reuses

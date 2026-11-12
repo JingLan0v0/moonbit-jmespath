@@ -13,7 +13,13 @@ pub fn Compiled::search(
   data : Json,
 ) -> Json raise JmesPathError {
   check_json_size(data, false)
-  let state = { limits: self.limits, steps: 0, results: 0, depth: 0, }
+  let state = {
+    limits: self.limits,
+    steps: 0,
+    results: 0,
+    depth: 0,
+    literal_copies: None,
+  }
   let result = evaluate(self.expr, data, state)
   check_json_size(result, false)
   result

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.18 - isolate compiled JSON literals (2026-11-12)
+
+- Keep mutable array and object literals private to each search, including
+  nested collections returned through a projection or function.
+- Copy each evaluated container literal at most once per search, with copy work
+  charged to `max_steps`. Document when results can share caller input.
+- Cover mutations of returned values, input revalidation, failure recovery and
+  the existing JSON depth limit through the public API.
+
 ## Unreleased - unified verification (2026-11-12)
 
 - Use one verification command locally and in CI for strict checks, both JS

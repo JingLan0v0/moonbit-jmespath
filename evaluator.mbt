@@ -4,6 +4,7 @@ priv struct EvalState {
   mut steps : Int32
   mut results : Int32
   mut depth : Int32
+  mut literal_copies : Map[Int32, Json]?
 }
 
 ///|
@@ -31,6 +32,56 @@ fn EvalState::add_results(
     fail("limit_exceeded", 0, "evaluation exceeds max_results")
   }
   self.results += count
+}
+
+///|
+// The lexer has already checked the literal's shape, including depth.
+// Containers are mutable; keys and scalar values can be shared safely.
+fn copy_literal(value : Json, state : EvalState) -> Json raise JmesPathError {
+  state.tick()
+  match value {
+    Array(items) => {
+      let copied : Array[Json] = []
+      for item in items {
+        copied.push(copy_literal(item, state))
+      }
+      Json::array(copied)
+    }
+    Object(entries) => {
+      let copied : Map[String, Json] = Map([])
+      for key, item in entries {
+        copied[key] = copy_literal(item, state)
+      }
+      Json::object(copied)
+    }
+    _ => value
+  }
+}
+
+///|
+fn EvalState::container_literal(
+  self : EvalState,
+  offset : Int32,
+  value : Json,
+) -> Json raise JmesPathError {
+  // A projection can revisit the same token many times. Cache its copy
+  // for this search only, keyed by its unique position in the expression.
+  let copies = match self.literal_copies {
+    Some(copies) => copies
+    None => {
+      let copies = Map([])
+      self.literal_copies = Some(copies)
+      copies
+    }
+  }
+  match copies.get(offset) {
+    Some(copied) => copied
+    None => {
+      let copied = copy_literal(value, self)
+      copies[offset] = copied
+      copied
+    }
+  }
 }
 
 ///|
@@ -169,6 +220,7 @@ fn evaluate(
         _ => Json::null()
       }
     Literal(value) => value
+    ContainerLiteral(offset, value) => state.container_literal(offset, value)
     Subexpression(left, right) => {
       let value = evaluate(left, data, state)
       // Functions on the right can deliberately handle a null left result.

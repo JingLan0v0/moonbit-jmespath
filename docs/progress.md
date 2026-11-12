@@ -2,6 +2,15 @@
 
 ## Current state (2026-11-12)
 
+### Compiled JSON literal ownership (0.1.18)
+
+Each search lazily copies evaluated array and object literals by source
+position. Nested mutations of a returned literal stay within that invocation.
+Input-derived results can share caller collections. The first copy of each
+literal charges its JSON nodes to the step budget. Tests cover mutation,
+repeated literal visits, input revalidation, retry after failure and the
+depth boundary. See [library ownership](usage.md#reproducible-library-example).
+
 ### Unified verification
 
 Run `node scripts/verify.mjs` for the same full check used by Windows and
