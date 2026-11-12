@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
+import { runDemo } from '../examples/demo.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
@@ -123,11 +124,6 @@ add('interfaces', null, () => {
   if (untracked) throw new Error('Untracked generated interfaces: ' + untracked);
 });
 
-const scenarios = [
-  ['cloud-inventory', "instances[?environment == 'prod' && state == 'running'].{id: id, zone: zone}"],
-  ['deployments', "deployments[?decision == 'deny'].{service: service, reasons: reasons[*].code}"],
-  ['costs', 'sort_by(services, &monthly_cost)[*].{service: name, monthly_cost: monthly_cost}'],
-];
 const artifacts = Object.fromEntries(modes.map(mode => [
   mode, path.join(buildDir, 'js', mode, 'build', 'cmd', 'main', 'main.js'),
 ]));
@@ -168,15 +164,7 @@ for (const mode of modes) {
     run(moon, ['build', 'cmd/main', '--target', 'js', ...flags]);
     return { artifact: path.relative(root, cli) };
   });
-  add('scenarios', mode, () => {
-    for (const [name, expression] of scenarios) {
-      const actual = JSON.parse(run(process.execPath, [cli, '--compact', expression, `examples/${name}.json`]));
-      const expected = JSON.parse(fs.readFileSync(path.join(root, 'examples', 'expected', `${name}.json`), 'utf8'));
-      if (!isDeepStrictEqual(actual, expected)) throw new Error(`${name} output mismatch`);
-      console.log(`PASS scenario: ${name}`);
-    }
-    return { passed: scenarios.length };
-  });
+  add('scenarios', mode, () => runDemo(cli));
   add('cli', mode, () => {
     const output = runHarness('cli-integration');
     const groupingCases = Number(output.match(/PASS projection grouping and unary precedence: (\d+) cases/)?.[1]);

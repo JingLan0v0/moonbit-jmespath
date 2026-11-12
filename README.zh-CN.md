@@ -1,336 +1,102 @@
 # MoonJMES
 
-## 0.1.20 函数错误定位
+[English](README.md)
 
-参数类型、参数个数和未知函数错误会指向对应的函数名。表达式中的中文和 emoji
-按 Unicode 标量计数，嵌套函数保留内层错误的位置。[错误代码与偏移说明](docs/usage.md)
+MoonJMES 是用 MoonBit 实现的 JMESPath JSON 查询库和命令行工具。可以筛选记录、提取字段、
+投影嵌套数据和排序报表。项目支持 JS 后端，命令行工具由 Node.js 运行。
 
-## 0.1.19 批次内编译复用
+已发布版本为 **0.1.20**。[Mooncakes 包](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20) · [变更记录](CHANGELOG.md)
 
-同一批次可以复用一条短表达式的编译结果。每个请求仍会校验自己的输入，
-并使用独立的执行预算。[复用范围与资源限制](docs/resource-limits.md)
+## 安装库
 
-## 0.1.18 已编译表达式复用
+在已有 MoonBit 模块中安装指定版本。
 
-修改返回的 JSON 字面量不会影响同一编译对象的后续查询。每次查询对实际执行的
-数组或对象字面量只复制一次。来自调用方输入的结果仍可能共享原集合。
-[数据共享与执行预算](docs/usage.md)
-
-## 0.1.17 括号范围与取反优先级修复
-
-此前 `(a[*])[0]` 会把索引错误地应用到每个元素，可能得到空数组；现在正确
-取整个投影结果的第一项。括号后的 `.字段` 同样作用于整体结果。
-同时修正 `!` 与字段访问、展平、过滤器的优先级，并保留索引与投影后缀的
-正确结合方式。要对完整路径取反，请写 `!(a.b)`；`!a.b` 则先计算 `!a`，
-再在布尔值上访问 `b`，结果为 null。回归测试覆盖括号、取反和自定义资源限制。
-实际验证与发布状态见 [验收记录](docs/acceptance.md)。
-
-## 0.1.16 展平操作符语法修复
-
-此前 `[ ]`、中间包含制表符或换行的空方括号会被误当作 `[]` 执行，
-甚至被短路分支掩盖。现在词法分析将连续的 `[]` 识别为独立操作符，
-分离的写法在编译阶段返回 `syntax`。`@ []`、`[ * ]`、`[ 0 ]`、`[ : ]`
-仍然有效。回归测试覆盖函数引用、过滤器和错误前后正常请求的批处理隔离。
-实际验证和发布状态见 [验收记录](docs/acceptance.md)。
-
-## 0.1.15 表达式引用
-
-0.1.15 修复了非法表达式被短路分支或空过滤器掩盖的问题。`&表达式` 必须直接作为函数参数。其他位置出现 `&` 时，编译器会报告 `syntax` 和错误位置。
-
-## 验证目标校验
-
-总验证流程现已固定检查本轮生成的调试版和发布版文件，避免外部环境变量把检查指向旧文件或其他程序；报告会记录实际检查路径。单独运行测试脚本时仍可指定目标，以便检查下载的包。本轮只修复验证流程，当时的发布版本为 0.1.14。
-
-
-## 最新检查记录
-
-已将特殊对象键名、重复字段和字符转义的检查加入两种构建模式、两种输出格式的自动测试。验收报告现在读取实际测试数量，新一轮验证开始时会清理旧的成功记录，避免失败后误用旧报告。本轮仅修改测试工具，当时的发布版本为 0.1.14，详见 [验收记录](docs/acceptance.md)。
-
-
-## 0.1.14 数字原始文本校验
-
-调用方通过库接口自行构造 Json 数字时，可附带原始数字文本。此前即使该文本是 null、多个值或与实际数值不一致，序列化仍会直接输出它。现在查询输入检查和有界序列化会拒绝这类数据，返回 invalid_value；批次中的正常请求继续处理。
-
-匹配的大数字原始文本会保留。本修复针对程序直接构造的 Json 值，不代表发现了普通 CLI JSON 输入注入。验证和发布记录见 [验收记录](docs/acceptance.md)。
-
-
-## 0.1.13 过滤语法校验修复
-
-此前 [ ?条件] 在表达式开头、括号或函数参数内会被误接受，接在字段后却会报错。现在统一要求过滤标记 [? 连写，条件周围以及字段和左括号之间仍可使用合法空白。字符串字面量中的 [ ? 不受影响。这是语法一致性修复，旧版本误接受的写法现在会返回 syntax 错误。
-
-同时补充了 30 种非法函数调用与批次隔离回归检查。验证及发布记录见 [验收记录](docs/acceptance.md)。
-
-
-## 0.1.12 复合表达式引用修复
-
-修复 map、sort_by、min_by、max_by 中合法复合表达式被误报 invalid_type 的问题。例如 map(&a || b, @) 可以逐项取备用字段，sort_by(@, &a || b) 可以按带默认值的字段排序。比较、逻辑运算和管道现在都能正确包含在 & 引用内；函数参数边界、惰性求值和资源限制继续保留。
-
-验证与发布状态见 [验收记录](docs/acceptance.md)。
-
-
-## 0.1.11 字符串分配修复
-
-此前对 800 万字符执行反转再求长度，在 192 MiB 测试堆限制下会导致整个进程退出，批次前后的正常结果也会丢失。现在反转会先检查执行预算，再通过反向 Unicode 迭代构建结果，避免多份临时字符数组；字符串长度计算改为计入预算的逐字符计数。超限返回逐项 limit_exceeded，保留正常请求的结果。
-
-合法的大字符串也可能触发新限制，可信调用方可显式提高预算，但这不代表任意内存条件下都不会崩溃。验证与发布状态见 [验收记录](docs/acceptance.md)。
-
-
-简体中文 | [English](README.md)
-
-[![CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml/badge.svg)](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-
-MoonJMES 是用 MoonBit 原生实现的 JMESPath JSON 查询引擎和命令行工具。它可以从 API 响应、云资源清单、审计记录和配置文件中筛选、投影、排序并重组 JSON，无需嵌入 JavaScript，也无需把数据发送到外部服务。
-
-项目在固定版本 `53abcc37901891cf4308fcd910eab287416c4609` 上通过 **892/892 项 JMESPath 官方合规测试**。测试过程可通过 `node scripts/conformance.mjs` 独立复现，详细记录见 [docs/conformance.md](docs/conformance.md)。
-
-## 为什么做这个项目
-
-JSON 是接口与自动化工具最常见的数据格式之一，但程序通常需要反复编写遍历、判空、过滤和排序代码。JMESPath 提供了正式语法和跨语言一致的查询语义，适合把查询表达式与业务程序分离。
-
-MoonJMES 将完整的词法分析、语法解析、抽象语法树和执行器放在 MoonBit 库中，并同时提供可以直接处理文件或标准输入的 CLI。项目启动时对 Mooncakes 的检索没有发现同名或同规范的 MoonBit JMESPath 实现；这一结论只描述当时的检索结果，不排除后续出现其他实现。
-
-## 功能
-
-- 标识符、带引号标识符、当前节点、JSON 字面量和原始字符串
-- 对象与数组通配、扁平化、投影、过滤、索引和切片
-- 管道、比较、布尔表达式、多选列表和多选对象
-- 标准标量、集合、转换和表达式引用函数
-- `map`、`sort_by`、`min_by`、`max_by` 等高阶查询
-- 可重复使用的预编译表达式，以及一次性 JSON 和文本 API
-- 带逐项结构化错误的批量查询接口
-- 表达式长度、AST 深度、执行步数和结果数量限制
-- 支持文件和标准输入、紧凑输出及批量模式的 CLI
-
-## 安装
-
-从 Mooncakes 安装：
-
-当前仅支持 **JS 后端**。GitHub 主分支和 CI 使用 `toolchain.json` 固定的
-MoonBit `0.10.20+65efd5b93` 和 Node.js `24.14.0`。运行 `moon version --all`
-确认实际版本。主分支使用了新版语法，MoonBit `0.10.14` 无法编译。
-安装方法见 [MoonBit 官方下载页](https://www.moonbitlang.com/download/)。
-`moon add` 安装库依赖，CLI 使用下方源码命令运行。
-
-```powershell
-moon add JingLan0v0/jmespath
+```sh
+moon add JingLan0v0/jmespath@0.1.20
 ```
 
-Mooncakes 页面：<https://mooncakes.io/docs/JingLan0v0/jmespath>
-
-在 `moon.pkg` 中导入：
+最小可执行示例的 `moon.pkg` 如下。
 
 ```moonbit
 import {
   "JingLan0v0/jmespath" @jmespath,
-  "moonbitlang/core/json",
+}
+
+pkgtype(kind: "executable")
+```
+
+在同一包目录创建 `main.mbt`。
+
+```moonbit
+fn main raise {
+  let input = @jmespath.parse_json_bounded("{\"items\":[{\"name\":\"Ada\"}]}")
+  let query = @jmespath.compile("items[*].name")
+  println(@jmespath.stringify_bounded(query.search(input)))
 }
 ```
 
-调用公共 API：
+在可执行包中运行 `moon run . --target js`，输出为 `["Ada"]`。仓库也提供包含自定义限制、
+查询复用和错误处理的完整程序。[库示例](examples/library/main.mbt) · [API 指南](docs/usage.md)
 
-```moonbit
-let input = @json.parse("{\"people\":[{\"name\":\"Ada\",\"age\":36}]}")
-let query = @jmespath.compile("people[?age >= `18`].name")
-let result = query.search(input)
-```
+## 从源码运行 CLI
 
-主要入口包括 `compile`、`Compiled::search`、`search`、`search_json` 和 `search_batch`。库调用方可用 `stringify_bounded(result, pretty=true)` 获得与 CLI 相同的输出保护。
+使用固定版本 MoonBit `0.10.20+65efd5b93` 和 Node.js `24.14.0`。MoonBit `0.10.14`
+等旧版本无法编译当前源码。[工具链配置](toolchain.json) · [官方安装说明](https://www.moonbitlang.com/download/)
 
-上方是函数体内的代码片段，调用方需要处理或传递错误。仓库提供包含导入、可执行入口、
-自定义限制、重复查询及错误处理的完整示例：`moon run examples/library --target js`。
-详细约定见 [API 与错误说明](docs/usage.md)。
-
-## PowerShell 使用方式
-
-仓库提供 `scripts/moon.ps1`。它依次查找 `MOON_BIN`、项目相邻 `.tools`
-目录中与 `toolchain.json` 匹配的工具链、系统 PATH 中的 `moon`。使用独立
-安装目录时，可以同时设置 `MOON_BIN` 和 `MOON_HOME`。
-
-首次使用先克隆并进入仓库：
-
-```powershell
+```sh
 git clone https://github.com/JingLan0v0/moonbit-jmespath.git
 cd moonbit-jmespath
+moon run cmd/main --target js -- --compact "instances[?state == 'running'].id" examples/cloud-inventory.json
 ```
 
-```powershell
-.\scripts\moon.ps1 version --all
-.\scripts\moon.ps1 check --target js --deny-warn
-.\scripts\moon.ps1 test --target js
-.\scripts\moon.ps1 run cmd/main --target js -- "instances[?state == 'running'].id" examples/cloud-inventory.json
+预期输出为 `["i-101","i-102","i-104"]`。输入路径填 `-` 可以从标准输入读取 JSON。
+Windows 可以用 `scripts/moon.ps1` 选择本地固定工具链。
+[PowerShell 命令](examples/README.md#windows-powershell) · [CLI 用法](docs/usage.md#cli-automation)
+
+## 运行带断言的演示
+
+```sh
+node examples/demo.mjs
 ```
 
-从标准输入查询：
+| 场景 | 查询结果 |
+| --- | --- |
+| 云主机清单 | 正在运行的生产实例 ID 和可用区 |
+| 部署策略检查 | 被阻止的服务及嵌套原因代码 |
+| 费用报表 | 按月度费用升序排列的服务 |
 
-```powershell
-'{"items":[{"name":"A","price":9},{"name":"B","price":12}]}' |
-  .\scripts\moon.ps1 run cmd/main --target js -- 'items[?price >= `10`].name' -
-```
+演示会核对三组已提交的预期 JSON，也会检查快速入门查询和一个依次返回
+`before`、`limit_exceeded`、`after` 的批次。加上 `--release` 可运行发布构建。
+[输入、查询与预期结果](examples/README.md)
 
-输出为：
+批量输入是由 `{"expression":"…","data":…}` 请求组成的 JSON 数组。CLI 接受批次后
+以状态码 0 退出，每项分别返回 `ok` 和结果或错误。若批次外层 JSON 损坏，
+整次调用以状态码 2 退出，stdout 为空。[批量接口与错误约定](docs/usage.md#cli-automation)
 
-```json
-[
-  "B"
-]
-```
+## 限制与兼容性
 
-## 批量模式
+默认表达式上限是 16,384 个 Unicode 标量，AST 深度上限 256，执行预算 100 万步，
+结果累计生成元素上限 10 万。执行器活动调用深度上限为 128。CLI 最多读取 16 MiB 输入，
+批次最多接受 10,000 个请求。JSON 输入和输出都有形状与展开检查。[资源限制](docs/resource-limits.md)
 
-批量输入是由独立请求组成的 JSON 数组：
+函数错误偏移从 0 开始按 Unicode 标量计数。返回结果可能共享调用方输入的集合，
+每次执行已编译查询都会使用独立状态。[诊断与数据共享约定](docs/usage.md)
 
-```json
-[
-  {"expression":"name","data":{"name":"Ada"}},
-  {"expression":"length()","data":null}
-]
-```
+## 验证源码
 
-```powershell
-.\scripts\moon.ps1 run cmd/main --target js -- --batch examples/batch.json
-```
-
-每个返回项都包含 `ok: true` 和 `result`，或者 `ok: false` 和结构化 `error`。错误表达式或格式错误的请求项不会丢弃同批次中的其他结果；顶层 JSON 本身无效时命令以退出码 2 结束。
-
-**批量模式中，即使部分请求失败，命令仍以 0 退出**，调用方须逐项检查 `ok`。
-仓库示例文件还包含第三个成功的缺失值回退查询，用于演示错误后的继续执行。
-
-## 三个可运行场景
-
-[`examples`](examples/README.md) 目录包含三组带固定预期输出的场景：
-
-1. 从云资源清单中筛选生产环境且正在运行的实例。
-2. 从部署审计记录中提取被拒绝的服务及机器可读原因码。
-3. 按月度成本排序服务，为报表或仪表盘生成稳定结果。
-
-Windows 下可运行 `./examples/run.ps1`，脚本会将实际结果与仓库中的预期 JSON 逐项比较。
-
-## 验证
-
-```powershell
+```sh
 node scripts/verify.mjs
 ```
 
-在 Git 检出目录运行。请使用 PATH 中的固定版本 MoonBit 和 Node.js，或设置
-`MOON_BIN` 与 `MOON_HOME` 指向同一套独立工具链。Windows 和 Ubuntu 的 GitHub
-Actions 使用同一命令，检查调试版、发布版及全部官方用例，Windows 还检查 PowerShell。
-结果写入 `_build/verification-summary.json`，包含源码提交、工作区状态、工具链及
-每项检查的结果与计数。首次运行官方用例需要下载固定修订版的测试数据。
-[验收设置与退出码](CONTRIBUTING.md#verification)
+Windows 和 Ubuntu CI 使用同一命令。调试版和发布版分别运行 79 项单测、
+892 条固定版本的 JMESPath 官方用例、演示及资源边界回归。Windows 还检查
+PowerShell。验证结果写入 `_build/verification-summary.json`。
+[验收设置](CONTRIBUTING.md#verification) · [GitHub Actions](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
 
-## 九月验收问题的修复（0.1.2）
+验收记录按提交保存测试结果、历史修复、归档检查和新项目安装证据。
+[验收记录](docs/acceptance.md) · [性能基准](docs/performance.md) · [参赛项目介绍](docs/project-introduction.zh-CN.md)
 
-原发布版遇到由 **4000 个 `!` 加一个 `@`** 构成的 4001 字符表达式时，虽然没有超过默认长度上限，解析器却在完成深度检查前递归过深，导致进程栈溢出。三项批处理中间一项出错时，整批没有输出并以状态码 1 退出；debug 和 release 均会发生。
+## 许可证与参考资料
 
-现在解析器在构建 AST 的过程中限制递归深度，并在每步构造后检查 AST 深度。异常请求返回结构化 `limit_exceeded`，同批前后正常请求仍有结果；单次查询返回诊断并以状态码 2 退出，不再崩溃。自动测试覆盖邮件中的三项批次、单次查询、深层括号表达式和深度临界值，debug／release 均运行。旧 0.1.1 版本保留供历史回溯。
-
-## 限制与安全边界
-
-默认限制为：表达式 16,384 个字符、AST 深度 256、执行步数 1,000,000、累计产生的结果元素 100,000 个。自定义限制须为有效值，AST 深度上限为 256；批量模式最多 10,000 个请求，CLI 最多读取 16 MiB，执行严格 UTF-8 解码并接受可选的 UTF-8 BOM。
-
-0.1.3 还限制执行调用深度为 128，并用非递归遍历检查 JSON 输入与结果：深度不超过 256（根节点为 0）、展开节点不超过 1,000,000、保守输出估算不超过 16 Mi 个 UTF-16 单元。批次成功响应共享 500,000 节点和 8 Mi 单元预算，另行预留错误响应空间。超出剩余预算的请求返回该项错误，后续小请求仍继续执行。批次包装层也计入深度。详见 [资源限制说明](docs/resource-limits.md)。
-
-0.1.20 已发布到 Mooncakes。全新消费者项目已安装该版本并通过调试与发布模式验证。
-[Mooncakes 0.1.20](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20) · [变更记录](CHANGELOG.md)
-
-库本身不执行文件或网络 I/O。Node.js 仅用于 CLI 的文件、标准流和进程适配。0.1.x 严格实现 JMESPath 规范，不加入自定义查询扩展，以保持与其他合规实现之间的结果可移植性。
-
-## 十月继续完善的内容（0.1.3）
-
-本次重新检查时，复现了 0.1.2 中另一个栈溢出：**255 层 `to_array(...)` 嵌套函数**能通过语法树检查，但调试版执行器会崩溃。现在执行器在继续调用前检查深度，返回结构化 `limit_exceeded`。
-
-连续 `[@,@]` 管道只复制少量引用，却可能生成指数膨胀的 JSON 输出。现在按实际展开次数检查结果；JSON 相等比较改为非递归遍历并计入执行预算；`join` 在拼接前检查长度；对象合并在写入前检查结果预算；批次成功响应也有累计预算。非有限数值返回 `invalid_value`，避免生成无法解析的 JSON。
-
-验证入口 `node scripts/verify.mjs` 包含零警告检查、70 项单元测试、三个真实使用场景，以及**每种构建模式**的 80 组边界/隔离检查和 256 组固定随机语法输入。恶意输入子进程都有超时与堆内存限制。官方合规测试同时核对结果和准确错误类型，分别跑 debug、release；Windows、Ubuntu CI 保存可下载的 JSON 验收记录。详见 [验收证据](docs/acceptance.md) 与 [参赛状态](docs/competition.md)。初审通过和技术验证不等于终审通过。
-
-此外，完整验证在每种构建模式运行 20,625 条相等性查询和 8,207 条组合表达式查询，使用固定输入和独立预期计算，失败用例可保存、重放。独立运行方法与覆盖范围见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-保存的失败用例可使用有次数与时间限制的工具自动缩减，缩减后重新计算支持用例的预期结果，并重复确认失败类别。用法与限制见 [失败用例缩减说明](CONTRIBUTING.md#reducing-a-saved-failure)。
-
-## 0.1.4：补齐空值语义和上手说明
-
-进一步审查发现了固定官方测试集没有覆盖的边界：空值输入的多选列表／对象应返回
-`null`；子表达式左侧缺失时，右侧函数仍应执行。例如 `{}` 上的
-`missing.not_null(@, 'fallback')` 现在正确返回 `"fallback"`。
-新增回归覆盖空值投影、`map` 保留项数、错误传递及非空假值，并保留已有资源限制。
-
-快速开始已改为仓库内真实存在的文件；完整库示例加入两种构建模式的验证；
-PowerShell 场景脚本可以从仓库外运行。详见 [使用约定](docs/usage.md)、
-[维护说明](CONTRIBUTING.md) 和 [验收证据](docs/acceptance.md)。
-
-## 0.1.5：数字转换的内存修复
-
-旧版 `to_number` 会先解析字符串内的任意 JSON，再判断是否为数字。约 4.8 MB
-的对象数组字符串在 192 MiB 测试堆下令旧版两种构建模式都退出 134、整批无结果。
-现在先排除非数字字符，不再创建这些无用对象；数字扫描也计入执行预算。
-新增回归确认异常转换返回 `null`，同批前后请求仍正常。
-
-这不代表任意输入都能在固定内存内完成：底层 JSON 解码仍可能耗尽受限堆。
-已在[资源限制](docs/resource-limits.md)中明确说明，发布与验证记录见[验收证据](docs/acceptance.md)。
-
-## 0.1.6：在 JSON 解码之前检查资源
-
-0.1.5 留下的约 12 MB 转义字符串崩溃案例，现在会在解码前被拒绝。扫描使用固定额外空间，
-限制单个字符串源码为 8 Mi 个 UTF-16 单元、全部标记为 100 万个（含键名和重复键）、
-嵌套为 1024 层。这会拒绝部分原来未超过总字节限制的输入，是有意增加的资源边界。
-
-单次查询、批量文本、表达式 JSON 解码共享保护；库公开 `parse_json_bounded` 入口。
-整份文本超过限制时返回 `limit_exceeded`、退出码 2、标准输出为空；解码成功后仍逐项
-处理批次错误。同一 192 MiB 测试堆下，debug/release 回归均通过。这不代表所有输入的
-峰值内存都有绝对保证，详见[资源限制](docs/resource-limits.md)和[验收证据](docs/acceptance.md)。
-
-## 0.1.7：命令行输出失败和诊断控制符
-
-输出目标不可写或下游提前关闭管道时，现在返回退出码 2，不再抛出未处理的 Node 异常堆栈。
-标准错误可用时会输出简短 I/O 提示；两个通道都不可用时，只能依靠退出码。
-非法参数中的换行、终端控制符和双向文字格式符会被转义，避免伪造诊断行或影响终端显示；
-正常 JSON 输出不变。写入中途失败可能留下部分输出，调用方须检查退出码。
-
-新增五项真实进程检查已在两种模式、Windows／Ubuntu 及实际下载的发布包上通过。
-详见[使用约定](docs/usage.md)和[验收证据](docs/acceptance.md)。
-
-## 0.1.8：Unicode 排序正确性
-
-旧版按 UTF-16 编码单元比较，导致部分补充平面字符（包括 emoji）与基本平面字符顺序错误。
-现在按 JMESPath 要求使用 Unicode 码点顺序，统一修复 `sort`、`min`、`max` 和三个 `_by`
-变体。例如 U+E000 应排在 U+10000 前。比较过程使用迭代器，不为每次比较分配字符数组；
-不引入地区排序或 Unicode 归一化。新增回归覆盖空串、前缀、相同键值、组合字符和 U+10FFFF，
-极大／极小有限数值及历史检查也通过。详见[使用约定](docs/usage.md)和[验收证据](docs/acceptance.md)。
-
-## 0.1.9：防止外层表达式掩盖数值溢出
-
-旧版对 `[1e308,1e308]` 直接求和会报错，但套上 `type(...)`、比较或集合长度后可能返回成功。
-现在每个已执行表达式的数值返回值都会检查是否有限，不能再由后续操作掩盖溢出。
-短路分支仍只在需要时执行，批处理按项返回错误，预编译查询报错后仍可复用。
-本次没有改变浮点精度和平均值的逐项求和算法；具体数值边界见[资源限制](docs/resource-limits.md)，
-验证与发布记录见[验收证据](docs/acceptance.md)。
-
-## 0.1.10：排序与取极值的执行预算
-
-六个排序／取极值函数现在将类型扫描、比较和 Unicode 字符迭代计入 `max_steps`。
-排序改用可以立即报告预算错误的稳定归并实现，副本建立和合并写入也计入预算，
-避免长公共前缀带来大量未计费的比较工作。输入不被修改，相同键值顺序保持，
-批次后续请求仍可正常执行。部分较大的合法排序现在可能触发预算限制；可信调用方可
-显式选择更高预算。此规则不是墙钟时间保证，详见[资源说明](docs/resource-limits.md)和[验收证据](docs/acceptance.md)。
-
-## 工程结构与职责
-
-- `lexer.mbt`：带位置的 Unicode 词法分析
-- `parser.mbt`：Pratt 解析器和投影边界建模
-- `evaluator.mbt`：查询执行与资源计数
-- `functions.mbt`：标准函数及表达式引用
-- `api.mbt`：公开库接口和批量接口
-- `json_safety.mbt`、`equality.mbt`：输出展开检查与非递归 JSON 比较
-- `cli/`、`cmd/main/`：命令行解析与宿主适配
-- `examples/`：三组验收场景
-- `scripts/`：本地验证、官方合规测试和 PowerShell 入口
-- `docs/`：架构、合规与发布证据
-
-## 原创、参考与许可证
-
-MoonJMES 是依据 JMESPath 公开规范独立实现的项目，没有包含其他 JMESPath 实现的源代码。官方测试向量只在验证时从固定提交下载到操作系统临时目录，不进入源码包或发布产物。详情见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-项目采用 Apache-2.0 许可证。
-
-面向参赛信息整理的中文项目介绍见 [docs/project-introduction.zh-CN.md](docs/project-introduction.zh-CN.md)。
+MoonJMES 依据 JMESPath 公开规范独立实现。固定版本的上游测试向量在验证时下载。
+项目采用 Apache-2.0 许可证。[许可证](LICENSE) · [第三方说明](THIRD_PARTY_NOTICES.md)

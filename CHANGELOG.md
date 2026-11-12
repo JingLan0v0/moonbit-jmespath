@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - quick start and checked demos
+
+- Organize the English and Chinese READMEs around installation, working
+  examples, resource limits and verification.
+- Add a CLI demo with asserted results for three scenarios, a per-request
+  resource error and invalid outer JSON. Run the demo in both CI build modes.
+
 ## 0.1.20 - function error locations
 
 - Report the function-name offset for type, arity and unknown-function errors.

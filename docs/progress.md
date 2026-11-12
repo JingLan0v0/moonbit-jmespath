@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-12)
 
+### Quick start and checked demos
+
+The English and Chinese READMEs lead with installation, a minimal library
+program, a CLI query, and the three scenario examples. Release history lives
+in the changelog and acceptance log. Run `node examples/demo.mjs` to reproduce
+the quick start and scenario outputs and see both batch error boundaries.
+Full verification runs the same assertions in debug and release.
+
 ### Function error locations (0.1.20)
 
 Type, arity and unknown-function diagnostics point to the function name.

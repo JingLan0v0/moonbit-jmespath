@@ -1,402 +1,110 @@
 # MoonJMES
 
-## 0.1.20 function error locations
+[简体中文](README.zh-CN.md)
 
-Function diagnostics can point to the failing call, including nested calls
-and expressions with emoji. [Diagnostic codes and Unicode offsets](docs/usage.md)
+MoonJMES is a MoonBit library and command-line tool for querying JSON with
+JMESPath. Use it to filter records, extract fields, project nested data, and
+sort reports. It supports the JS backend, with Node.js as the CLI host.
 
-## 0.1.19 batch compilation reuse
+The published release is **0.1.20**. [Mooncakes package](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20) · [Changelog](CHANGELOG.md)
 
-Repeated requests in a batch can reuse one short compiled expression. Each
-request validates its own data and uses a fresh work budget.
-[Batch reuse and resource limits](docs/resource-limits.md)
+## Install the library
 
-## 0.1.18 compiled query reuse
+From an existing MoonBit module, install the exact release.
 
-Changing a returned JSON literal no longer affects later searches on the same
-compiled query. Each search copies an evaluated array or object literal once.
-Results can still share collections with caller input. [Library ownership and work limits](docs/usage.md)
-
-## 0.1.17 grouping and negation precedence
-
-Parentheses now end a projection's scope. Given `{"a":[{"b":1},{"b":2}]}`,
-`(a[*])[0]` returns `{"b":1}` rather than `[]`, and `(a[*]).b` returns null
-rather than `[1,2]`. The ungrouped `a[*].b` still projects over each item.
-Unary `!` now binds above dot, flatten and filter suffixes, while indexes and
-active projection tails retain their binding. Use `!(a.b)` to negate a full path;
-`!a.b` accesses `b` on the boolean produced by `!a` and returns null.
-See [acceptance evidence](docs/acceptance.md) for verification/publication status.
-
-## 0.1.16 flatten syntax validation
-
-The flatten operator is the contiguous token `[]`. Previously `[ ]` and brackets
-split by tabs or newlines silently flattened arrays, including inside skipped
-boolean branches. The lexer now recognizes `[]` as one token and rejects split
-forms during compilation. Whitespace around `[]` and inside nonempty index,
-slice and wildcard brackets remains supported. Regression tests cover nested
-references, filters and preservation of valid batch neighbors.
-See [acceptance evidence](docs/acceptance.md) for verification/publication status.
-
-## 0.1.15 expression references
-
-Version 0.1.15 checks expression-reference placement at compile time. An & reference must begin a function argument. A misplaced reference now reports syntax even in a skipped boolean branch or an empty filter.
-
-## Verification target isolation
-
-Full verification explicitly tests the debug/release CLI files it builds,
-ignoring an inherited JMES_CLI_PATH override. The receipt records those paths.
-Standalone harnesses still allow this override for downloaded-package testing.
-This is a verification-only fix; the verified version at that checkpoint was 0.1.14.
-
-
-## Additional verification audit
-
-The repository now checks special object keys, duplicate fields and escaped text
-in both output formats and build modes. Verification reports use actual harness
-counts and discard an older success receipt when a new run starts. This audit
-changes test tooling only; the verified version at that checkpoint was 0.1.14. See
-[acceptance evidence](docs/acceptance.md).
-
-
-## 0.1.14 numeric representation validation
-
-Library callers can attach original numeric text through Json::number(..., repr=...).
-Previously that text was serialized verbatim even if it said null, contained
-multiple JSON values or disagreed with the stored number. Bounded serialization
-and query input validation now reject these values with invalid_value. Matching
-large-number spelling is preserved. This concerns programmatically constructed
-Json values, not a demonstrated CLI JSON input vulnerability.
-See [verification and release evidence](docs/acceptance.md).
-
-
-## 0.1.13 consistent filter syntax validation
-
-Malformed [ ?condition] filters were accepted at the root or inside function
-arguments but rejected after a field. Filter openers are now checked uniformly:
-[? must be adjacent, while [? condition ] and field [? condition ] remain valid.
-This is a syntax consistency fix. Literal strings containing [ ? are unchanged.
-See [verification and publication evidence](docs/acceptance.md).
-
-
-## 0.1.12 compound expression references
-
-Queries such as map(&a || b, @), map(&a > `1`, @) and
-sort_by(@, &a || b) previously returned invalid_type despite valid input.
-The parser now captures the complete expression after &, including pipes,
-while preserving function argument boundaries and existing resource guards.
-See [verification and publication evidence](docs/acceptance.md).
-
-
-## 0.1.11 string allocation fix
-
-An 8,000,000-character length(reverse(@)) query previously aborted both
-build modes under the 192 MiB test heap and lost neighboring batch responses.
-Reversal now checks the work budget before output allocation and avoids temporary
-character arrays. String length counts Unicode scalars with a metered iterator.
-Oversized work returns an isolated limit_exceeded error. Large legitimate
-strings may need a higher trusted budget; this is not a universal memory guarantee.
-See [release evidence](docs/acceptance.md) for verification and publication status.
-
-
-[简体中文](README.zh-CN.md) | English
-
-[![CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml/badge.svg)](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-
-MoonJMES is a native MoonBit implementation of
-[JMESPath](https://jmespath.org/), the standard query language for JSON. It
-turns nested API responses, cloud inventories, audit records, and configuration
-files into smaller JSON results without embedding JavaScript or shipping data
-to a service.
-
-The engine passes **892/892 cases in the official JMESPath compliance suite**
-at pinned revision `53abcc37901891cf4308fcd910eab287416c4609`. The result is
-reproducible with `node scripts/conformance.mjs`; see
-[docs/conformance.md](docs/conformance.md).
-
-## Why this project
-
-MoonBit already has general JSON and jq-style tools, but the Mooncakes search at
-project start returned no JMESPath implementation. JMESPath is widely used in
-cloud and automation tooling, has a formal grammar, and has a language-neutral
-test suite. That gives this project a clear ecosystem boundary and an objective
-definition of compatibility.
-
-## Features
-
-- identifiers, quoted identifiers, current node, JSON and raw-string literals
-- object/list wildcards, flattening, projections, filters, indexes, and slices
-- pipes, comparisons, boolean expressions, multi-select lists and hashes
-- all standard scalar, collection, conversion, and expression-reference
-  functions, including `map`, `sort_by`, `min_by`, and `max_by`
-- reusable compiled expressions and one-shot JSON/text APIs
-- batch execution with per-request structured errors
-- configurable expression, AST depth, evaluation-step, and result limits
-- a file/stdin CLI with deterministic JSON output
-- pure MoonBit engine; Node.js is used only by the CLI host adapter
-
-## Quick start
-
-Install the published library from Mooncakes:
-
-```bash
-moon add JingLan0v0/jmespath
+```sh
+moon add JingLan0v0/jmespath@0.1.20
 ```
 
-The package documentation is available at
-[mooncakes.io/docs/JingLan0v0/jmespath](https://mooncakes.io/docs/JingLan0v0/jmespath).
-
-`moon add` installs a library dependency, not a global CLI executable. This
-release supports the **JS backend**. For GitHub main, use MoonBit
-`0.10.20+65efd5b93` and Node.js `24.14.0`, as pinned in `toolchain.json`.
-Run `moon version --all` to confirm the selected compiler. The source on main
-uses newer syntax and fails to compile with MoonBit `0.10.14`.
-Install the toolchain using the [official download instructions](https://www.moonbitlang.com/download/).
-To run the CLI, clone this repository
-and query the included file:
-
-```bash
-git clone https://github.com/JingLan0v0/moonbit-jmespath.git
-cd moonbit-jmespath
-moon run cmd/main --target js -- "instances[?state == 'running'].{id: id, zone: zone}" examples/cloud-inventory.json
-```
-
-Or pipe JSON through standard input:
-
-```bash
-echo '{"items":[{"name":"A","price":9},{"name":"B","price":12}]}' \
-  | moon run cmd/main --target js -- 'items[?price >= `10`].name' -
-```
-
-Result:
-
-```json
-[
-  "B"
-]
-```
-
-### Library API
-
-Import the package in `moon.pkg`:
+Use this `moon.pkg` for the minimal executable.
 
 ```moonbit
 import {
   "JingLan0v0/jmespath" @jmespath,
-  "moonbitlang/core/json",
+}
+
+pkgtype(kind: "executable")
+```
+
+In the same package, create `main.mbt`.
+
+```moonbit
+fn main raise {
+  let input = @jmespath.parse_json_bounded("{\"items\":[{\"name\":\"Ada\"}]}")
+  let query = @jmespath.compile("items[*].name")
+  println(@jmespath.stringify_bounded(query.search(input)))
 }
 ```
 
-```moonbit
-let input = @json.parse("{\"people\":[{\"name\":\"Ada\",\"age\":36}]}")
-let query = @jmespath.compile("people[?age >= `18`].name")
-let result = query.search(input)
+Run `moon run . --target js` from that package. It prints
+`["Ada"]`. The repository also includes a complete example with custom limits,
+query reuse, and error handling. [Library example](examples/library/main.mbt) · [API guide](docs/usage.md)
+
+## Run the CLI from source
+
+Use MoonBit `0.10.20+65efd5b93` and Node.js `24.14.0` for the pinned build.
+Older MoonBit versions such as `0.10.14` cannot compile the current source.
+[Toolchain configuration](toolchain.json) · [Official installation instructions](https://www.moonbitlang.com/download/)
+
+```sh
+git clone https://github.com/JingLan0v0/moonbit-jmespath.git
+cd moonbit-jmespath
+moon run cmd/main --target js -- --compact "instances[?state == 'running'].id" examples/cloud-inventory.json
 ```
 
-Public entry points: `compile`, `Compiled::search`, `search`, `search_json`, and
-`search_batch`. Use `stringify_bounded(result, pretty=true)` to serialize library
-results with the same output safeguards as the CLI.
+Expected output is `["i-101","i-102","i-104"]`. Pass `-` as the input path to read
+JSON from stdin. On Windows, `scripts/moon.ps1` can select the pinned local
+toolchain. [PowerShell commands](examples/README.md#windows-powershell) · [CLI usage](docs/usage.md#cli-automation)
 
-The fragment above belongs inside a function that handles or propagates errors.
-For a complete executable with imports, custom limits, query reuse and error
-handling, run `moon run examples/library --target js` from this checkout.
-See [the API and error guide](docs/usage.md).
+## Try the checked examples
 
-### Batch API and CLI
-
-Batch input is an array of independent requests:
-
-```json
-[
-  {"expression":"name","data":{"name":"Ada"}},
-  {"expression":"length()","data":null}
-]
+```sh
+node examples/demo.mjs
 ```
 
-```bash
-moon run cmd/main --target js -- --batch examples/batch.json
-```
+| Scenario | Result |
+| --- | --- |
+| Cloud inventory | IDs and zones for running production instances |
+| Deployment policy | Blocked services and their nested reason codes |
+| Cost report | Services sorted by monthly cost |
 
-Each response has `ok: true` and `result`, or `ok: false` and a structured
-`error`. Invalid expressions and malformed request entries therefore do not
-discard other batch results. Invalid top-level JSON still exits with code 2.
-Batch mode exits **0 even when individual requests fail**: inspect every `ok`
-field. The included file adds a third successful fallback query after the error.
+The demo asserts all three results against committed JSON. It also checks the
+quick start query and a batch that returns `before`, `limit_exceeded`, then
+`after`. Add `--release` to run the release build. [Inputs, queries, and expected results](examples/README.md)
 
-## Three runnable scenarios
+Batch input is a JSON array of `{"expression":"…","data":…}` requests. When the
+batch is accepted, the CLI exits 0 and each response has its own `ok` flag and
+result or error. An invalid outer JSON document fails the whole invocation with
+exit 2 and empty stdout. [Batch API and error contract](docs/usage.md#cli-automation)
 
-The [`examples`](examples/README.md) directory covers cloud inventory selection,
-deployment-policy findings, and cost-report sorting. Run all three on Windows
-with `./examples/run.ps1`; the script compares each result with committed JSON.
+## Limits and compatibility
 
-## Resource limits and errors
+Default query limits include 16,384 Unicode scalars for the expression, AST
+depth 256, one million work steps, and 100,000 materialized result elements.
+The evaluator also caps active call depth at 128. The CLI reads at most 16 MiB
+of input, and a batch accepts at most 10,000 requests. Input and output shape
+checks bound JSON expansion. [Resource limits](docs/resource-limits.md)
 
-Defaults are 16,384 expression characters, AST depth 256, 1,000,000 evaluation
-steps, and 100,000 cumulatively materialized result elements. Custom limits
-must be valid, and AST depth cannot exceed 256. Batch input is capped at
-10,000 requests; the CLI reads at most 16 MiB and decodes UTF-8 strictly,
-accepting an optional UTF-8 BOM.
+Function error positions count Unicode scalars from zero. Results can share
+collections with caller input, and reused compiled queries keep independent
+evaluation state. [Diagnostics and ownership](docs/usage.md)
 
-Version 0.1.3 also bounds active evaluation calls to 128, checks JSON input and
-output iteratively, and limits aggregate batch successes. The JSON guard limits
-depth to 256 (root at zero), expanded nodes to 1,000,000 and the conservative
-output estimate to 16 Mi UTF-16 units. See [the exact resource contract](docs/resource-limits.md).
+## Verify a checkout
 
-Errors use stable categories: `syntax`, `invalid_json`, `invalid_type`,
-`invalid_arity`, `invalid_value`, `unknown_function`, `invalid_batch`, and
-`limit_exceeded`. A library caller receives `JmesPathError`; the CLI writes a
-single diagnostic to stderr and exits with code 2.
-This describes single-query or whole-batch failures; per-item batch errors stay
-in the JSON response on stdout, as described above.
-
-## Verification
-
-```bash
+```sh
 node scripts/verify.mjs
 ```
 
-Run this from a Git checkout with the pinned MoonBit and Node.js on PATH, or
-set `MOON_BIN` and `MOON_HOME` for a separate toolchain. GitHub Actions runs the
-same command on Windows and Ubuntu. The report at
-`_build/verification-summary.json` records each check, its status and available
-counts, plus the source commit and toolchain. The official suite downloads the
-pinned vectors on first use. [Verification setup and exit codes](CONTRIBUTING.md#verification)
+Windows and Ubuntu CI use this command. Debug and release each run 79 unit
+tests, 892 pinned official JMESPath cases, the demos and resource-limit
+regressions. Windows also checks PowerShell. The command writes
+`_build/verification-summary.json`. [Verification setup](CONTRIBUTING.md#verification) · [GitHub Actions](https://github.com/JingLan0v0/moonbit-jmespath/actions/workflows/ci.yml)
 
-Full verification also runs 20,625 equality queries and 8,207 composition queries
-per build mode, with deterministic inputs, independent expected values and
-replayable failure reports. See [CONTRIBUTING.md](CONTRIBUTING.md) for standalone
-commands and coverage limits.
-Saved failures can be reduced with bounded attempts and repeat confirmation;
-see [failure reduction](CONTRIBUTING.md#reducing-a-saved-failure) for replay and limits.
-Architecture and trust boundaries are in
-[docs/architecture.md](docs/architecture.md).
+The acceptance log records test results by commit, historical fixes, archive
+checks and fresh installation evidence. [Acceptance evidence](docs/acceptance.md) · [Performance benchmarks](docs/performance.md)
 
-## September acceptance bug fixed in 0.1.2
+## License and references
 
-The rejected release could crash while parsing an expression made of 4,000
-`!` prefixes followed by `@` (4,001 characters, below the default length
-limit). The parser checked AST depth only after recursion, so a three-request
-batch produced no output and exited with status 1 in both debug and release.
-The parser now enforces recursion depth while building the AST and checks the
-depth of each constructed node. The offending request returns a structured
-`limit_exceeded` error; the requests before and after it still return results.
-Single-query CLI mode exits with status 2 and a diagnostic instead of crashing.
-Regression tests cover the exact batch shape, single-query mode, nested
-grouping and the allowed depth boundary in both CLI builds. The original
-0.1.1 release remains available for historical comparison.
-
-A Chinese project overview for contest information review is available in
-[docs/project-introduction.zh-CN.md](docs/project-introduction.zh-CN.md).
-
-## Project boundary
-
-### October hardening in 0.1.3
-
-The October audit reproduced a separate stack overflow in 0.1.2: 255 nested
-`to_array(...)` calls passed AST validation but crashed the debug evaluator.
-Execution now checks active call depth before descending. Short repeated
-`[@,@]` pipes could also expand exponentially during serialization while barely
-increasing the old result counter. An iterative output guard now counts each
-expanded occurrence; iterative JSON equality consumes the query work budget.
-`join` checks size before allocation, object producers charge keys before
-insertion, and batch successes share an output budget with room reserved for
-errors. Non-finite arithmetic returns `invalid_value` instead of invalid JSON.
-
-Verification covers 70 unit tests, three scenarios, and, in **each** CLI build
-mode, 80 adversarial checks plus 256 deterministic grammar mutations. Test
-subprocesses have a timeout and heap cap. CI enforces warning-free checks and
-exact official error categories in both modes, on Windows and Ubuntu, and saves
-downloadable JSON evidence. See [acceptance evidence](docs/acceptance.md) and
-[competition status](docs/competition.md).
-
-MoonJMES implements the JMESPath specification. The 0.1.x line has no custom
-query extensions, keeping results portable across compliant JMESPath
-implementations. Version [0.1.20 is published on Mooncakes](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20)
-and verified from a fresh consumer in debug and release. Older versions remain available
-for historical comparison. See [CHANGELOG.md](CHANGELOG.md).
-
-## Null semantics and usability fixes in 0.1.4
-
-An additional audit found behavior not covered by the pinned official vectors:
-multi-select lists/hashes must preserve a null input, while a subexpression must
-still evaluate its right-hand function on a null left result. For example,
-`missing.not_null(@, 'fallback')` now returns `"fallback"` for `{}`, and `[foo]`
-returns `null` for null input. Added regressions cover projections, `map`, error
-propagation, and non-null false-like values. Existing resource guards remain.
-
-Quick-start commands now use committed input files, a complete public API
-example runs in both modes, and the PowerShell scenario runner works outside
-the checkout. See [CHANGELOG.md](CHANGELOG.md), [usage](docs/usage.md) and
-[contributing](CONTRIBUTING.md). Release evidence is in [acceptance.md](docs/acceptance.md).
-
-## Numeric conversion memory fix in 0.1.5
-
-`to_number` no longer parses arbitrary encoded arrays/objects merely to return
-null. An encoded 4.8 MB object array crashed 0.1.4 under a 192 MiB test heap in
-both modes; scalar prefiltering now preserves the batch's neighboring results.
-Numeric scanning also consumes the work budget. This is a conversion fix, not
-a universal memory guarantee: core transport decoding can still exhaust a
-constrained heap. See [resource limits](docs/resource-limits.md) and the
-[release evidence](docs/acceptance.md).
-
-## Decoder preflight in 0.1.6
-
-The 12 MB escaped-string case left open in 0.1.5 now fails before JSON decoder
-allocation. Constant-space lexical scanning caps raw string tokens at 8 Mi
-UTF-16 units, lexical tokens (including keys) at 1,000,000, and nesting at 1,024.
-This intentionally adds restrictions within the overall 16 MiB input cap.
-Single-query, batch transport and expression JSON decoding share this check.
-The public `parse_json_bounded` supports safe text ingestion by library callers.
-Whole-transport failures return `limit_exceeded`, exit 2, empty stdout; item
-isolation still applies once the batch is decoded. Regression tests exercise
-both modes under the same 192 MiB test heap. This is not a universal peak-memory
-guarantee. See [resource limits](docs/resource-limits.md) and [evidence](docs/acceptance.md).
-
-## CLI output and diagnostic fixes in 0.1.7
-
-Output failures (including a downstream pipe closing early) now exit 2 rather
-than throwing an unhandled Node exception. If stderr is available, a short I/O
-diagnostic is emitted; if both streams fail, only exit status can report it.
-Diagnostics escape embedded controls, line separators and bidi formatting so
-invalid options cannot create forged log lines or terminal commands. Normal
-JSON stdout is unchanged. Output may be partial if a destination fails during
-writing; consumers must check exit status. Five new subprocess cases pass in
-both modes, on Windows/Ubuntu and from the downloaded release. See
-[usage](docs/usage.md) and [release evidence](docs/acceptance.md).
-
-## Unicode ordering corrected in 0.1.8
-
-String ordering now follows Unicode code points rather than UTF-16 code units,
-fixing incorrect results across BMP and supplementary-plane characters in
-`sort`, `min`, `max` and their `_by` variants. For example U+E000 must precede
-U+10000. The comparator uses iterators without allocating character arrays;
-there is no locale collation or normalization. Regression cases include empty
-strings, prefixes, ties, combining sequences and U+10FFFF. Numeric extremes and
-existing behavior also pass. See [usage](docs/usage.md) and [evidence](docs/acceptance.md).
-
-## Intermediate overflow consistency in 0.1.9
-
-Non-finite scalar results are now rejected before parent expressions consume
-them. Previously `type(sum(@))` on `[1e308,1e308]` succeeded while direct sum
-correctly failed. Arithmetic/conversion overflow can no longer hide behind a
-type check, comparison or collection wrapper. Lazy boolean branches remain
-lazy, batches isolate the error and compiled queries remain reusable.
-This enforces the finite-JSON policy; it does not improve floating-point
-precision or change the running-sum algorithm for avg. See
-[resource limits](docs/resource-limits.md) and [evidence](docs/acceptance.md).
-
-## Ordering work budgets in 0.1.10
-
-Ordering scans, comparisons and Unicode iterator advances now consume max_steps
-across sort/min/max and their _by variants. Stable bottom-up merge sorting also
-meters scratch copies and merge writes, and stops immediately on budget errors.
-Long common prefixes can no longer perform unmetered comparison work. Inputs
-stay unchanged, equal-key order is preserved, and later batch items still run.
-Large legitimate sorts may now need a higher explicitly chosen trusted budget;
-this is an intentional tightening, not a wall-clock guarantee. See
-[resource contract](docs/resource-limits.md) and [release evidence](docs/acceptance.md).
-
-## License
-
-Apache-2.0. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the
-verification-time relationship with the official test suite.
+MoonJMES is an independent implementation of the public JMESPath specification.
+Pinned upstream vectors are downloaded for verification. The project is
+licensed under Apache-2.0. [License](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
