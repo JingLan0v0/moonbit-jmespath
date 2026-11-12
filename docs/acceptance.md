@@ -1,5 +1,26 @@
 # MoonJMES acceptance evidence
 
+## Function error locations (0.1.20)
+
+The function-offset regressions reproduced the old zero offset for nested
+type and resource errors. Function AST nodes now retain the lexer position.
+Public API and CLI checks cover type, arity, unknown functions, work limits,
+and nested calls after CJK and emoji. Batch checks verify the offset, error
+code and successful neighbors.
+
+The full local check and [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/43190282911)
+passed for `9dcf7009733a757f3d815727c6e0be176e6d2ddc`, including 79 unit tests
+and 892 official cases per mode. The existing deep-parser and evaluator
+boundary cases passed.
+
+Independent extraction of the 81-entry archive passed strict checking and
+both 79-test suites. Archive SHA-256
+`63b4588da93bbd8b9e097b39fb456230aad946b9b84548a490cf30e93db52851`.
+Mooncakes returned 202 for preflight and 200 for publication. A fresh consumer
+downloaded the exact version and passed strict checking and debug/release
+execution, with assertions for a nested offset and batch isolation.
+[Mooncakes 0.1.20](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.20)
+
 ## Bounded batch reuse (0.1.19)
 
 The single-slot reuse change passed full local verification and

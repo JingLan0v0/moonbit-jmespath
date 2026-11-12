@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-12)
 
+### Function error locations (0.1.20)
+
+Type, arity and unknown-function diagnostics point to the function name.
+Applicable resource errors can use an enclosing call. Offsets count Unicode
+scalars from zero, and nested functions preserve the inner diagnostic.
+Source `9dcf700` passed Windows and Ubuntu CI. Mooncakes 0.1.20 passed fresh
+consumer checks in both modes. [Release evidence](acceptance.md#function-error-locations-0120)
+
 ### Bounded batch reuse (0.1.19)
 
 Batch search can reuse one short compiled expression. Work budgets and
