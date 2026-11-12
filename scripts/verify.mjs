@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { runDemo } from '../examples/demo.mjs';
 import { runConformanceCheck } from './lib/conformance-report.mjs';
+import { writeJsonAtomically } from './lib/write-json.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
@@ -221,9 +221,7 @@ for (const mode of modes) {
 
 report.steps = steps.map(step => step.receipt);
 function writeReport() {
-  const pending = `${summaryPath}.${randomUUID()}.tmp`;
-  fs.writeFileSync(pending, JSON.stringify(report, null, 2) + '\n');
-  fs.renameSync(pending, summaryPath);
+  writeJsonAtomically(summaryPath, report);
 }
 fs.mkdirSync(buildDir, { recursive: true });
 writeReport();

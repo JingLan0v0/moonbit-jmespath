@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - report writes
+
+- Publish verification and conformance reports only after writing complete JSON.
+  Remove temporary files after write or replacement errors.
+
 ## Unreleased - conformance reports
 
 - Require a matching suite summary for a conformance result and preserve the

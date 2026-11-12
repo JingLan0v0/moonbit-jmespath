@@ -18,8 +18,9 @@ function makeFixture(t) {
 
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
-    'scripts/verify.mjs', 'examples/demo.mjs',
+    'scripts/verify.mjs', 'scripts/conformance.mjs', 'examples/demo.mjs',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
+    'scripts/lib/write-json.mjs',
   ]) {
     const destination = path.join(fixture, file);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
@@ -28,8 +29,8 @@ function makeFixture(t) {
   return fixture;
 }
 
-function runVerifier(fixture, env) {
-  const child = spawnSync(process.execPath, [path.join(fixture, 'scripts', 'verify.mjs')], {
+function runScript(fixture, args, env = {}) {
+  const child = spawnSync(process.execPath, args, {
     cwd: fixture, encoding: 'utf8', timeout: 15_000, env: { ...process.env, ...env },
   });
   if (child.error) throw child.error;
@@ -54,7 +55,7 @@ test('a source-check failure removes stale suite evidence', t => {
     fs.writeFileSync(path.join(build, file), '{"status":"passed","stale":true}\n');
   }
 
-  const child = runVerifier(fixture, { GIT_DIR: path.join(fixture, 'missing-git-directory') });
+  const child = runScript(fixture, ['scripts/verify.mjs'], { GIT_DIR: path.join(fixture, 'missing-git-directory') });
   assert.equal(child.status, 1, child.stderr);
   assert.match(child.stderr, /failed: source:/);
   for (const file of owned) assert.equal(fs.existsSync(path.join(build, file)), false, file);
@@ -87,7 +88,7 @@ test('an output limit keeps bounded diagnostics from both streams', t => {
     writeSync(2, 'tool stderr excerpt\\n'.repeat(110_000));
   `);
 
-  const child = runVerifier(fixture, { MOON_BIN: process.execPath });
+  const child = runScript(fixture, ['scripts/verify.mjs'], { MOON_BIN: process.execPath });
   assert.equal(child.status, 1, child.stderr);
   assert.ok(child.stderr.length < 4_000);
   const report = JSON.parse(fs.readFileSync(path.join(fixture, '_build', 'verification-summary.json'), 'utf8'));
@@ -152,4 +153,57 @@ test('success requires the expected conformance status, mode, revision, and coun
   }
   fs.writeFileSync(reportPath, JSON.stringify(summary));
   assert.deepEqual(runConformanceCheck(() => '', options), counts);
+});
+
+test('a failed verification report replacement keeps the prior report and removes its temporary file', t => {
+  const fixture = makeFixture(t);
+  const build = path.join(fixture, '_build');
+  fs.mkdirSync(build);
+  const name = 'verification-summary.json';
+  const prior = '{"status":"passed","prior":true}\n';
+  fs.writeFileSync(path.join(build, name), prior);
+  fs.writeFileSync(path.join(fixture, 'busy-report.mjs'), `
+    import fs from 'node:fs';
+    import path from 'node:path';
+    const rename = fs.renameSync;
+    fs.renameSync = (from, to) => {
+      if (path.basename(to) === '${name}') throw new Error('simulated busy report');
+      return rename(from, to);
+    };
+  `);
+  const child = runScript(fixture, ['--import', './busy-report.mjs', 'scripts/verify.mjs']);
+  assert.equal(child.status, 1, child.stderr);
+  assert.match(child.stderr, /simulated busy report/);
+  assert.equal(fs.readFileSync(path.join(build, name), 'utf8'), prior);
+  assert.deepEqual(fs.readdirSync(build), [name]);
+
+  const retry = runScript(fixture, ['scripts/verify.mjs'], { GIT_DIR: path.join(fixture, 'missing-git-directory') });
+  assert.equal(retry.status, 1, retry.stderr);
+  const report = JSON.parse(fs.readFileSync(path.join(build, name), 'utf8'));
+  assert.equal(report.status, 'failed');
+  assert.equal(report.prior, undefined);
+  assert.deepEqual(fs.readdirSync(build), [name]);
+});
+
+test('a failed conformance report write leaves no partial report', t => {
+  const fixture = makeFixture(t);
+  fs.writeFileSync(path.join(fixture, 'partial-report.mjs'), `
+    import fs from 'node:fs';
+    import path from 'node:path';
+    const write = fs.writeFileSync;
+    fs.writeFileSync = (file, ...args) => {
+      if (path.basename(file).startsWith('conformance-debug-summary.json')) {
+        write(file, '{"status":');
+        throw new Error('simulated partial write');
+      }
+      return write(file, ...args);
+    };
+  `);
+  const child = runScript(fixture, [
+    '--import', './partial-report.mjs', 'scripts/conformance.mjs', '--cli', 'missing-cli.js',
+  ]);
+  assert.equal(child.status, 1, child.stderr);
+  assert.match(child.stderr, /Missing CLI artifact/);
+  assert.match(child.stderr, /simulated partial write/);
+  assert.deepEqual(fs.readdirSync(path.join(fixture, '_build')), []);
 });

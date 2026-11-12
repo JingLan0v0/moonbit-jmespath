@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 
 import { DownloadUnavailable, loadVectors, pinnedFiles, revision } from './lib/conformance-vectors.mjs';
+import { writeJsonAtomically } from './lib/write-json.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const moon = process.env.MOON_BIN || 'moon';
@@ -85,5 +86,5 @@ try {
   process.exitCode = blocked ? networkBlockedExit : 1;
 } finally {
   report.finishedAt = new Date().toISOString();
-  fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
+  writeJsonAtomically(output, report);
 }
