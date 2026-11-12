@@ -19,6 +19,7 @@ The library targets MoonBit's JS backend. Resource errors are reported as
 | JSON text nesting | 1,024 open containers | Checked before recursive parsing; strings/escapes do not affect depth |
 | CLI input | 16 MiB of bytes | Bounded read, strict UTF-8, optional BOM |
 | Batch requests | 10,000 | Exceeding this rejects the whole batch |
+| Batch compile reuse | One expression, at most 1,024 UTF-16 units | Batch-local, successful compilations only. Longer expressions are compiled normally under the same parser limits |
 | Successful batch responses combined | 500,000 nodes / 8,388,608 estimated UTF-16 units | Includes pretty formatting and wrapping; excess becomes an individual item error |
 | Batch error messages | 128 UTF-16 units plus ... if truncated | Bounded errors remain possible after the success budget is exhausted |
 

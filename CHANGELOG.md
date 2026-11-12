@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.19 - batch compilation reuse
+
+- Reuse one short, successfully compiled expression within a batch. Each
+  request still validates its input and has its own work budget and literal
+  copies.
+- Cover work-limit recovery, mutable literal isolation, and requests whose
+  expressions exceed the reuse slot's size limit.
+
 ## Unreleased - performance benchmarks
 
 - Add reproducible JS benchmarks for compilation, compiled search, sorting,

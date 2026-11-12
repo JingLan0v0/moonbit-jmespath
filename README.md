@@ -1,5 +1,11 @@
 # MoonJMES
 
+## 0.1.19 batch compilation reuse
+
+Repeated requests in a batch can reuse one short compiled expression. Each
+request validates its own data and uses a fresh work budget.
+[Batch reuse and resource limits](docs/resource-limits.md)
+
 ## 0.1.18 compiled query reuse
 
 Changing a returned JSON literal no longer affects later searches on the same

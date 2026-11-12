@@ -101,6 +101,12 @@ nesting of the transport itself cannot be isolated to individual requests.
 Try `moon run cmd/main --target js -- --batch examples/batch.json`. It returns
 three entries: `Ada`, an `invalid_arity` error, and `fallback`; exit status is 0.
 
+Since 0.1.19, a batch can reuse its most recent successfully compiled short
+expression when a later request has identical expression text. All requests
+share the batch's `Limits`, and each search validates its own input and starts
+with fresh evaluation counters and literal copies. The reuse slot is discarded
+at the end of the batch.
+
 ## Compatibility edge cases
 
 Since 0.1.9 non-finite intermediate scalar values are rejected before a parent

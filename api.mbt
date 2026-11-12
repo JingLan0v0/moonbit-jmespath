@@ -84,6 +84,9 @@ pub fn search_batch(
     fail("limit_exceeded", 0, "batch exceeds 10000 requests")
   }
   let responses : Array[Json] = []
+  // Keep one short, successfully compiled query for repeated requests.
+  // All requests in this batch share limits; each search has its own state.
+  let mut reusable : Compiled? = None
   let mut response_nodes = 0
   let mut response_units = 0
   for item in items {
@@ -92,10 +95,20 @@ pub fn search_batch(
         match (request.get("expression"), request.get("data")) {
           (Some(String(expression)), Some(data)) =>
             try {
+              let query = match reusable {
+                Some(query) if query.source == expression => query
+                _ => {
+                  let query = compile(expression, limits~)
+                  if expression.length() <= 1024 {
+                    reusable = Some(query)
+                  }
+                  query
+                }
+              }
               let response = Json::object(
                 Map([
                   ("ok", Json::boolean(true)),
-                  ("result", search(expression, data, limits~)),
+                  ("result", query.search(data)),
                 ]),
               )
               // Reserve space for up to 10,000 small error responses. Successful
