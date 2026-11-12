@@ -109,6 +109,8 @@ const invalidFunctions = [
     'starts_with(`1`, `1`)', 'sum(`[true]`)', 'values(`[]`)'].map(e=>[e,'invalid_type']),
   ...['merge()', 'not_null()', 'to_array()', 'to_number()', 'to_string()', 'type()'].map(e=>[e,'invalid_arity']),
   ['unknown_function()', 'unknown_function'],
+  ["'月😀' | length()", 'invalid_arity', 7],
+  ["'月😀' | length(reverse(`1`))", 'invalid_type', 14],
 ];
 const invalidRun=invoke(['--batch','--compact','-'],JSON.stringify([
   {expression:'@',data:'before'}, ...invalidFunctions.map(([expression])=>({expression,data:null})),
@@ -119,10 +121,15 @@ assert.equal(invalidRun.stderr,'');
 const invalidReplies=JSON.parse(invalidRun.stdout);
 assert.deepEqual(invalidReplies[0],{ok:true,result:'before'});
 assert.deepEqual(invalidReplies.at(-1),{ok:true,result:'after'});
-invalidFunctions.forEach(([expression,code],i)=>{
+invalidFunctions.forEach(([expression,code,offset=0],i)=>{
   assert.equal(invalidReplies[i+1].ok,false,expression);
   assert.equal(invalidReplies[i+1].error.code,code,expression);
+  assert.equal(invalidReplies[i+1].error.offset,offset,expression);
 });
+const locatedError = invoke(["'月😀' | no_such_function()", '-'], 'null');
+assert.equal(locatedError.status, 2);
+assert.equal(locatedError.stdout, '');
+assert.match(locatedError.stderr, /^moon-jmes: unknown_function at 7: [^\r\n]+\r?\n$/);
 
 // A split filter marker must fail consistently, while valid neighbors survive.
 const splitFilters = ['[ ?@]', '[\t?@]', '[\r?@]', '[\n?@]', '([ ?@])', 'map(&[ ?@], @)', '@[ ?@]', "'月😀' | [ ?@]"];

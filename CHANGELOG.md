@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.20 - function error locations
+
+- Report the function-name offset for type, arity and unknown-function errors.
+  Resource errors raised during a function can report that call's location.
+- Preserve inner function locations and continue using zero-based Unicode
+  scalar offsets across the library and CLI.
+
 ## 0.1.19 - batch compilation reuse
 
 - Reuse one short, successfully compiled expression within a batch. Each

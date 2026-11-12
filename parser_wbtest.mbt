@@ -34,7 +34,7 @@ test "parser handles filters, pipes, functions, and multi-selects" {
         ),
         Subexpression(Current, MultiHash(_))
       ),
-      Function("sort_by", _)
+      Function("sort_by", _, 50)
     ),
   )
 }

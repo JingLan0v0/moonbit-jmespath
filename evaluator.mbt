@@ -358,7 +358,23 @@ fn evaluate(
       }
       Json::object(values)
     }
-    Function(name, args) => evaluate_function(name, args, data, state)
+    Function(name, args, offset) =>
+      evaluate_function(name, args, data, state) catch {
+        JmesPathError(diagnostic) => {
+          // A nested call has a later source position. Preserve its location
+          // and use this call site only for a still-unlocated function error.
+          if diagnostic.offset == 0 &&
+            (
+              diagnostic.code == "invalid_type" ||
+              diagnostic.code == "invalid_arity" ||
+              diagnostic.code == "unknown_function" ||
+              diagnostic.code == "limit_exceeded"
+            ) {
+            raise JmesPathError({ ..diagnostic, offset, })
+          }
+          raise JmesPathError(diagnostic)
+        }
+      }
     ExpressionRef(_) =>
       fail(
         "invalid_type", 0, "expression references are only valid as function arguments",

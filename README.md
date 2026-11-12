@@ -1,5 +1,10 @@
 # MoonJMES
 
+## 0.1.20 function error locations
+
+Function diagnostics can point to the failing call, including nested calls
+and expressions with emoji. [Diagnostic codes and Unicode offsets](docs/usage.md)
+
 ## 0.1.19 batch compilation reuse
 
 Repeated requests in a batch can reuse one short compiled expression. Each

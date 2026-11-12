@@ -49,10 +49,16 @@ to search_batch; transport errors necessarily reject the entire input. Source
 escape sequences count toward string-token size. See resource-limits.md.
 
 Catch `JmesPathError(d)` and branch on `d.code`, not the human-readable message.
-`d.offset` is a zero-based Unicode character index for lexer/parser diagnostics;
-it is not a UTF-8 byte offset or UTF-16 editor index. Runtime, JSON and aggregate
-limit errors generally use 0 because no precise expression span is available.
-Batch error messages may be truncated; codes remain stable.
+`d.offset` is a zero-based Unicode scalar index into the expression. Since
+0.1.20, function type, arity and unknown-function errors point to the function
+name. A resource error raised during a call can use its enclosing function as
+a location. Nested calls preserve an inner location when available. Input and
+output guards and other errors without an expression location can still report
+0, which is also the offset of a function at the start of an expression.
+Batch error messages may be truncated. Codes remain stable.
+
+For example, `'月😀' | length()` reports `invalid_arity` at offset 7.
+The emoji counts as one Unicode scalar.
 
 | Code | Meaning / caller action |
 | --- | --- |

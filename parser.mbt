@@ -86,11 +86,12 @@ fn Parser::attach_bracket(
 fn Parser::parse_function(
   self : Parser,
   name : String,
+  offset : Int32,
 ) -> Expr raise JmesPathError {
   self.expect(LParen, "(")
   let args : Array[Expr] = []
   if self.accept(RParen) {
-    return Function(name, args)
+    return Function(name, args, offset)
   }
   while true {
     args.push(self.parse_expression(1, function_arg=true))
@@ -99,7 +100,7 @@ fn Parser::parse_function(
     }
     self.expect(Comma, ",")
   }
-  Function(name, args)
+  Function(name, args, offset)
 }
 
 ///|
@@ -193,7 +194,7 @@ fn Parser::parse_prefix(self : Parser) -> Expr raise JmesPathError {
   match token.kind {
     Identifier(name) =>
       if self.peek().kind is LParen {
-        self.parse_function(name)
+        self.parse_function(name, token.offset)
       } else {
         Field(name)
       }
@@ -238,7 +239,7 @@ fn Parser::parse_dot_rhs(self : Parser) -> Expr raise JmesPathError {
   match token.kind {
     Identifier(name) =>
       if self.peek().kind is LParen {
-        self.parse_function(name)
+        self.parse_function(name, token.offset)
       } else {
         Field(name)
       }
@@ -401,7 +402,7 @@ fn expr_depth(expr : Expr) -> Int32 {
     | Or(a, b)
     | And(a, b)
     | Compare(_, a, b) => 1 + Int32::max(expr_depth(a), expr_depth(b))
-    MultiList(items) | Function(_, items) => {
+    MultiList(items) | Function(_, items, _) => {
       let mut depth = 1
       for item in items {
         depth = Int32::max(depth, 1 + expr_depth(item))

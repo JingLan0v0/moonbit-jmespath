@@ -72,7 +72,7 @@ enum Expr {
   Compare(CompareOp, Expr, Expr)
   MultiList(Array[Expr])
   MultiHash(Array[(String, Expr)])
-  Function(String, Array[Expr])
+  Function(String, Array[Expr], Int32)
   ExpressionRef(Expr)
 }
 
@@ -103,7 +103,7 @@ fn validate_limits(limits : Limits) -> Unit raise JmesPathError {
 
 ///|
 pub fn version() -> String {
-  "0.1.19"
+  "0.1.20"
 }
 
 ///|
