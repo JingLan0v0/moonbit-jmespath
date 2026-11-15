@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - CI source verification
+
+- Check the CI commit against the actual checkout and require a clean working
+  tree before running the toolchain.
+
 ## Unreleased - CLI build evidence
 
 - Require each verification build to produce a fresh CLI file and record its

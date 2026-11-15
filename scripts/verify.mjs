@@ -119,6 +119,14 @@ add('source', null, () => {
     sha: run('git', ['rev-parse', 'HEAD']).trim(),
     dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
   };
+  if (report.ciCommit) {
+    if (report.source.sha !== report.ciCommit) {
+      throw new Error(`HEAD does not match GITHUB_SHA (expected ${report.ciCommit}, got ${report.source.sha})`);
+    }
+    if (report.source.dirty) {
+      throw new Error('CI requires a clean working tree for the reported commit');
+    }
+  }
 });
 add('toolchain', null, () => {
   report.toolchain = run(moon, ['version', '--all']).trim();

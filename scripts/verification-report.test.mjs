@@ -31,7 +31,7 @@ function makeFixture(t) {
 
 function runScript(fixture, args, env = {}) {
   const child = spawnSync(process.execPath, args, {
-    cwd: fixture, encoding: 'utf8', timeout: 15_000, env: { ...process.env, ...env },
+    cwd: fixture, encoding: 'utf8', timeout: 15_000, env: { ...process.env, GITHUB_SHA: '', ...env },
   });
   if (child.error) throw child.error;
   return child;
@@ -82,6 +82,48 @@ function initializeCheckout(fixture) {
     assert.equal(result.status, 0, result.stderr);
   }
 }
+
+test('CI verifies the expected checkout before running the toolchain', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
+  const exclude = path.join(fixture, '.git', 'info', 'exclude');
+  fs.appendFileSync(exclude, '\n/scripts/\n/examples/\n/toolchain.json\n/_build/\n');
+  const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: fixture, encoding: 'utf8', timeout: 5_000 });
+  if (head.error) throw head.error;
+  assert.equal(head.status, 0, head.stderr);
+  const actual = head.stdout.trim();
+  const mismatched = '11'.repeat(actual.length / 2);
+  assert.notEqual(actual, mismatched);
+  const missingMoon = path.join(fixture, 'missing-moon');
+  const summary = path.join(fixture, '_build', 'verification-summary.json');
+
+  const cases = [
+    { ciCommit: mismatched, dirty: false, sourceError: /HEAD does not match GITHUB_SHA/ },
+    { ciCommit: actual, dirty: false },
+    { ciCommit: actual, dirty: true, sourceError: /CI requires a clean working tree/ },
+    { ciCommit: '', dirty: true },
+  ];
+  for (const { ciCommit, dirty, sourceError } of cases) {
+    if (dirty) fs.writeFileSync(path.join(fixture, 'untracked.mbt'), '// local work\n');
+    const child = runScript(fixture, ['scripts/verify.mjs'], { GITHUB_SHA: ciCommit, MOON_BIN: missingMoon });
+    assert.equal(child.status, 1, child.stderr);
+    const report = JSON.parse(fs.readFileSync(summary, 'utf8'));
+    assert.equal(report.status, 'failed');
+    assert.deepEqual(report.source, { sha: actual, dirty });
+    assert.equal(report.ciCommit, ciCommit || null);
+    const source = report.steps.find(step => step.id === 'source');
+    const toolchain = report.steps.find(step => step.id === 'toolchain');
+    if (sourceError) {
+      assert.equal(source.status, 'failed');
+      assert.match(source.error, sourceError);
+      assert.equal(toolchain.status, 'not_run');
+    } else {
+      assert.equal(source.status, 'passed');
+      assert.equal(toolchain.status, 'failed');
+      assert.match(toolchain.error, /ENOENT/);
+    }
+  }
+});
 
 test('an output limit keeps bounded diagnostics from both streams', t => {
   const fixture = makeFixture(t);

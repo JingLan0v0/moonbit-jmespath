@@ -21,7 +21,11 @@ check can compare the generated output with the staged baseline.
 
 The report at `_build/verification-summary.json` includes the source SHA, a dirty
 working tree flag, Node and MoonBit versions, and timestamps and counts per
-check. It compares the running Node, `moon` and `moonc` versions with
+check. In GitHub Actions, verification requires the checkout to be clean and
+its HEAD to match `GITHUB_SHA` before running the toolchain. Local verification
+can run with uncommitted changes and records them via the dirty flag.
+
+Verification compares the running Node, `moon` and `moonc` versions with
 `toolchain.json`. Local runs log version differences and continue compatibility
 testing. Set `JMES_VERIFY_PINNED_TOOLCHAIN=1` to require the pinned versions, as
 CI does. The command exits with 0 after all applicable checks pass, 1 on a failure,
