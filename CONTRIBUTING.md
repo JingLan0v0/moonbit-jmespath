@@ -21,7 +21,10 @@ check can compare the generated output with the staged baseline.
 
 The report at `_build/verification-summary.json` includes the source SHA, a dirty
 working tree flag, Node and MoonBit versions, and timestamps and counts per
-check. The command exits with 0 after all applicable checks pass, 1 on a failure,
+check. It compares the running Node, `moon` and `moonc` versions with
+`toolchain.json`. Local runs log version differences and continue compatibility
+testing. Set `JMES_VERIFY_PINNED_TOOLCHAIN=1` to require the pinned versions, as
+CI does. The command exits with 0 after all applicable checks pass, 1 on a failure,
 and 3 if the pinned test vectors are unavailable through both download routes.
 Later steps show `not_run` after an early stop. The PowerShell check shows
 `not_applicable` on other platforms. Keep one verification run per checkout

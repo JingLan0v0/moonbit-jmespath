@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - toolchain verification
+
+- Compare the running MoonBit and Node.js versions against `toolchain.json`.
+  CI fails early on drift, and local compatibility checks record any differences.
+
 ## Unreleased - property-test replays
 
 - Keep original failure cases and full-suite reports intact when replaying

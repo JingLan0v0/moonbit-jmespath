@@ -49,6 +49,7 @@ jobs:
         # Regression: full verification must select its own debug/release builds.
         env:
           JMES_CLI_PATH: ignored-external-cli.js
+          JMES_VERIFY_PINNED_TOOLCHAIN: '1'
         run: node scripts/verify.mjs
       - name: Save acceptance evidence
         if: always()

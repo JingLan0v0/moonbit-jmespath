@@ -18,7 +18,7 @@ function makeFixture(t) {
 
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
-    'scripts/verify.mjs', 'scripts/conformance.mjs', 'examples/demo.mjs',
+    'scripts/verify.mjs', 'scripts/conformance.mjs', 'examples/demo.mjs', 'toolchain.json',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
     'scripts/lib/write-json.mjs',
   ]) {
@@ -71,8 +71,7 @@ test('a source-check failure removes stale suite evidence', t => {
   assert.equal(report.steps.find(step => step.id === 'toolchain')?.status, 'not_run');
 });
 
-test('an output limit keeps bounded diagnostics from both streams', t => {
-  const fixture = makeFixture(t);
+function initializeCheckout(fixture) {
   for (const args of [
     ['init', '--quiet'],
     ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false',
@@ -82,6 +81,11 @@ test('an output limit keeps bounded diagnostics from both streams', t => {
     if (result.error) throw result.error;
     assert.equal(result.status, 0, result.stderr);
   }
+}
+
+test('an output limit keeps bounded diagnostics from both streams', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
   fs.writeFileSync(path.join(fixture, 'version'), `
     const { writeSync } = require('node:fs');
     writeSync(1, 'tool stdout excerpt\\n');
@@ -100,6 +104,39 @@ test('an output limit keeps bounded diagnostics from both streams', t => {
     assert.match(child.stderr, diagnostic);
   }
   assert.equal(report.steps.find(step => step.id === 'format')?.status, 'not_run');
+});
+
+test('verification identifies version drift and the pinned run stops before formatting', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
+  const expected = JSON.parse(fs.readFileSync(path.join(fixture, 'toolchain.json'), 'utf8'));
+  const banner = [
+    `moon ${expected.moon} /toolchains/pinned/bin/moon`,
+    'moonc v0.10.14+7d59c7ec9 (2026-09-18) /toolchains/older/bin/moonc',
+  ].join('\n');
+  fs.writeFileSync(path.join(fixture, 'version'), `console.log(${JSON.stringify(banner)});\n`);
+  fs.writeFileSync(path.join(fixture, 'fmt'), "console.error('format was reached'); process.exitCode = 1;\n");
+  const build = path.join(fixture, '_build');
+
+  for (const pinned of [true, false]) {
+    const result = runScript(fixture, ['scripts/verify.mjs'], {
+      MOON_BIN: process.execPath,
+      JMES_VERIFY_PINNED_TOOLCHAIN: pinned ? '1' : '',
+    });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(fs.readFileSync(path.join(build, 'verification-summary.json'), 'utf8'));
+    assert.equal(report.toolchain, banner);
+    assert.equal(fs.readFileSync(path.join(build, 'moon-version.txt'), 'utf8'), banner + '\n');
+    const toolchain = report.steps.find(step => step.id === 'toolchain');
+    assert.equal(toolchain.status, pinned ? 'failed' : 'passed');
+    assert.match(result.stderr, /moonc differs from toolchain\.json/);
+    assert.match(result.stderr, /v0\.10\.14\+7d59c7ec9/);
+    assert.equal(report.steps.find(step => step.id === 'format')?.status, pinned ? 'not_run' : 'failed');
+    if (!pinned) {
+      assert.equal(toolchain.details.matchesPinnedVersions, false);
+      assert.match(toolchain.details.differences[0], /moonc differs/);
+    }
+  }
 });
 
 test('a damaged conformance report cannot hide the subprocess failure', t => {

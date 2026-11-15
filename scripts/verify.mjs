@@ -124,6 +124,27 @@ add('toolchain', null, () => {
   if (!report.toolchain) throw new Error('Missing MoonBit version information');
   fs.writeFileSync(path.join(buildDir, 'moon-version.txt'), report.toolchain + '\n');
   console.log(report.toolchain);
+
+  const expected = JSON.parse(fs.readFileSync(path.join(root, 'toolchain.json'), 'utf8'));
+  const lines = report.toolchain.split(/\r?\n/).map(line => line.trim());
+  const differences = [];
+  for (const name of ['moon', 'moonc']) {
+    const prefix = name + ' ';
+    const matches = lines.filter(line => line.startsWith(prefix));
+    const version = prefix + expected[name];
+    if (matches.length !== 1 || (matches[0] !== version && !matches[0].startsWith(version + ' '))) {
+      differences.push(`${name} differs from toolchain.json (expected ${version}, got ${matches.join(' / ') || 'no version line'})`);
+    }
+  }
+  if (process.version !== 'v' + expected.node_tested) {
+    differences.push(`Node.js differs from toolchain.json (expected v${expected.node_tested}, got ${process.version})`);
+  }
+  if (differences.length) {
+    const diagnostic = differences.join('\n');
+    if (process.env.JMES_VERIFY_PINNED_TOOLCHAIN === '1') throw new Error(diagnostic);
+    console.warn(diagnostic);
+  }
+  return { matchesPinnedVersions: differences.length === 0, differences };
 });
 add('format', null, () => run(moon, ['fmt', '--check']));
 add('check', null, () => run(moon, ['check', '--target', 'js', '--deny-warn']));
