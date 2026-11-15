@@ -22,6 +22,8 @@ Both modes run the demo during `node scripts/verify.mjs`.
 ## Windows PowerShell
 
 The wrapper can select a pinned local installation for MoonBit commands.
+It uses UTF-8 for piped text and native command output, including in Windows
+PowerShell 5.1. The caller's original encodings are preserved.
 
 ```powershell
 .\scripts\moon.ps1 version --all

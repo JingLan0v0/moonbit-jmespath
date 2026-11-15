@@ -31,15 +31,26 @@ end {
     $moonExecutable = (Get-Command moon -ErrorAction Stop).Source
   }
 
+  $utf8 = [Text.UTF8Encoding]::new($false)
+  $previousConsoleEncoding = [Console]::OutputEncoding
+  $useUtf8Console = $previousConsoleEncoding.CodePage -ne $utf8.CodePage
+
   Push-Location $projectRoot
   try {
+    if ($useUtf8Console) {
+      [Console]::OutputEncoding = $utf8
+    }
     if ($pipelineLines.Count -gt 0) {
+      $OutputEncoding = $utf8
       $pipelineLines | & $moonExecutable @MoonArgs
     } else {
       & $moonExecutable @MoonArgs
     }
     $result = $LASTEXITCODE
   } finally {
+    if ($useUtf8Console) {
+      [Console]::OutputEncoding = $previousConsoleEncoding
+    }
     Pop-Location
     $env:MOON_HOME = $previousMoonHome
   }

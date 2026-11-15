@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - PowerShell Unicode I/O
+
+- Preserve Unicode JSON piped through the Windows PowerShell wrapper and
+  decode native output as UTF-8.
+
 ## Unreleased - benchmark sample validation
 
 - Verify that timing samples and work counts belong to the selected benchmark

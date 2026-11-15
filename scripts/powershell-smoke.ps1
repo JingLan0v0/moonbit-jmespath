@@ -10,6 +10,25 @@ try {
     throw "Unexpected query output: $result"
   }
 
+  $expectedUnicode = [string][char]0x6708 + [char]::ConvertFromUtf32(0x1f600)
+  $unicodePayload = '{"value":"' + $expectedUnicode + '"}'
+  $previousPipelineEncoding = $OutputEncoding
+  $previousConsoleEncoding = [Console]::OutputEncoding
+  try {
+    $OutputEncoding = [Text.Encoding]::ASCII
+    [Console]::OutputEncoding = [Text.Encoding]::GetEncoding(437)
+    $unicodeResult = $unicodePayload | .\scripts\moon.ps1 run cmd/main --target js -- --compact value -
+    if ($LASTEXITCODE -ne 0 -or ($unicodeResult | ConvertFrom-Json) -cne $expectedUnicode) {
+      throw 'PowerShell wrapper did not preserve Unicode JSON.'
+    }
+    if ($OutputEncoding.CodePage -ne 20127 -or [Console]::OutputEncoding.CodePage -ne 437) {
+      throw 'PowerShell wrapper changed caller encodings.'
+    }
+  } finally {
+    $OutputEncoding = $previousPipelineEncoding
+    [Console]::OutputEncoding = $previousConsoleEncoding
+  }
+
   $versionLine = (Get-Content -LiteralPath moon.mod | Where-Object { $_ -match '^version = "' } | Select-Object -First 1)
   if ($versionLine -notmatch '^version = "([^"]+)"') { throw 'Module version missing.' }
   $version = $Matches[1]
@@ -17,7 +36,7 @@ try {
   if ($LASTEXITCODE -ne 0 -or $actualVersion.Trim() -ne $version) {
     throw 'PowerShell wrapper version does not match moon.mod.'
   }
-  Write-Host 'PASS PowerShell wrapper: pipeline and version'
+  Write-Host 'PASS PowerShell wrapper: pipeline, Unicode, and version'
   Push-Location ([IO.Path]::GetTempPath())
   try {
     $startingLocation = (Get-Location).Path
