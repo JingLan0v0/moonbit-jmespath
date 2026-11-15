@@ -29,6 +29,19 @@ try {
     [Console]::OutputEncoding = $previousConsoleEncoding
   }
 
+  if ($PSVersionTable.PSVersion -ge [version]'7.3') {
+    $PSNativeCommandArgumentPassing = 'Legacy'
+  }
+  $quotedPayload = '{"user.name":"dotted","first name":"space","say \"hi\"":"quoted","ends\\":"slash"}'
+  $quotedQuery = '["user.name", "first name", "say \"hi\"", "ends\\"]'
+  $quotedResult = $quotedPayload | .\scripts\moon.ps1 run cmd/main --target js -- --compact $quotedQuery -
+  if ($LASTEXITCODE -ne 0 -or $quotedResult -cne '["dotted","space","quoted","slash"]') {
+    throw "PowerShell wrapper changed quoted query arguments: $quotedResult"
+  }
+  if ($PSVersionTable.PSVersion -ge [version]'7.3' -and $PSNativeCommandArgumentPassing -ne 'Legacy') {
+    throw 'PowerShell wrapper changed the caller native argument preference.'
+  }
+
   $versionLine = (Get-Content -LiteralPath moon.mod | Where-Object { $_ -match '^version = "' } | Select-Object -First 1)
   if ($versionLine -notmatch '^version = "([^"]+)"') { throw 'Module version missing.' }
   $version = $Matches[1]
@@ -36,7 +49,7 @@ try {
   if ($LASTEXITCODE -ne 0 -or $actualVersion.Trim() -ne $version) {
     throw 'PowerShell wrapper version does not match moon.mod.'
   }
-  Write-Host 'PASS PowerShell wrapper: pipeline, Unicode, and version'
+  Write-Host 'PASS PowerShell wrapper: pipeline, Unicode, quoted arguments, and version'
   Push-Location ([IO.Path]::GetTempPath())
   try {
     $startingLocation = (Get-Location).Path

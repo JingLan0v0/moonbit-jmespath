@@ -51,6 +51,10 @@ jobs:
           JMES_CLI_PATH: ignored-external-cli.js
           JMES_VERIFY_PINNED_TOOLCHAIN: '1'
         run: node scripts/verify.mjs
+      - name: Check Windows PowerShell 5.1 wrapper
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./scripts/powershell-smoke.ps1
       - name: Save acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4

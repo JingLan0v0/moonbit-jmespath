@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - quoted PowerShell arguments
+
+- Preserve quoted JMESPath identifiers and embedded escapes when invoking
+  MoonBit through the PowerShell wrapper.
+
 ## Unreleased - PowerShell Unicode I/O
 
 - Preserve Unicode JSON piped through the Windows PowerShell wrapper and

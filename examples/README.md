@@ -24,6 +24,9 @@ Both modes run the demo during `node scripts/verify.mjs`.
 The wrapper can select a pinned local installation for MoonBit commands.
 It uses UTF-8 for piped text and native command output, including in Windows
 PowerShell 5.1. The caller's original encodings are preserved.
+Use single quotes around expressions with quoted identifiers, for example
+`'"user.name"'` for a key containing a literal dot. On older PowerShell
+versions the wrapper uses Node.js to pass quoted arguments unchanged.
 
 ```powershell
 .\scripts\moon.ps1 version --all

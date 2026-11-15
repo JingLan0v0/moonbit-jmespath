@@ -34,22 +34,38 @@ end {
   $utf8 = [Text.UTF8Encoding]::new($false)
   $previousConsoleEncoding = [Console]::OutputEncoding
   $useUtf8Console = $previousConsoleEncoding.CodePage -ne $utf8.CodePage
+  $executable = $moonExecutable
+  $nativeArgs = $MoonArgs
+  $hasStandardArguments = $PSVersionTable.PSVersion -ge [version]'7.3'
+  $forwardLegacyArguments = -not $hasStandardArguments -and ($MoonArgs -contains '' -or ($MoonArgs -match '"'))
+  $previousLegacyArgs = $env:MOONJMES_LEGACY_ARGS
 
   Push-Location $projectRoot
   try {
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $utf8
     }
+    if ($hasStandardArguments) {
+      $PSNativeCommandArgumentPassing = 'Standard'
+    } elseif ($forwardLegacyArguments) {
+      # Older PowerShell native argument handling strips embedded quotes.
+      $executable = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+      $nativeArgs = @((Join-Path $PSScriptRoot 'invoke-moon.cjs'), $moonExecutable)
+      $env:MOONJMES_LEGACY_ARGS = ConvertTo-Json -InputObject $MoonArgs -Compress
+    }
     if ($pipelineLines.Count -gt 0) {
       $OutputEncoding = $utf8
-      $pipelineLines | & $moonExecutable @MoonArgs
+      $pipelineLines | & $executable @nativeArgs
     } else {
-      & $moonExecutable @MoonArgs
+      & $executable @nativeArgs
     }
     $result = $LASTEXITCODE
   } finally {
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $previousConsoleEncoding
+    }
+    if ($forwardLegacyArguments) {
+      $env:MOONJMES_LEGACY_ARGS = $previousLegacyArgs
     }
     Pop-Location
     $env:MOON_HOME = $previousMoonHome
