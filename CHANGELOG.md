@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - CLI build evidence
+
+- Require each verification build to produce a fresh CLI file and record its
+  SHA-256 in the build step's report.
+
 ## Unreleased - toolchain verification
 
 - Compare the running MoonBit and Node.js versions against `toolchain.json`.

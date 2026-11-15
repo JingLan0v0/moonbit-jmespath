@@ -139,6 +139,38 @@ test('verification identifies version drift and the pinned run stops before form
   }
 });
 
+test('a successful build must produce a nonempty CLI for the current run', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
+  const expected = JSON.parse(fs.readFileSync(path.join(fixture, 'toolchain.json'), 'utf8'));
+  const outputs = {
+    version: `moon ${expected.moon}\nmoonc ${expected.moonc}`,
+    test: 'Total tests: 1, passed: 1',
+    run: '["Ada"]\n[]\nerror: invalid_type',
+  };
+  for (const [command, output] of Object.entries(outputs)) {
+    fs.writeFileSync(path.join(fixture, command), `console.log(${JSON.stringify(output)});\n`);
+  }
+  for (const command of ['fmt', 'check', 'info']) fs.writeFileSync(path.join(fixture, command), '');
+  const buildDir = path.join(fixture, '_build');
+  const artifact = path.join(buildDir, 'js/debug/build/cmd/main/main.js');
+  fs.mkdirSync(path.dirname(artifact), { recursive: true });
+
+  for (const buildProgram of ['', `require('node:fs').writeFileSync(${JSON.stringify(artifact)}, '');`]) {
+    fs.writeFileSync(artifact, 'console.log("left from an earlier run");\n');
+    fs.writeFileSync(path.join(fixture, 'build'), buildProgram);
+    const result = runScript(fixture, ['scripts/verify.mjs'], {
+      MOON_BIN: process.execPath, JMES_VERIFY_PINNED_TOOLCHAIN: '',
+    });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(fs.readFileSync(path.join(buildDir, 'verification-summary.json'), 'utf8'));
+    const build = report.steps.find(step => step.id === 'build-cli' && step.mode === 'debug');
+    assert.equal(build.status, 'failed');
+    assert.match(build.error, /Build did not produce a nonempty CLI artifact/);
+    assert.equal(report.steps.find(step => step.id === 'scenarios' && step.mode === 'debug')?.status, 'not_run');
+  }
+});
+
 test('a damaged conformance report cannot hide the subprocess failure', t => {
   const fixture = makeFixture(t);
   const reportPath = path.join(fixture, 'conformance-debug-summary.json');

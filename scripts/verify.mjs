@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { runDemo } from '../examples/demo.mjs';
 import { runConformanceCheck } from './lib/conformance-report.mjs';
@@ -192,8 +193,15 @@ for (const mode of modes) {
     return { examples: 1 };
   });
   add('build-cli', mode, () => {
+    const artifact = path.relative(root, cli);
+    fs.rmSync(cli, { force: true });
     run(moon, ['build', 'cmd/main', '--target', 'js', ...flags]);
-    return { artifact: path.relative(root, cli) };
+    const file = fs.lstatSync(cli, { throwIfNoEntry: false });
+    if (!file?.isFile() || file.size === 0) {
+      throw new Error(`Build did not produce a nonempty CLI artifact at ${artifact}`);
+    }
+    const sha256 = createHash('sha256').update(fs.readFileSync(cli)).digest('hex');
+    return { artifact, sha256 };
   });
   add('scenarios', mode, () => runDemo(cli));
   add('cli', mode, () => {
