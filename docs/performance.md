@@ -35,7 +35,9 @@ Library inputs are prepared outside the timer. Each case has a dedicated
 Node process and uses three warm-up samples and nine measured samples. A
 sample averages the number of operations recorded in `iterationsPerSample`.
 The harness checks expected output before timing and consumes a checksum
-during the loop. Its `peakRssKiB` measures the full process, including setup
+during the loop. The runner verifies the case name, iteration count and
+checksum against the warm-up and measured work before recording samples.
+Its `peakRssKiB` measures the full process, including setup
 and warm-up. [Node.js resource usage reference](https://nodejs.org/docs/latest-v24.x/api/process.html#processresourceusage)
 
 CLI samples time fresh child processes and check their JSON output after each

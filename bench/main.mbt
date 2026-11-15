@@ -206,11 +206,13 @@ fn main raise {
   println(
     Json::object(
       Map([
+        ("name", Json::string(name)),
         ("inputSize", Json::number(bench.input_size.to_double())),
         ("inputUnit", Json::string(bench.input_unit)),
         ("iterationsPerSample", Json::number(bench.iterations.to_double())),
         ("warmupSamples", Json::number(3.0)),
         ("samplesMsPerOperation", Json::array(samples)),
+        ("expectedPerOperation", Json::number(bench.expected.to_double())),
         ("checksum", Json::number(checksum.to_double())),
         ("peakRssKiB", Json::number(peak_rss_kib())),
       ]),

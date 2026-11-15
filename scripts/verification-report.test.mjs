@@ -244,6 +244,44 @@ test('a benchmark cannot time artifacts left by an earlier build', t => {
   }
 });
 
+test('a benchmark rejects mismatched case names and inconsistent work counts', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
+  fs.writeFileSync(path.join(fixture, 'version'), "console.log('toolchain fixture');\n");
+  const output = path.join(fixture, '_build/benchmark-release-summary.json');
+  const measured = {
+    name: 'selected', inputSize: 2, inputUnit: 'items', iterationsPerSample: 4,
+    warmupSamples: 3, expectedPerOperation: 2, checksum: 96,
+    samplesMsPerOperation: Array(9).fill(1),
+  };
+  const cli = `console.log(JSON.stringify(process.argv.includes('--batch')
+    ? Array.from({length: 512}, () => ({ok: true, result: 'ok'})) : ['B', 'C']));`;
+
+  for (const [override, problem] of [
+    [{ name: 'different' }, /Benchmark case name mismatch for selected/],
+    [{ iterationsPerSample: 0 }, /Invalid iteration count for selected/],
+    [{ warmupSamples: 2 }, /Invalid warm-up count for selected/],
+    [{ checksum: 95 }, /Benchmark checksum mismatch for selected/],
+  ]) {
+    const bench = `console.log(process.env.MOONJMES_BENCH_CASE
+      ? ${JSON.stringify(JSON.stringify({ ...measured, ...override }))} : '["selected"]');`;
+    fs.writeFileSync(path.join(fixture, 'build'), `
+      const fs = require('node:fs');
+      const path = require('node:path');
+      const buildingBench = process.argv[2] === 'bench';
+      const target = path.join('_build/js/release/build', buildingBench ? 'bench/bench.js' : 'cmd/main/main.js');
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, buildingBench ? ${JSON.stringify(bench)} : ${JSON.stringify(cli)});
+    `);
+    const child = runScript(fixture, ['scripts/benchmark.mjs'], { MOON_BIN: process.execPath });
+    assert.equal(child.status, 1, child.stdout + child.stderr);
+    const report = JSON.parse(fs.readFileSync(output, 'utf8'));
+    assert.equal(report.status, 'failed');
+    assert.match(report.error, problem);
+    assert.deepEqual(report.cases, []);
+  }
+});
+
 test('a damaged conformance report cannot hide the subprocess failure', t => {
   const fixture = makeFixture(t);
   const reportPath = path.join(fixture, 'conformance-debug-summary.json');

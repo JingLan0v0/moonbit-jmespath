@@ -49,15 +49,16 @@ function run(command, args, options = {}) {
 }
 
 function summarize(samples) {
-  assert.equal(samples.length, 9);
+  assert.ok(Array.isArray(samples) && samples.length === 9, 'Expected nine timing samples');
   assert.ok(samples.every(value => Number.isFinite(value) && value >= 0), 'Invalid timing sample');
   const sorted = [...samples].sort((a, b) => a - b);
   return { min: sorted[0], median: sorted[4], max: sorted[8] };
 }
 
 function record(name, measurement, details) {
+  assert.ok(!report.cases.some(entry => entry.name === name), `Duplicate benchmark case: ${name}`);
   const statsMs = summarize(details.samplesMsPerOperation);
-  report.cases.push({ name, measurement, ...details, statsMs });
+  report.cases.push({ ...details, name, measurement, statsMs });
   console.log(`${name}: median ${statsMs.median.toFixed(3)} ms [${statsMs.min.toFixed(3)}, ${statsMs.max.toFixed(3)}]`);
 }
 
@@ -107,10 +108,22 @@ try {
     });
   }
   const names = JSON.parse(runCase('').stdout);
-  assert.ok(Array.isArray(names) && names.length > 0 && new Set(names).size === names.length);
+  assert.ok(Array.isArray(names) && names.length > 0 &&
+    names.every(name => typeof name === 'string' && name.trim().length > 0) &&
+    new Set(names).size === names.length, 'Invalid benchmark case list');
   for (const name of names) {
     const { stdout, wallMs } = runCase(name);
-    record(name, 'in-process operation', { ...JSON.parse(stdout), processWallMs: wallMs });
+    const details = JSON.parse(stdout);
+    assert.equal(details?.name, name, `Benchmark case name mismatch for ${name}`);
+    const { iterationsPerSample, warmupSamples, expectedPerOperation, checksum } = details;
+    assert.ok(Number.isSafeInteger(iterationsPerSample) && iterationsPerSample > 0,
+      `Invalid iteration count for ${name}`);
+    assert.equal(warmupSamples, 3, `Invalid warm-up count for ${name}`);
+    assert.ok(Number.isSafeInteger(expectedPerOperation) && Number.isSafeInteger(checksum),
+      `Invalid benchmark checksum data for ${name}`);
+    assert.equal(checksum, (warmupSamples + 9) * iterationsPerSample * expectedPerOperation,
+      `Benchmark checksum mismatch for ${name}`);
+    record(name, 'in-process operation', { ...details, processWallMs: wallMs });
   }
   processCase('node-startup', ['-e', ''], '', undefined);
   const items = [{ price: 8, name: 'A' }, { price: 12, name: 'B' }, { price: 10, name: 'C' }];

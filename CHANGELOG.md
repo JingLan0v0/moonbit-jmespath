@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - benchmark sample validation
+
+- Verify that timing samples and work counts belong to the selected benchmark
+  case before recording them.
+
 ## Unreleased - benchmark build evidence
 
 - Require fresh benchmark and CLI executables, and record their SHA-256 values
