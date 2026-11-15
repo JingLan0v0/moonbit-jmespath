@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
+import { describeBuiltArtifact } from './lib/built-artifact.mjs';
+import { writeJsonAtomically } from './lib/write-json.mjs';
 
 const args = process.argv.slice(2);
 if (args.length && (args.length !== 1 || args[0] !== '--debug')) {
@@ -86,12 +88,19 @@ try {
   };
   report.environment.toolchain = run(moon, ['version', '--all']).stdout.trim();
   const flags = mode === 'release' ? ['--release'] : [];
-  const benchBuild = run(moon, ['build', 'bench', '--target', 'js', ...flags]);
-  const cliBuild = run(moon, ['build', 'cmd/main', '--target', 'js', ...flags]);
-  report.buildMs = { libraryHarness: benchBuild.wallMs, cli: cliBuild.wallMs };
   const artifactDir = path.join(build, 'js', mode, 'build');
   const bench = path.join(artifactDir, 'bench', 'bench.js');
   const cli = path.join(artifactDir, 'cmd', 'main', 'main.js');
+  report.buildMs = {};
+  report.artifacts = {};
+  for (const [key, packageName, filename, label] of [
+    ['libraryHarness', 'bench', bench, 'benchmark harness'],
+    ['cli', 'cmd/main', cli, 'CLI'],
+  ]) {
+    fs.rmSync(filename, { force: true });
+    report.buildMs[key] = run(moon, ['build', packageName, '--target', 'js', ...flags]).wallMs;
+    report.artifacts[key] = describeBuiltArtifact(root, filename, label);
+  }
   function runCase(name) {
     return run(process.execPath, ['--max-old-space-size=256', bench], {
       env: { ...process.env, MOONJMES_BENCH_CASE: name },
@@ -120,6 +129,6 @@ try {
   console.error(report.error);
 } finally {
   report.finishedAt = new Date().toISOString();
-  fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
+  writeJsonAtomically(output, report);
   console.log(`Benchmark ${report.status}: ${output}`);
 }

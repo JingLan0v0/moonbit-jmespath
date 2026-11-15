@@ -13,6 +13,9 @@ The default build mode is release. Each run builds the benchmark and the CLI
 for the JS backend. It writes `_build/benchmark-release-summary.json` or
 `_build/benchmark-debug-summary.json` with raw samples, min/median/max,
 workload sizes, toolchain and host details, source SHA and working tree status.
+The run removes each previous JS executable before building it. It requires
+both the benchmark harness and CLI to be generated as nonempty files and
+records their SHA-256 values before timing starts.
 Save a copy of the report before running another version in the same mode.
 
 | Workload | Fixed input | Timed operation |

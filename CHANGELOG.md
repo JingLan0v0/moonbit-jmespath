@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - benchmark build evidence
+
+- Require fresh benchmark and CLI executables, and record their SHA-256 values
+  before collecting performance samples.
+
 ## Unreleased - final source verification
 
 - Recheck the Git commit and working tree before reporting a successful

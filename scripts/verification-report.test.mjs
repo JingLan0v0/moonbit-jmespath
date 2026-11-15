@@ -18,9 +18,10 @@ function makeFixture(t) {
 
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
-    'scripts/verify.mjs', 'scripts/conformance.mjs', 'examples/demo.mjs', 'toolchain.json',
+    'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs',
+    'examples/demo.mjs', 'toolchain.json',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
-    'scripts/lib/write-json.mjs',
+    'scripts/lib/write-json.mjs', 'scripts/lib/built-artifact.mjs',
   ]) {
     const destination = path.join(fixture, file);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
@@ -210,6 +211,36 @@ test('a successful build must produce a nonempty CLI for the current run', t => 
     assert.equal(build.status, 'failed');
     assert.match(build.error, /Build did not produce a nonempty CLI artifact/);
     assert.equal(report.steps.find(step => step.id === 'scenarios' && step.mode === 'debug')?.status, 'not_run');
+  }
+});
+
+test('a benchmark cannot time artifacts left by an earlier build', t => {
+  const fixture = makeFixture(t);
+  initializeCheckout(fixture);
+  const build = path.join(fixture, '_build');
+  const bench = path.join(build, 'js/release/build/bench/bench.js');
+  const cli = path.join(build, 'js/release/build/cmd/main/main.js');
+  const stale = "require('node:fs').writeFileSync('stale-executed', 'ran');\n";
+  fs.writeFileSync(path.join(fixture, 'version'), "console.log('toolchain fixture');\n");
+
+  for (const { freshBench, label } of [
+    { freshBench: false, label: 'benchmark harness' },
+    { freshBench: true, label: 'CLI' },
+  ]) {
+    for (const artifact of [bench, cli]) {
+      fs.mkdirSync(path.dirname(artifact), { recursive: true });
+      fs.writeFileSync(artifact, stale);
+    }
+    fs.writeFileSync(path.join(fixture, 'build'), freshBench
+      ? `if (process.argv[2] === 'bench') require('node:fs').writeFileSync(${JSON.stringify(bench)}, 'console.log("fresh");');\n`
+      : '');
+    const child = runScript(fixture, ['scripts/benchmark.mjs'], { MOON_BIN: process.execPath });
+    assert.equal(child.status, 1, child.stderr);
+    const report = JSON.parse(fs.readFileSync(path.join(build, 'benchmark-release-summary.json'), 'utf8'));
+    assert.equal(report.status, 'failed');
+    assert.match(report.error, new RegExp('Build did not produce a nonempty ' + label + ' artifact'));
+    assert.deepEqual(report.cases, []);
+    assert.equal(fs.existsSync(path.join(fixture, 'stale-executed')), false);
   }
 });
 
