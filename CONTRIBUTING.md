@@ -24,6 +24,9 @@ working tree flag, Node and MoonBit versions, and timestamps and counts per
 check. In GitHub Actions, verification requires the checkout to be clean and
 its HEAD to match `GITHUB_SHA` before running the toolchain. Local verification
 can run with uncommitted changes and records them via the dirty flag.
+Before recording a pass, verification checks HEAD and the working tree again.
+A different commit or changes in an initially clean checkout fail the run.
+Generated MoonBit interfaces use LF on checkout, matching the generator output.
 
 Verification compares the running Node, `moon` and `moonc` versions with
 `toolchain.json`. Local runs log version differences and continue compatibility

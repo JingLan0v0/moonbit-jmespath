@@ -111,14 +111,19 @@ add('prepare-reports', null, () => {
   }
   fs.rmSync(path.join(buildDir, 'moon-version.txt'), { force: true });
 });
+
+function readSource() {
+  return {
+    sha: run('git', ['rev-parse', 'HEAD']).trim(),
+    dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
+  };
+}
+
 add('source', null, () => {
   if (run('git', ['rev-parse', '--show-prefix']).trim()) {
     throw new Error('Run full verification from a MoonJMES Git checkout');
   }
-  report.source = {
-    sha: run('git', ['rev-parse', 'HEAD']).trim(),
-    dirty: run('git', ['status', '--porcelain', '--untracked-files=normal']).trim() !== '',
-  };
+  report.source = readSource();
   if (report.ciCommit) {
     if (report.source.sha !== report.ciCommit) {
       throw new Error(`HEAD does not match GITHUB_SHA (expected ${report.ciCommit}, got ${report.source.sha})`);
@@ -255,6 +260,18 @@ for (const mode of modes) {
     reportPath: path.join(buildDir, `conformance-${mode}-summary.json`),
   }), { networkAware: true });
 }
+
+add('source-final', null, () => {
+  const finalSource = readSource();
+  if (finalSource.sha !== report.source.sha) {
+    throw Object.assign(new Error(`Git HEAD changed during verification (${report.source.sha} → ${finalSource.sha})`),
+      { details: finalSource });
+  }
+  if (!report.source.dirty && finalSource.dirty) {
+    throw Object.assign(new Error('Git working tree became dirty during verification'), { details: finalSource });
+  }
+  return finalSource;
+});
 
 report.steps = steps.map(step => step.receipt);
 function writeReport() {

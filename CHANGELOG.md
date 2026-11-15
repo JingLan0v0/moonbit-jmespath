@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - final source verification
+
+- Recheck the Git commit and working tree before reporting a successful
+  verification run.
+
 ## Unreleased - CI source verification
 
 - Check the CI commit against the actual checkout and require a clean working
