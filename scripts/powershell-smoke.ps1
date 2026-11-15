@@ -42,6 +42,28 @@ try {
     throw 'PowerShell wrapper changed the caller native argument preference.'
   }
 
+  $failureLog = [IO.Path]::GetTempFileName()
+  $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+  try {
+    $PSNativeCommandUseErrorActionPreference = $true
+    foreach ($badQuery in @('length()', '["a.b",length()]')) {
+      $failureOutput = '{"a.b":"value"}' | .\scripts\moon.ps1 run cmd/main --target js -- --compact $badQuery - 2> $failureLog
+      $failureCode = $LASTEXITCODE
+      if ($failureCode -ne 2 -or $null -ne $failureOutput) {
+        throw "Expected failure exit 2 with empty stdout, got exit $failureCode and output <$failureOutput>."
+      }
+      if ((Get-Content -Raw -LiteralPath $failureLog) -notmatch 'moon-jmes: invalid_arity') {
+        throw 'PowerShell wrapper did not leave the diagnostic on the error stream.'
+      }
+    }
+    if (-not $PSNativeCommandUseErrorActionPreference -or $ErrorActionPreference -ne 'Stop') {
+      throw 'PowerShell wrapper changed the caller error preferences.'
+    }
+  } finally {
+    $PSNativeCommandUseErrorActionPreference = $previousNativeErrorPreference
+    Remove-Item -LiteralPath $failureLog
+  }
+
   $versionLine = (Get-Content -LiteralPath moon.mod | Where-Object { $_ -match '^version = "' } | Select-Object -First 1)
   if ($versionLine -notmatch '^version = "([^"]+)"') { throw 'Module version missing.' }
   $version = $Matches[1]
@@ -49,7 +71,7 @@ try {
   if ($LASTEXITCODE -ne 0 -or $actualVersion.Trim() -ne $version) {
     throw 'PowerShell wrapper version does not match moon.mod.'
   }
-  Write-Host 'PASS PowerShell wrapper: pipeline, Unicode, quoted arguments, and version'
+  Write-Host 'PASS PowerShell wrapper: pipeline, Unicode, quoted arguments, exit status, and version'
   Push-Location ([IO.Path]::GetTempPath())
   try {
     $startingLocation = (Get-Location).Path

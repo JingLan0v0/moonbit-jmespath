@@ -27,6 +27,8 @@ PowerShell 5.1. The caller's original encodings are preserved.
 Use single quotes around expressions with quoted identifiers, for example
 `'"user.name"'` for a key containing a literal dot. On older PowerShell
 versions the wrapper uses Node.js to pass quoted arguments unchanged.
+After a query failure, check `$LASTEXITCODE` for the MoonBit process status.
+Diagnostics stay on PowerShell's error stream and can be redirected with `2>`.
 
 ```powershell
 .\scripts\moon.ps1 version --all

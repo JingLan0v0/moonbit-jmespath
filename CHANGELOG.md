@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - PowerShell exit status
+
+- Forward native exit codes and stderr through the PowerShell wrapper even
+  when the caller's error preferences are set to stop.
+
 ## Unreleased - quoted PowerShell arguments
 
 - Preserve quoted JMESPath identifiers and embedded escapes when invoking

@@ -53,6 +53,11 @@ end {
       $nativeArgs = @((Join-Path $PSScriptRoot 'invoke-moon.cjs'), $moonExecutable)
       $env:MOONJMES_LEGACY_ARGS = ConvertTo-Json -InputObject $MoonArgs -Compress
     }
+    # Let the caller handle the native exit code. Older shells turn stderr into error records.
+    $PSNativeCommandUseErrorActionPreference = $false
+    if ($PSVersionTable.PSVersion -lt [version]'7.2') {
+      $ErrorActionPreference = 'Continue'
+    }
     if ($pipelineLines.Count -gt 0) {
       $OutputEncoding = $utf8
       $pipelineLines | & $executable @nativeArgs
@@ -61,6 +66,7 @@ end {
     }
     $result = $LASTEXITCODE
   } finally {
+    $ErrorActionPreference = 'Stop'
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $previousConsoleEncoding
     }
