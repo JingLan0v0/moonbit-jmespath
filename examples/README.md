@@ -25,7 +25,8 @@ The wrapper can select a pinned local installation for MoonBit commands.
 It uses UTF-8 for piped text and native command output, including in Windows
 PowerShell 5.1. The caller's original encodings are preserved.
 With no PowerShell pipeline, the native command inherits standard input.
-An empty PowerShell pipeline sends no input bytes.
+An empty PowerShell pipeline uses Node.js to give the native command immediate
+EOF.
 Use single quotes around expressions with quoted identifiers, for example
 `'"user.name"'` for a key containing a literal dot. On older PowerShell
 versions the wrapper uses Node.js to pass quoted arguments unchanged.

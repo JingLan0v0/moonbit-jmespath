@@ -39,7 +39,9 @@ end {
   $nativeArgs = $MoonArgs
   $hasStandardArguments = $PSVersionTable.PSVersion -ge [version]'7.3'
   $forwardLegacyArguments = -not $hasStandardArguments -and ($MoonArgs -contains '' -or ($MoonArgs -match '"'))
-  $previousLegacyArgs = $env:MOONJMES_LEGACY_ARGS
+  $closeStdin = $usePipelineInput -and $pipelineLines.Count -eq 0
+  $useBridge = $forwardLegacyArguments -or $closeStdin
+  $previousForwardedArgs = $env:MOONJMES_FORWARDED_ARGS
 
   Push-Location $projectRoot
   try {
@@ -48,18 +50,22 @@ end {
     }
     if ($hasStandardArguments) {
       $PSNativeCommandArgumentPassing = 'Standard'
-    } elseif ($forwardLegacyArguments) {
-      # Older PowerShell native argument handling strips embedded quotes.
+    }
+    if ($useBridge) {
+      # Preserve legacy arguments and avoid an encoding preamble on an empty pipeline.
       $executable = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
       $nativeArgs = @((Join-Path $PSScriptRoot 'invoke-moon.cjs'), $moonExecutable)
-      $env:MOONJMES_LEGACY_ARGS = ConvertTo-Json -InputObject $MoonArgs -Compress
+      if ($closeStdin) { $nativeArgs += '--close-stdin' }
+      $env:MOONJMES_FORWARDED_ARGS = if ($null -eq $MoonArgs) { '[]' } else {
+        ConvertTo-Json -InputObject $MoonArgs -Compress
+      }
     }
     # Let the caller handle the native exit code. Older shells turn stderr into error records.
     $PSNativeCommandUseErrorActionPreference = $false
     if ($PSVersionTable.PSVersion -lt [version]'7.2') {
       $ErrorActionPreference = 'Continue'
     }
-    if ($usePipelineInput) {
+    if ($usePipelineInput -and -not $closeStdin) {
       $OutputEncoding = $utf8
       $pipelineLines | & $executable @nativeArgs
     } else {
@@ -71,8 +77,8 @@ end {
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $previousConsoleEncoding
     }
-    if ($forwardLegacyArguments) {
-      $env:MOONJMES_LEGACY_ARGS = $previousLegacyArgs
+    if ($useBridge) {
+      $env:MOONJMES_FORWARDED_ARGS = $previousForwardedArgs
     }
     Pop-Location
     $env:MOON_HOME = $previousMoonHome

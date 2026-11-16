@@ -18,7 +18,8 @@ function makeFixture(t) {
 
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
-    'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs', 'scripts/moon.ps1',
+    'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs',
+    'scripts/moon.ps1', 'scripts/invoke-moon.cjs',
     'examples/demo.mjs', 'toolchain.json',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
     'scripts/lib/write-json.mjs', 'scripts/lib/built-artifact.mjs',
