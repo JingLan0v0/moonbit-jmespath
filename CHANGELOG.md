@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - PowerShell standard input
+
+- Preserve native standard input when the wrapper is invoked directly. An
+  explicit empty pipeline sends EOF.
+
 ## Unreleased - PowerShell exit status
 
 - Forward native exit codes and stderr through the PowerShell wrapper even

@@ -18,7 +18,7 @@ function makeFixture(t) {
 
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
-    'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs',
+    'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs', 'scripts/moon.ps1',
     'examples/demo.mjs', 'toolchain.json',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
     'scripts/lib/write-json.mjs', 'scripts/lib/built-artifact.mjs',
@@ -37,6 +37,35 @@ function runScript(fixture, args, env = {}) {
   if (child.error) throw child.error;
   return child;
 }
+
+test('the PowerShell wrapper distinguishes inherited stdin from pipeline input',
+  { skip: process.platform !== 'win32' }, t => {
+    const fixture = makeFixture(t);
+    const probe = path.join(fixture, 'read-stdin.cjs');
+    fs.writeFileSync(probe, "console.log(JSON.stringify(require('node:fs').readFileSync(0, 'utf8')));\n");
+    const invocation = '& $env:MOONJMES_TEST_WRAPPER $env:MOONJMES_STDIN_PROBE';
+    for (const shell of ['powershell.exe', 'pwsh']) {
+      for (const [pipeline, expected] of [
+        ['', 'inherited stdin'],
+        ['@() | ', ''],
+        ["'' | ", '\r\n'],
+        ["@('first','second') | ", 'first\r\nsecond\r\n'],
+      ]) {
+        const child = spawnSync(shell, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+          '-Command', pipeline + invocation + '; exit $LASTEXITCODE'], {
+          cwd: fixture, input: 'inherited stdin', encoding: 'utf8', timeout: 15_000,
+          env: {
+            ...process.env, MOON_BIN: process.execPath,
+            MOONJMES_TEST_WRAPPER: path.join(fixture, 'scripts/moon.ps1'),
+            MOONJMES_STDIN_PROBE: probe,
+          },
+        });
+        if (child.error) throw child.error;
+        assert.equal(child.status, 0, child.stderr);
+        assert.equal(JSON.parse(child.stdout), expected, shell + ' ' + (pipeline || 'direct invocation'));
+      }
+    }
+  });
 
 test('a source-check failure removes stale suite evidence', t => {
   const fixture = makeFixture(t);

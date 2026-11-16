@@ -7,10 +7,11 @@ param(
 begin {
   $ErrorActionPreference = 'Stop'
   $pipelineLines = [Collections.Generic.List[string]]::new()
+  $usePipelineInput = $MyInvocation.ExpectingInput -or $PSBoundParameters.ContainsKey('InputLine')
 }
 
 process {
-  if ($null -ne $InputLine) {
+  if ($PSBoundParameters.ContainsKey('InputLine')) {
     $pipelineLines.Add($InputLine)
   }
 }
@@ -58,7 +59,7 @@ end {
     if ($PSVersionTable.PSVersion -lt [version]'7.2') {
       $ErrorActionPreference = 'Continue'
     }
-    if ($pipelineLines.Count -gt 0) {
+    if ($usePipelineInput) {
       $OutputEncoding = $utf8
       $pipelineLines | & $executable @nativeArgs
     } else {
