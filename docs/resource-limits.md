@@ -28,6 +28,8 @@ then uses the pinned core parser for exact grammar and decoding. The same path
 serves search_json, CLI batch input and expression JSON literals/quoted identifiers.
 The public parse_json_bounded API applies transport budgets, not the per-query
 depth/node limits. Thus a valid batch retains independent item checks.
+Expression JSON literals are subject to both checks. Errors from either check
+report the opening backtick's Unicode scalar offset.
 Invalid or excessively nested **whole batch
 text** cannot be split reliably and fails at the CLI transport boundary. In a
 valid parsed batch, requests are checked independently. The outer response

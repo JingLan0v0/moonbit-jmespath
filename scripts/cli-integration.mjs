@@ -131,6 +131,32 @@ assert.equal(locatedError.status, 2);
 assert.equal(locatedError.stdout, '');
 assert.match(locatedError.stderr, /^moon-jmes: unknown_function at 7: [^\r\n]+\r?\n$/);
 
+// Verify both resource checks, a syntax error, and valid neighbors in one process.
+const tick = String.fromCharCode(96);
+const literalPrefix = "'月😀' | ";
+const nestedLiteral = depth => tick + '['.repeat(depth) + '0' + ']'.repeat(depth) + tick;
+const rawText = 'line\nbreak\t\0';
+const jsonText = rawText + tick;
+const escapedLiteral = tick + JSON.stringify(jsonText).replaceAll(tick, '\\' + tick) + tick;
+const literalRun = invoke(['--batch', '--compact', '-'], JSON.stringify([
+  literalPrefix + nestedLiteral(256) + ' | length(@)',
+  literalPrefix + nestedLiteral(257),
+  literalPrefix + nestedLiteral(1025),
+  literalPrefix + tick + '[}' + tick,
+  "'" + rawText + "'",
+  escapedLiteral,
+].map(expression => ({ expression, data: null }))));
+assert.equal(literalRun.status, 0, literalRun.stderr);
+assert.equal(literalRun.stderr, '');
+assert.deepEqual(JSON.parse(literalRun.stdout), [
+  { ok: true, result: 1 },
+  { ok: false, error: { code: 'limit_exceeded', offset: 7, message: 'JSON value exceeds depth 256' } },
+  { ok: false, error: { code: 'limit_exceeded', offset: 7, message: 'JSON text exceeds nesting 1024' } },
+  { ok: false, error: { code: 'syntax', offset: 7, message: 'invalid JSON literal' } },
+  { ok: true, result: rawText },
+  { ok: true, result: jsonText },
+]);
+
 const extremes = [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE];
 const averageBatch = invoke(['--batch', '--compact', '-'], JSON.stringify([
   { expression: 'avg(@)', data: extremes },

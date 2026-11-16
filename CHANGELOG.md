@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - JSON literal diagnostics
+
+- Report the opening backtick's Unicode scalar offset when a parsed JSON
+  literal exceeds the JSON value limits.
+
 ## Unreleased - large array indexes and slices
 
 - Accept decimal array indexes and slice components wider than 32 bits

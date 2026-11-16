@@ -227,15 +227,18 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
         if !closed {
           fail("syntax", start, "unterminated JSON literal")
         }
-        let value = parse_json_bounded(b.to_string()) catch {
+        let value = try {
+          let value = parse_json_bounded(b.to_string())
+          check_json_size(value, false)
+          value
+        } catch {
           JmesPathError(d) =>
-            if d.code == "limit_exceeded" {
-              fail(d.code, start, d.message)
-            } else {
+            if d.code == "invalid_json" {
               fail("syntax", start, "invalid JSON literal")
+            } else {
+              fail(d.code, start, d.message)
             }
         }
-        check_json_size(value, false)
         tokens.push({ kind: LiteralToken(value), offset: start, })
       }
       '.' => {
