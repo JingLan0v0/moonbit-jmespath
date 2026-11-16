@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - large array indexes and slices
+
+- Accept decimal array indexes and slice components wider than 32 bits
+  without constructing arbitrary-precision integers.
+
 ## Unreleased - ordering allocations
 
 - Cache expression-reference ordering keys once. Sort indexes in `sort_by`

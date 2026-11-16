@@ -61,35 +61,24 @@ fn is_identifier_continue(c : Char) -> Bool {
 }
 
 ///|
-fn parse_int_text(text : String, offset : Int32) -> Int32 raise JmesPathError {
-  let chars = text.to_array()
+fn scan_index(chars : Array[Char], start : Int32) -> (Int32, Int32) {
+  let negative = chars[start] == '-'
+  let mut i = if negative { start + 1 } else { start }
+  let last_digit = if negative { 8 } else { 7 }
+  let bound = if negative { -2147483647 - 1 } else { -2147483647 }
   let mut value = 0
-  let mut i = 0
-  let mut negative = false
-  if chars.length() > 0 && chars[0] == '-' {
-    negative = true
-    i = 1
-  }
-  while i < chars.length() {
+  while i < chars.length() && is_digit(chars[i]) {
     let digit = chars[i].to_int() - '0'.to_int()
-    let last_digit = if negative { 8 } else { 7 }
-    if value > 214748364 || (value == 214748364 && digit > last_digit) {
-      fail("syntax", offset, "integer index is out of range")
+    // Inputs cannot contain arrays near these bounds. Larger magnitudes have
+    // the same index, endpoint, and stride behavior as the saturated value.
+    if value > -214748364 || (value == -214748364 && digit <= last_digit) {
+      value = value * 10 - digit
+    } else {
+      value = bound
     }
-    if negative && value == 214748364 && digit == 8 {
-      if i + 1 < chars.length() {
-        fail("syntax", offset, "integer index is out of range")
-      }
-      return -2147483647 - 1
-    }
-    value = value * 10 + digit
     i += 1
   }
-  if negative {
-    -value
-  } else {
-    value
-  }
+  (if negative { value } else { -value }, i)
 }
 
 ///|
@@ -148,15 +137,9 @@ fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
     }
     if is_digit(c) ||
       (c == '-' && i + 1 < chars.length() && is_digit(chars[i + 1])) {
-      i += 1
-      while i < chars.length() && is_digit(chars[i]) {
-        i += 1
-      }
-      let text = String::from_array(chars[start:i])
-      tokens.push({
-        kind: NumberToken(parse_int_text(text, start)),
-        offset: start,
-      })
+      let (value, end) = scan_index(chars, start)
+      tokens.push({ kind: NumberToken(value), offset: start, })
+      i = end
       continue
     }
     match c {

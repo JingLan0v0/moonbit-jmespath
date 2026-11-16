@@ -21,22 +21,21 @@ test "lexer rejects malformed input with an offset" {
 }
 
 ///|
-test "integer indexes reject overflow without wrapping" {
+test "integer indexes saturate without wrapping and consume all digits" {
   for
-    expression in [
-      "items[2147483648]", "items[-2147483649]", "items[-21474836480]",
+    (text, expected) in [
+      ("2147483646", 2147483646),
+      ("2147483648", 2147483647),
+      ("-2147483647", -2147483647),
+      ("-2147483648", -2147483647 - 1),
+      ("-21474836490", -2147483647 - 1),
+      ("0".repeat(8000) + "2", 2),
+      ("9".repeat(8000), 2147483647),
     ] {
-    let error = try {
-      parse(expression, default_limits()) |> ignore
-      None
-    } catch {
-      JmesPathError(d) => Some(d.code)
+    match parse("items[" + text + "]", default_limits()) {
+      Index(Field("items"), value) => assert_eq(value, expected)
+      _ => assert_true(false)
     }
-    assert_eq(error, Some("syntax"))
-  }
-  match parse("items[-2147483648]", default_limits()) {
-    Index(Field("items"), value) => assert_eq(value, -2147483647 - 1)
-    _ => assert_true(false)
   }
 }
 

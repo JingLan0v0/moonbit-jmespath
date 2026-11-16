@@ -194,6 +194,18 @@ test "large slice endpoints and strides are handled without overflow" {
   assert_eq(@jmespath.search("[2147483647:]", data), @json.parse("[]"))
   assert_eq(@jmespath.search("[:2147483647]", data), data)
   assert_eq(@jmespath.search("[0:3:2147483647]", data), @json.parse("[1]"))
+  let large = "99999999999999999999999999999999999999"
+  for sign in ["", "-"] {
+    assert_eq(@jmespath.search("[" + sign + large + "]", data), Json::null())
+  }
+  assert_eq(@jmespath.search("[-" + large + ":" + large + "]", data), data)
+  assert_eq(
+    @jmespath.search("[" + large + ":-" + large + ":-1]", data),
+    @json.parse("[3,2,1]"),
+  )
+  assert_eq(@jmespath.search("[::" + large + "]", data), @json.parse("[1]"))
+  assert_eq(@jmespath.search("[::-" + large + "]", data), @json.parse("[3]"))
+  assert_eq(@jmespath.search("[:-1:-" + large + "]", data), @json.parse("[]"))
 }
 
 ///|
