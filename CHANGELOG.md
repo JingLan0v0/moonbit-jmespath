@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - finite averaging
+
+- Recover a finite `avg` when the running sum overflows. The extra pass is
+  counted in the evaluation work budget.
+
 ## Unreleased - PowerShell standard input
 
 - Preserve native standard input when the wrapper is invoked directly. An

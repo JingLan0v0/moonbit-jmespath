@@ -117,7 +117,6 @@ test "non-finite intermediate results cannot be hidden by parent expressions" {
   for
     expression in [
       "type(sum(@))", "sum(@) > `0`", "[sum(@)] | length(@)", "!sum(@)", "sum(@) || `0`",
-      "type(avg(@))",
     ] {
     let code = try {
       @jmespath.search_json(expression, "[1e308,1e308]") |> ignore
@@ -139,6 +138,29 @@ test "non-finite intermediate results cannot be hidden by parent expressions" {
     }
     assert_eq(code, Some("invalid_value"))
   }
+}
+
+///|
+test "avg charges for the additional overflow pass and still checks types" {
+  let limits = { ..@jmespath.default_limits(), max_steps: 4, }
+  assert_eq(
+    @jmespath.search_json("avg(@)", "[1,3]", limits~),
+    Json::number(2.0),
+  )
+  let exhausted = try {
+    @jmespath.search_json("avg(@)", "[1e308,1e308]", limits~) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(exhausted, Some("limit_exceeded"))
+  let mixed = try {
+    @jmespath.search_json("avg(@)", "[1e308,1e308,false]") |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some(d.code)
+  }
+  assert_eq(mixed, Some("invalid_type"))
 }
 
 ///|

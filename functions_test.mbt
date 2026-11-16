@@ -61,6 +61,40 @@ test "numeric and collection functions" {
 }
 
 ///|
+test "avg returns finite means when its running sum overflows" {
+  assert_eq(
+    @jmespath.search_json("avg(@)", "[1e308,1e308]"),
+    Json::number(1.0e308),
+  )
+  assert_eq(
+    @jmespath.search_json("avg(@)", "[-1e308,-1e308]"),
+    Json::number(-1.0e308),
+  )
+  assert_eq(
+    @jmespath.search_json(
+      "avg(@)", "[1.7976931348623157e308,1.7976931348623157e308,1.7976931348623157e308]",
+    ),
+    Json::number(1.7976931348623157e308),
+  )
+  assert_eq(
+    @jmespath.search_json("avg(@)", "[1e308,1e308,1,-1e308,-1e308]"),
+    Json::number(0.2),
+  )
+  let maximum = 1.7976931348623157e308
+  let large = 1.0e308
+  let mixed = Json::array(
+    [large, maximum, large, 1.0, -large, -maximum, -large].map(value => {
+      Json::number(value)
+    }),
+  )
+  assert_eq(@jmespath.search("avg(@)", mixed), Json::number(1.0 / 7.0))
+  assert_eq(
+    @jmespath.search_json("type(avg(@))", "[1e308,1e308]"),
+    Json::string("number"),
+  )
+}
+
+///|
 test "string, conversion, object, and variadic functions" {
   let data = @json.parse(
     "{\"word\":\"moonbit\",\"parts\":[\"a\",\"b\"],\"a\":{\"x\":1},\"b\":{\"y\":2}}",

@@ -76,9 +76,10 @@ Since 0.1.9 each evaluated scalar result must be finite before its parent runs.
 Previously `type(sum(@))` or a comparison could conceal an overflow that direct
 `sum(@)` correctly rejected. Such queries now consistently return invalid_value.
 The check does not evaluate skipped boolean branches. Floating-point operations
-remain IEEE binary64, not exact decimal arithmetic; the current avg uses a
-running sum, so it rejects an overflowing sum even when a mathematical average
-could be finite. This release does not claim improved numerical precision.
+remain IEEE binary64. In the current repository source, `avg` rescans the array
+using scaled addition with rounding residuals if the running sum overflows.
+The additional pass charges for each element and each residual visited.
+`sum` still reports a non-finite result as `invalid_value`.
 
 ## Regression inputs
 

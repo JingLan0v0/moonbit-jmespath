@@ -181,12 +181,67 @@ fn function_numeric_array(
   if average {
     if items.is_empty() {
       Json::null()
+    } else if total.is_inf() {
+      Json::number(average_after_overflow(items, state))
     } else {
       Json::number(total / items.length().to_double())
     }
   } else {
     Json::number(total)
   }
+}
+
+///|
+fn average_after_overflow(
+  items : Array[Json],
+  state : EvalState,
+) -> Double raise JmesPathError {
+  guard items[0] is Number(first, ..) else { return invalid_type("avg") }
+  let count = items.length().to_double()
+  // Leave headroom for the scaled sum even if every input is near Double max.
+  // Powers of two avoid extra rounding on normal scaled values.
+  let mut scale = 2.0
+  while scale < 2.0 * count {
+    scale *= 2.0
+  }
+  let partials : Array[Double] = []
+  let mut minimum = first
+  let mut maximum = first
+  for item in items {
+    state.tick()
+    guard item is Number(number, ..) else { return invalid_type("avg") }
+    let mut term = number / scale
+    let mut keep = 0
+    for partial in partials {
+      state.tick()
+      let (large, small) = if term.abs() < partial.abs() {
+        (partial, term)
+      } else {
+        (term, partial)
+      }
+      let rounded = large + small
+      // FastTwoSum recovers the rounding residual when |large| >= |small|.
+      let residual = small - (rounded - large)
+      if residual != 0.0 {
+        partials[keep] = residual
+        keep += 1
+      }
+      term = rounded
+    }
+    partials.truncate(keep)
+    if term != 0.0 {
+      partials.push(term)
+    }
+    minimum = minimum.min(number)
+    maximum = maximum.max(number)
+  }
+  let mut total = 0.0
+  for partial in partials {
+    state.tick()
+    total += partial
+  }
+  // Roundoff near the finite endpoints can push the computed mean past them.
+  (total * (scale / count)).max(minimum).min(maximum)
 }
 
 ///|

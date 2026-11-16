@@ -131,6 +131,20 @@ assert.equal(locatedError.status, 2);
 assert.equal(locatedError.stdout, '');
 assert.match(locatedError.stderr, /^moon-jmes: unknown_function at 7: [^\r\n]+\r?\n$/);
 
+const extremes = [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE];
+const averageBatch = invoke(['--batch', '--compact', '-'], JSON.stringify([
+  { expression: 'avg(@)', data: extremes },
+  { expression: 'sum(@)', data: extremes },
+  { expression: 'avg(@)', data: [1e308, 1e308, 1, -1e308, -1e308] },
+]));
+assert.equal(averageBatch.status, 0, averageBatch.stderr);
+assert.equal(averageBatch.stderr, '');
+const [maxAverage, unrepresentableSum, canceledAverage] = JSON.parse(averageBatch.stdout);
+assert.deepEqual(maxAverage, {ok: true, result: Number.MAX_VALUE});
+assert.equal(unrepresentableSum.ok, false);
+assert.equal(unrepresentableSum.error.code, 'invalid_value');
+assert.deepEqual(canceledAverage, {ok: true, result: 0.2});
+
 // A split filter marker must fail consistently, while valid neighbors survive.
 const splitFilters = ['[ ?@]', '[\t?@]', '[\r?@]', '[\n?@]', '([ ?@])', 'map(&[ ?@], @)', '@[ ?@]', "'月😀' | [ ?@]"];
 const filterRequests = [
