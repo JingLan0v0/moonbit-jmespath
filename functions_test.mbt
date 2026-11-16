@@ -30,6 +30,27 @@ test "expression-reference ordering shares Unicode comparison and preserves ties
 }
 
 ///|
+test "ordering keeps input and reports reference errors before key type checks" {
+  let source = "[{\"id\":0,\"k\":true},{\"id\":1,\"k\":false}]"
+  let data = @json.parse(source)
+  for name in ["sort_by", "min_by", "max_by"] {
+    let prefix = name + "(@, &(k || "
+    let actual = try {
+      @jmespath.search(prefix + "length(`1`)))", data) |> ignore
+      None
+    } catch {
+      @jmespath.JmesPathError(d) => Some((d.code, d.offset))
+    }
+    assert_eq(actual, Some(("invalid_type", prefix.length())))
+  }
+  assert_eq(data, @json.parse(source))
+  let ties = @json.parse("[{\"id\":0,\"k\":1},{\"id\":1,\"k\":1}]")
+  assert_eq(@jmespath.search("sort_by(@, &k)", ties), ties)
+  assert_eq(@jmespath.search("min_by(@, &k).id", ties), Json::number(0.0))
+  assert_eq(@jmespath.search("max_by(@, &k).id", ties), Json::number(0.0))
+}
+
+///|
 test "Unicode ordering is prefix-aware and performs no locale normalization" {
   let data = @json.parse(
     "[\"😀x\",\"😀\",\"é\",\"é\",\"a\",\"\",\"A\",\"月\"]",

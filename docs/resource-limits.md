@@ -45,7 +45,9 @@ one step plus one per Unicode iterator advance for strings. Sorting charges
 two steps per element before allocating scratch copies and one per merge write.
 The stable bottom-up merge sort propagates comparison errors immediately and
 does not mutate caller data. sort/min/max and their _by variants share the
-budget. Scratch storage is O(n); this is not a wall-clock or memory sandbox.
+budget. The current repository source caches one key per input item. `sort_by`
+sorts input indexes, while `min_by` and `max_by` track the selected index.
+Scratch storage is O(n); this is not a wall-clock or memory sandbox.
 Long common prefixes or large legitimate sorts may now exceed max_steps where
 earlier versions succeeded. Trusted callers may choose a higher valid budget;
 untrusted callers should retain bounded operation. Exhaustion remains an

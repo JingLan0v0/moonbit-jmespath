@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - ordering allocations
+
+- Cache expression-reference ordering keys once. Sort indexes in `sort_by`
+  and select the best input index directly in `min_by` and `max_by`.
+
 ## Unreleased - finite averaging
 
 - Recover a finite `avg` when the running sum overflows. The extra pass is

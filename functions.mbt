@@ -321,29 +321,29 @@ fn evaluate_expref_function(
   if name == "sort_by" {
     state.add_results(items.length())
   }
-  let pairs : Array[(Json, Json)] = []
+  let keys : Array[Json] = []
   for item in items {
-    pairs.push((item, evaluate(reference, item, state)))
+    keys.push(evaluate(reference, item, state))
   }
-  let keys = pairs.map(pair => pair.1)
   let kind = homogeneous_order(keys, name, state)
   if name == "sort_by" {
+    // Sort indexes so keys are evaluated once and records stay in caller order.
     let sorted = bounded_sort(
-      pairs,
-      (a, b) => compare_ordered(a.1, b.1, kind, state),
+      Array::makei(items.length(), i => i),
+      (a, b) => compare_ordered(keys[a], keys[b], kind, state),
       state,
     )
-    return Json::array(sorted.map(pair => pair.0))
+    return Json::array(sorted.map(i => items[i]))
   }
   let maximum = name == "max_by"
-  let mut best = pairs[0]
-  for i = 1; i < pairs.length(); i = i + 1 {
-    let order = compare_ordered(pairs[i].1, best.1, kind, state)
+  let mut best = 0
+  for i = 1; i < keys.length(); i = i + 1 {
+    let order = compare_ordered(keys[i], keys[best], kind, state)
     if (maximum && order > 0) || (!maximum && order < 0) {
-      best = pairs[i]
+      best = i
     }
   }
-  best.0
+  items[best]
 }
 
 ///|
