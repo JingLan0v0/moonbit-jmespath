@@ -19,7 +19,7 @@ function makeFixture(t) {
   const project = path.resolve(import.meta.dirname, '..');
   for (const file of [
     'scripts/verify.mjs', 'scripts/conformance.mjs', 'scripts/benchmark.mjs',
-    'scripts/moon.ps1', 'scripts/invoke-moon.cjs',
+    'scripts/moon.ps1',
     'examples/demo.mjs', 'toolchain.json',
     'scripts/lib/conformance-report.mjs', 'scripts/lib/conformance-vectors.mjs',
     'scripts/lib/write-json.mjs', 'scripts/lib/built-artifact.mjs',
@@ -44,7 +44,9 @@ test('the PowerShell wrapper distinguishes inherited stdin from pipeline input',
     const fixture = makeFixture(t);
     const probe = path.join(fixture, 'read-stdin.cjs');
     fs.writeFileSync(probe, "console.log(JSON.stringify(require('node:fs').readFileSync(0, 'utf8')));\n");
+    const setup = '[Console]::InputEncoding = [Text.UTF8Encoding]::new($true); ';
     const invocation = '& $env:MOONJMES_TEST_WRAPPER $env:MOONJMES_STDIN_PROBE';
+    const finish = '; $code = $LASTEXITCODE; if ([Console]::InputEncoding.GetPreamble().Length -ne 3) { exit 99 }; exit $code';
     for (const shell of ['powershell.exe', 'pwsh']) {
       for (const [pipeline, expected] of [
         ['', 'inherited stdin'],
@@ -53,7 +55,7 @@ test('the PowerShell wrapper distinguishes inherited stdin from pipeline input',
         ["@('first','second') | ", 'first\r\nsecond\r\n'],
       ]) {
         const child = spawnSync(shell, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
-          '-Command', pipeline + invocation + '; exit $LASTEXITCODE'], {
+          '-Command', setup + pipeline + invocation + finish], {
           cwd: fixture, input: 'inherited stdin', encoding: 'utf8', timeout: 15_000,
           env: {
             ...process.env, MOON_BIN: process.execPath,

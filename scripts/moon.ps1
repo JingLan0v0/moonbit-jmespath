@@ -33,39 +33,39 @@ end {
   }
 
   $utf8 = [Text.UTF8Encoding]::new($false)
+  $previousConsoleInputEncoding = [Console]::InputEncoding
+  $clearInputPreamble = $usePipelineInput -and $previousConsoleInputEncoding.GetPreamble().Length -gt 0
   $previousConsoleEncoding = [Console]::OutputEncoding
   $useUtf8Console = $previousConsoleEncoding.CodePage -ne $utf8.CodePage
   $executable = $moonExecutable
   $nativeArgs = $MoonArgs
   $hasStandardArguments = $PSVersionTable.PSVersion -ge [version]'7.3'
   $forwardLegacyArguments = -not $hasStandardArguments -and ($MoonArgs -contains '' -or ($MoonArgs -match '"'))
-  $closeStdin = $usePipelineInput -and $pipelineLines.Count -eq 0
-  $useBridge = $forwardLegacyArguments -or $closeStdin
-  $previousForwardedArgs = $env:MOONJMES_FORWARDED_ARGS
+  $previousLegacyArgs = $env:MOONJMES_LEGACY_ARGS
 
   Push-Location $projectRoot
   try {
+    if ($clearInputPreamble) {
+      # Windows PowerShell can write this preamble before its pipeline writer runs.
+      [Console]::InputEncoding = $utf8
+    }
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $utf8
     }
     if ($hasStandardArguments) {
       $PSNativeCommandArgumentPassing = 'Standard'
-    }
-    if ($useBridge) {
-      # Preserve legacy arguments and avoid an encoding preamble on an empty pipeline.
+    } elseif ($forwardLegacyArguments) {
+      # Older PowerShell native argument handling strips embedded quotes.
       $executable = (Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
       $nativeArgs = @((Join-Path $PSScriptRoot 'invoke-moon.cjs'), $moonExecutable)
-      if ($closeStdin) { $nativeArgs += '--close-stdin' }
-      $env:MOONJMES_FORWARDED_ARGS = if ($null -eq $MoonArgs) { '[]' } else {
-        ConvertTo-Json -InputObject $MoonArgs -Compress
-      }
+      $env:MOONJMES_LEGACY_ARGS = ConvertTo-Json -InputObject $MoonArgs -Compress
     }
     # Let the caller handle the native exit code. Older shells turn stderr into error records.
     $PSNativeCommandUseErrorActionPreference = $false
     if ($PSVersionTable.PSVersion -lt [version]'7.2') {
       $ErrorActionPreference = 'Continue'
     }
-    if ($usePipelineInput -and -not $closeStdin) {
+    if ($usePipelineInput) {
       $OutputEncoding = $utf8
       $pipelineLines | & $executable @nativeArgs
     } else {
@@ -74,11 +74,14 @@ end {
     $result = $LASTEXITCODE
   } finally {
     $ErrorActionPreference = 'Stop'
+    if ($clearInputPreamble) {
+      [Console]::InputEncoding = $previousConsoleInputEncoding
+    }
     if ($useUtf8Console) {
       [Console]::OutputEncoding = $previousConsoleEncoding
     }
-    if ($useBridge) {
-      $env:MOONJMES_FORWARDED_ARGS = $previousForwardedArgs
+    if ($forwardLegacyArguments) {
+      $env:MOONJMES_LEGACY_ARGS = $previousLegacyArgs
     }
     Pop-Location
     $env:MOON_HOME = $previousMoonHome
