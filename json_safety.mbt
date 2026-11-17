@@ -53,7 +53,7 @@ fn validate_number_repr(
   // Json::number exposes repr to library callers. The core serializer writes
   // it verbatim, so it must be a numeric scalar agreeing with the stored value.
   // Reject containers/strings before parsing to avoid allocating discarded JSON.
-  for c in text.iter() {
+  for c in text {
     if !(is_digit(c) || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E') {
       fail("invalid_value", 0, "invalid numeric representation")
     }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.23 - numeric representation validation
+
+- Use direct string traversal when checking the characters of a preserved
+  JSON number. Keep the existing grammar and numeric agreement checks.
+
+- Add a serialization benchmark for preserved decimal and large-integer
+  representations.
+
 ## 0.1.22 - JSON string budget accounting
 
 - Count existing UTF-16 units once and add only escape overhead when

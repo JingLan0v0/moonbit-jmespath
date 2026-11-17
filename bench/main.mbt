@@ -22,7 +22,8 @@ priv struct BenchCase {
 ///|
 let case_names : Array[String] = [
   "compile-small", "compile-large", "compiled-filter", "sort-large", "long-string",
-  "serialize-large", "compile-batch", "batch-repeated", "batch-distinct", "batch-large",
+  "serialize-large", "serialize-number-repr", "compile-batch", "batch-repeated",
+  "batch-distinct", "batch-large",
 ]
 
 ///|
@@ -152,6 +153,27 @@ fn make_case(name : String) -> BenchCase raise {
         input_unit: "strings",
         iterations: 3,
         expected: size * (text.length() + 3) + 1,
+        run: () => @jmes.stringify_bounded(data).length(),
+      }
+    }
+    "serialize-number-repr" => {
+      let size = 60000
+      let text = "[" +
+        Array::makei(size, i => {
+          if i % 2 == 0 {
+            (9007199254740992L + i.to_int64()).to_string()
+          } else {
+            (i - 30000).to_string() + ".00"
+          }
+        }).join(",") +
+        "]"
+      let data = @json.parse(text, preserve_number_repr=true)
+      assert_eq(@jmes.stringify_bounded(data), text)
+      {
+        input_size: size,
+        input_unit: "numbers with preserved representations",
+        iterations: 3,
+        expected: text.length(),
         run: () => @jmes.stringify_bounded(data).length(),
       }
     }

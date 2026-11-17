@@ -348,7 +348,7 @@ test "bounded serialization rejects forged numeric representations" {
   for
     repr in [
       "null", "true", "[]", "1,2", "01", "1e999", "2", "", "+1", "1.", "1e", " 1",
-      "1\n",
+      "1\n", "1\t2", "１", "1😀", "\u00001", "0x1",
     ] {
     let forged = Json::number(1.0, repr~)
     let code = try {
@@ -365,7 +365,8 @@ test "bounded serialization rejects forged numeric representations" {
 test "numeric representation validation preserves matching precision and notation" {
   for
     text in [
-      "9007199254740993", "10000000000000000000", "1.2300", "1e-30", "-0",
+      "9007199254740993", "10000000000000000000", "1.2300", "1e-30", "-0", "1E+2",
+      "-0.000e-10",
     ] {
     let parsed = @json.parse(text)
     guard parsed is Number(number, ..) else { fail("expected number") }

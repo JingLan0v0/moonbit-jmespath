@@ -5,14 +5,14 @@
 MoonJMES 是用 MoonBit 实现的 JMESPath JSON 查询库和命令行工具。可以筛选记录、提取字段、
 投影嵌套数据和排序报表。项目支持 JS 后端，命令行工具由 Node.js 运行。
 
-当前版本为 **0.1.22**。[Mooncakes 包](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.22) · [变更记录](CHANGELOG.md)
+当前版本为 **0.1.23**。[Mooncakes 包](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.23) · [变更记录](CHANGELOG.md)
 
 ## 安装库
 
 在已有 MoonBit 模块中安装指定版本。
 
 ```sh
-moon add JingLan0v0/jmespath@0.1.22
+moon add JingLan0v0/jmespath@0.1.23
 ```
 
 最小可执行示例的 `moon.pkg` 如下。

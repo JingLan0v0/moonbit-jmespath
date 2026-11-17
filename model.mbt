@@ -103,7 +103,7 @@ fn validate_limits(limits : Limits) -> Unit raise JmesPathError {
 
 ///|
 pub fn version() -> String {
-  "0.1.22"
+  "0.1.23"
 }
 
 ///|

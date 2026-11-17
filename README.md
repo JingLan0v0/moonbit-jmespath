@@ -6,14 +6,14 @@ MoonJMES is a MoonBit library and command-line tool for querying JSON with
 JMESPath. Use it to filter records, extract fields, project nested data, and
 sort reports. It supports the JS backend, with Node.js as the CLI host.
 
-Version **0.1.22**. [Mooncakes package](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.22) · [Changelog](CHANGELOG.md)
+Version **0.1.23**. [Mooncakes package](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.23) · [Changelog](CHANGELOG.md)
 
 ## Install the library
 
 From an existing MoonBit module, install the exact release.
 
 ```sh
-moon add JingLan0v0/jmespath@0.1.22
+moon add JingLan0v0/jmespath@0.1.23
 ```
 
 Use this `moon.pkg` for the minimal executable.
