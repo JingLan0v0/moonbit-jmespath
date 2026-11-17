@@ -5,7 +5,7 @@ The library targets MoonBit's JS backend. Resource errors are reported as
 
 | Boundary | Default / hard cap | Behavior |
 | --- | --- | --- |
-| Expression length | 16,384 Unicode scalar values by default | Count before allocating tokenization array; configurable in Limits |
+| Expression length | 16,384 Unicode scalar values by default | Check UTF-16 length as a fast bound, then count scalars if needed before allocation; configurable in Limits |
 | Parser recursion and AST depth | 256 maximum | Checked while parsing and constructing nodes; configurable downward |
 | Active evaluator calls | 128 hard cap | Separate from AST depth because function evaluation uses multiple host frames |
 | Logical evaluation work | 1,000,000 by default | AST visits, equality visits/string comparisons, reductions, array membership, join and merge iterations, and one step per JSON node on the first copy of each container literal per search |
@@ -80,7 +80,7 @@ Since 0.1.9 each evaluated scalar result must be finite before its parent runs.
 Previously `type(sum(@))` or a comparison could conceal an overflow that direct
 `sum(@)` correctly rejected. Such queries now consistently return invalid_value.
 The check does not evaluate skipped boolean branches. Floating-point operations
-remain IEEE binary64. In the current repository source, `avg` rescans the array
+remain IEEE binary64. Since 0.1.21, `avg` rescans the array
 using scaled addition with rounding residuals if the running sum overflows.
 The additional pass charges for each element and each residual visited.
 `sum` still reports a non-finite result as `invalid_value`.

@@ -1,108 +1,116 @@
 # Changelog
 
-## Unreleased - JSON literal diagnostics
+## 0.1.21 - expression handling and CLI reliability
+
+### Expression length checks
+
+- Skip the separate Unicode scalar count when the UTF-16 length proves the
+  expression fits. Keep the exact scalar limit and reject oversized queries
+  before allocating the tokenization array.
+
+### JSON literal diagnostics
 
 - Report the opening backtick's Unicode scalar offset when a parsed JSON
   literal exceeds the JSON value limits.
 
-## Unreleased - large array indexes and slices
+### large array indexes and slices
 
 - Accept decimal array indexes and slice components wider than 32 bits
   without constructing arbitrary-precision integers.
 
-## Unreleased - ordering allocations
+### ordering allocations
 
 - Cache expression-reference ordering keys once. Sort indexes in `sort_by`
   and select the best input index directly in `min_by` and `max_by`.
 
-## Unreleased - finite averaging
+### finite averaging
 
 - Recover a finite `avg` when the running sum overflows. The extra pass is
   counted in the evaluation work budget.
 
-## Unreleased - PowerShell standard input
+### PowerShell standard input
 
 - Preserve native standard input when the wrapper is invoked directly. An
   explicit empty pipeline sends EOF.
 
-## Unreleased - PowerShell exit status
+### PowerShell exit status
 
 - Forward native exit codes and stderr through the PowerShell wrapper even
   when the caller's error preferences are set to stop.
 
-## Unreleased - quoted PowerShell arguments
+### quoted PowerShell arguments
 
 - Preserve quoted JMESPath identifiers and embedded escapes when invoking
   MoonBit through the PowerShell wrapper.
 
-## Unreleased - PowerShell Unicode I/O
+### PowerShell Unicode I/O
 
 - Preserve Unicode JSON piped through the Windows PowerShell wrapper and
   decode native output as UTF-8.
 
-## Unreleased - benchmark sample validation
+### benchmark sample validation
 
 - Verify that timing samples and work counts belong to the selected benchmark
   case before recording them.
 
-## Unreleased - benchmark build evidence
+### benchmark build evidence
 
 - Require fresh benchmark and CLI executables, and record their SHA-256 values
   before collecting performance samples.
 
-## Unreleased - final source verification
+### final source verification
 
 - Recheck the Git commit and working tree before reporting a successful
   verification run.
 
-## Unreleased - CI source verification
+### CI source verification
 
 - Check the CI commit against the actual checkout and require a clean working
   tree before running the toolchain.
 
-## Unreleased - CLI build evidence
+### CLI build evidence
 
 - Require each verification build to produce a fresh CLI file and record its
   SHA-256 in the build step's report.
 
-## Unreleased - toolchain verification
+### toolchain verification
 
 - Compare the running MoonBit and Node.js versions against `toolchain.json`.
   CI fails early on drift, and local compatibility checks record any differences.
 
-## Unreleased - property-test replays
+### property-test replays
 
 - Keep original failure cases and full-suite reports intact when replaying
   equality or composition checks. Save each replay's report in its own directory.
 
-## Unreleased - report writes
+### report writes
 
 - Publish verification and conformance reports only after writing complete JSON.
   Remove temporary files after write or replacement errors.
 
-## Unreleased - conformance reports
+### conformance reports
 
 - Require a matching suite summary for a conformance result and preserve the
   original subprocess error when the summary is missing or invalid.
 
-## Unreleased - subprocess diagnostics
+### subprocess diagnostics
 
 - Retain bounded stdout and stderr excerpts in the verification log and report
   when a subprocess cannot finish, including timeout and output-limit errors.
 
-## Unreleased - conformance cache integrity
+### conformance cache integrity
 
 - Check cached and downloaded vectors against per-file hashes of the pinned
   upstream revision. Recover from corrupt cache entries with verified downloads.
 - Test offline cache hits, recovery through the contents API and failed
   downloads without using the network in CI regression tests.
 
-## Unreleased - early verification failures
+### early verification failures
 
 - Clear stale suite reports and toolchain evidence before checking Git
   metadata. Cover that failure path in Windows and Ubuntu CI.
 
-## Unreleased - quick start and checked demos
+### quick start and checked demos
 
 - Organize the English and Chinese READMEs around installation, working
   examples, resource limits and verification.
@@ -124,7 +132,7 @@
 - Cover work-limit recovery, mutable literal isolation, and requests whose
   expressions exceed the reuse slot's size limit.
 
-## Unreleased - performance benchmarks
+### performance benchmarks
 
 - Add reproducible JS benchmarks for compilation, compiled search, sorting,
   long strings, serialization, batch queries and full CLI startup.
@@ -140,14 +148,14 @@
 - Cover mutations of returned values, input revalidation, failure recovery and
   the existing JSON depth limit through the public API.
 
-## Unreleased - unified verification (2026-11-12)
+### unified verification (2026-11-12)
 
 - Use one verification command locally and in CI for strict checks, both JS
   build modes, examples, official conformance and Windows PowerShell smoke.
 - Reuse each mode's CLI for conformance and record source, toolchain, counts
   and per-step status in a report that survives early failure.
 
-## Unreleased - MoonBit toolchain compatibility (2026-11-12)
+### MoonBit toolchain compatibility (2026-11-12)
 
 - Update source declarations and generated interfaces for MoonBit
   `0.10.20+65efd5b93`, including the current trait derivation and integer syntax.
@@ -156,7 +164,7 @@
 - Select the matching local toolchain in the PowerShell wrapper and document the
   compiler requirements for building GitHub main.
 
-## Unreleased - bounded failure reduction (2026-11-11)
+### bounded failure reduction (2026-11-11)
 
 - Add a separate reducer for saved equality/composition failures, with attempt
   and time limits, repeat confirmation, stable failure categories and replay output.
@@ -166,7 +174,7 @@
   retain reducer unit/integration checks plus an injected-defect regression fixture.
 - Test tooling only; runtime and published package remain 0.1.17.
 
-## Unreleased - composition verification (2026-11-11)
+### composition verification (2026-11-11)
 
 - Retain a bounded seeded expression generator with independent expected values:
   8,192 combinations plus 15 normative cases in each build mode.
@@ -175,7 +183,7 @@
   deviations instead of treating a third-party evaluator as an absolute oracle.
 - Test tooling only; library and published package remain 0.1.17.
 
-## Unreleased - equality verification (2026-11-11)
+### equality verification (2026-11-11)
 
 - Retain deterministic deep equality, key-order, type distinction and contains
   checks in a standalone Node harness, integrated into both verification modes.
@@ -212,7 +220,7 @@
 
 Reject misplaced expression references during compilation, including in lazy branches, lists and filters. Direct reference arguments continue to support pipes, boolean expressions, grouping inside the reference and nested function calls.
 
-## Unreleased - verification target isolation (2026-11-03)
+### verification target isolation (2026-11-03)
 
 - explicitly bind every full-verification CLI harness to the debug/release
   artifact built by that run, preventing inherited JMES_CLI_PATH redirection
@@ -222,7 +230,7 @@ Reject misplaced expression references during compilation, including in lazy bra
 - no runtime/API/version change; published library remains 0.1.14
 
 
-## Unreleased - verification tooling (2026-11-01)
+### verification tooling (2026-11-01)
 
 - derive report boundary/mutation counts from actual adversarial harness output;
   remove the stale hardcoded count of 33 when 35 checks were being executed

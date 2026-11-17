@@ -115,7 +115,7 @@ at the end of the batch.
 
 ## Compatibility edge cases
 
-The current repository source accepts indexes and slice bounds beyond the
+Since 0.1.21 the library accepts indexes and slice bounds beyond the
 32-bit range. An out-of-range index returns `null`, slice endpoints clip to the
 array, and an oversized step selects at most one item. The expression length
 limit still applies. [JMESPath index and slice rules](https://jmespath.org/specification.html#index-expressions)
@@ -124,8 +124,8 @@ Since 0.1.9 non-finite intermediate scalar values are rejected before a parent
 can consume them. `type(sum(@))` on `[1e308,1e308]` returns invalid_value rather
 than a successful `"number"`. Similarly, wrapping an overflowing to_number
 conversion cannot hide it. Unevaluated short-circuit branches remain skipped;
-compiled queries can still be reused after errors. In the current repository
-source, `avg(@)` can return a finite result for a finite numeric array even if
+compiled queries can still be reused after errors. Since 0.1.21, `avg(@)` can
+return a finite result for a finite numeric array even if
 the running sum overflows. See resource-limits.md for rounding and work limits.
 
 Since 0.1.8 string ordering follows Unicode code points, as required by the

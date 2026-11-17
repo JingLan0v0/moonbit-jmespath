@@ -103,18 +103,18 @@ fn decode_json_string(
 
 ///|
 fn lex(source : String, limits : Limits) -> Array[Token] raise JmesPathError {
-  // Count without allocating an array proportional to an untrusted string.
-  let mut length = 0
-  for _ in source.iter() {
-    if length >= limits.max_expression_chars {
-      fail("limit_exceeded", 0, "expression exceeds max_expression_chars")
+  // Each character occupies at least one UTF-16 unit. Only count
+  // characters separately when the code-unit length cannot prove it fits.
+  if source.length() > limits.max_expression_chars {
+    let mut length = 0
+    for _ in source {
+      if length >= limits.max_expression_chars {
+        fail("limit_exceeded", 0, "expression exceeds max_expression_chars")
+      }
+      length += 1
     }
-    length += 1
   }
   let chars = source.to_array()
-  if chars.length() > limits.max_expression_chars {
-    fail("limit_exceeded", 0, "expression exceeds max_expression_chars")
-  }
   let tokens : Array[Token] = []
   let mut i = 0
   while i < chars.length() {

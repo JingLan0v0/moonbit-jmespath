@@ -21,6 +21,27 @@ test "lexer rejects malformed input with an offset" {
 }
 
 ///|
+test "expression length limits count source characters before decoding escapes" {
+  for
+    (source, max_chars) in [
+      ("'abcd'", 6),
+      ("'月😀😀x'", 6),
+      ("\"😀\\u0020\"", 9),
+    ] {
+    let limits = { ..default_limits(), max_expression_chars: max_chars, }
+    let tokens = lex(source, limits)
+    assert_eq(tokens.last().unwrap().offset, limits.max_expression_chars)
+    let rejected = try {
+      lex(source + " ", limits) |> ignore
+      None
+    } catch {
+      JmesPathError(d) => Some((d.code, d.offset))
+    }
+    assert_eq(rejected, Some(("limit_exceeded", 0)))
+  }
+}
+
+///|
 test "integer indexes saturate without wrapping and consume all digits" {
   for
     (text, expected) in [
