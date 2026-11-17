@@ -1,8 +1,13 @@
 ///|
+priv struct JsonArrayCursor {
+  items : Array[Json]
+  mut index : Int32
+}
+
+///|
 priv enum JsonFrame {
-  Value(Json, Int32)
-  Items(Iter[Json], Int32)
-  Members(Iter[(String, Json)], Int32)
+  Items(JsonArrayCursor)
+  Members(Iter[(String, Json)])
 }
 
 ///|
@@ -76,75 +81,72 @@ fn measure_json(
   initial_depth~ : Int32 = 0,
 ) -> JsonBudget raise JmesPathError {
   let budget = { nodes: 0, units: 0, }
-  let stack : Array[JsonFrame] = [Value(value, initial_depth)]
-  while !stack.is_empty() {
-    guard stack.pop() is Some(frame) else { break }
-    match frame {
-      Value(value, depth) => {
-        if depth > 256 {
-          fail("limit_exceeded", 0, "JSON value exceeds depth 256")
-        }
-        if budget.nodes >= 1000000 {
-          fail("limit_exceeded", 0, "JSON value exceeds 1000000 expanded nodes")
-        }
-        budget.nodes += 1
+  let stack : Array[JsonFrame] = []
+  walk~: for current = value {
+    let depth = initial_depth + stack.length()
+    if depth > 256 {
+      fail("limit_exceeded", 0, "JSON value exceeds depth 256")
+    }
+    if budget.nodes >= 1000000 {
+      fail("limit_exceeded", 0, "JSON value exceeds 1000000 expanded nodes")
+    }
+    budget.nodes += 1
+    if pretty {
+      budget.add(2 * depth + 2)
+    }
+    match current {
+      Array(items) => {
+        budget.add(2)
         if pretty {
           budget.add(2 * depth + 2)
         }
-        match value {
-          Array(items) => {
-            budget.add(2)
-            if pretty {
-              budget.add(2 * depth + 2)
-            }
-            stack.push(Items(items.iter(), depth + 1))
+        stack.push(Items({ items, index: 0, }))
+      }
+      Object(entries) => {
+        budget.add(2)
+        if pretty {
+          budget.add(2 * depth + 2)
+        }
+        stack.push(Members(entries.iter()))
+      }
+      String(text) => budget.string(text)
+      Number(number, repr~) => {
+        if number.is_nan() || number.is_inf() {
+          fail(
+            "invalid_value", 0, "non-finite numbers cannot be represented as JSON",
+          )
+        }
+        match repr {
+          Some(text) => {
+            // Charge size before scanning or parsing a caller-supplied repr.
+            budget.add(text.length())
+            validate_number_repr(number, text)
           }
-          Object(entries) => {
-            budget.add(2)
-            if pretty {
-              budget.add(2 * depth + 2)
-            }
-            stack.push(Members(entries.iter(), depth + 1))
-          }
-          String(text) => budget.string(text)
-          Number(number, repr~) => {
-            if number.is_nan() || number.is_inf() {
-              fail(
-                "invalid_value", 0, "non-finite numbers cannot be represented as JSON",
-              )
-            }
-            match repr {
-              Some(text) => {
-                // Charge size before scanning or parsing a caller-supplied repr.
-                budget.add(text.length())
-                validate_number_repr(number, text)
-              }
-              None => budget.add(32)
-            }
-          }
-          _ => budget.add(5)
+          None => budget.add(32)
         }
       }
-      Items(items, depth) =>
-        match items.next() {
-          None => ()
-          Some(item) => {
+      _ => budget.add(5)
+    }
+    // Keep one cursor per open container. Moving to a sibling reuses it.
+    while !stack.is_empty() {
+      match stack[stack.length() - 1] {
+        Items(cursor) =>
+          if cursor.index < cursor.items.length() {
             budget.add(1)
-            stack.push(Items(items, depth))
-            stack.push(Value(item, depth))
+            let item = cursor.items[cursor.index]
+            cursor.index += 1
+            continue walk~ item
           }
-        }
-      Members(entries, depth) =>
-        match entries.next() {
-          None => ()
-          Some((key, item)) => {
+        Members(members) =>
+          if members.next() is Some((key, item)) {
             budget.string(key)
             budget.add(3)
-            stack.push(Members(entries, depth))
-            stack.push(Value(item, depth))
+            continue walk~ item
           }
-        }
+      }
+      stack.pop() |> ignore
     }
+    break walk~
   }
   budget
 }

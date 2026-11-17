@@ -22,8 +22,8 @@ priv struct BenchCase {
 ///|
 let case_names : Array[String] = [
   "compile-small", "compile-large", "compiled-filter", "sort-large", "long-string",
-  "serialize-large", "serialize-number-repr", "compile-batch", "batch-repeated",
-  "batch-distinct", "batch-large",
+  "validate-wide-array", "serialize-large", "serialize-number-repr", "compile-batch",
+  "batch-repeated", "batch-distinct", "batch-large",
 ]
 
 ///|
@@ -138,6 +138,21 @@ fn make_case(name : String) -> BenchCase raise {
         input_unit: "string UTF-16 units",
         iterations: 4,
         expected: 393216,
+        run: () => {
+          guard query.search(data) is Number(length, ..) else { panic() }
+          length.to_int()
+        },
+      }
+    }
+    "validate-wide-array" => {
+      let size = 250000
+      let data = Json::array(Array::make(size, Json::null()))
+      let query = @jmes.compile("length(@)")
+      {
+        input_size: size,
+        input_unit: "array elements",
+        iterations: 4,
+        expected: size,
         run: () => {
           guard query.search(data) is Number(length, ..) else { panic() }
           length.to_int()

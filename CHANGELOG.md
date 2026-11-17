@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.24 - JSON value traversal
+
+- Reuse a cursor for each open JSON container during size validation.
+  Preserve depth, expanded-node, and output-size limits.
+
+- Add a benchmark that checks a 250,000-element array through the library API.
+
 ## 0.1.23 - numeric representation validation
 
 - Use direct string traversal when checking the characters of a preserved
