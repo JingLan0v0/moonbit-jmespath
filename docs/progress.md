@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-17)
 
+Mooncakes 0.1.22 is available from release commit `bb5a6b2`.
+It speeds up JSON string and key size checks while preserving the
+conservative output limits. The archive and a fresh installation passed
+verification in debug and release.
+[Release evidence](acceptance.md#json-string-budget-accounting-0122)
+
+### Earlier 0.1.21 release
+
 Mooncakes 0.1.21 is published from `e366747`.
 It includes accurate JSON literal error offsets, wide array indexes and
 slices, finite averages after running-sum overflow, fewer allocations for

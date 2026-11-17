@@ -1,5 +1,38 @@
 # MoonJMES acceptance evidence
 
+## JSON string budget accounting (0.1.22)
+
+Release commit `bb5a6b240e729a7d86368e08e76013658e6777d8` passed
+[Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/44023496286) and the full
+local verification. Both modes passed 84 unit tests and 892 official
+JMESPath cases. The independently extracted package passed strict checking,
+both unit suites, the compact and pretty JSON round-trip tests, and the
+official cases.
+
+The estimator counts existing UTF-16 units up front and adds the same
+conservative escape costs for control characters, quotes, backslashes,
+and slashes. A boundary test checks the exact 16 Mi-unit ceiling and both
+size diagnostics with supplementary Unicode and escapes.
+
+Nine paired runs of the existing benchmarks on Windows with Node 24.14.0
+gave the following medians in milliseconds per operation. Each process
+contributed the median of its nine measured samples.
+
+| Workload | Before | After |
+| --- | ---: | ---: |
+| Serialize 60,000 strings | 8.815 | 7.207 |
+| Query the length of a mixed-Unicode string | 3.137 | 2.313 |
+| Run 8,192 batch requests | 4.684 | 4.399 |
+
+Mooncakes returned 202 for preflight and 200 for publication. The 91 public
+archive files matched the release source, and the published and downloaded
+ZIPs had SHA-256 `d85735ab52e45242d689113ec28235a37dc3562f7966fa066db8ecbc3b9e8d54`.
+A fresh consumer installed the exact release in HTTP registry mode and
+matched all 91 files byte for byte. Debug and release checked escaped
+keys and strings in both output formats, the inclusive size ceiling and
+the error just above it, and compiled-query reuse after that error.
+[Mooncakes 0.1.22](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.22)
+
 ## Expression handling and CLI reliability (0.1.21)
 
 Release commit `e3667474bf9ff76ebfe4f543f7aa3efdbf00cb59` passed full local
