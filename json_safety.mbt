@@ -27,25 +27,21 @@ fn JsonBudget::string(
   self : JsonBudget,
   text : String,
 ) -> Unit raise JmesPathError {
-  // Reject large strings before walking them; count escaped strings without
-  // first allocating a serialization. Slash escaping is conservatively counted.
-  if text.length() > 16777216 - self.units {
+  let length = text.length()
+  if length > 16777216 - self.units {
     fail("limit_exceeded", 0, "JSON string exceeds size budget")
   }
-  self.add(2)
-  for c in text.iter() {
-    let code = c.to_int()
-    self.add(
-      if code < 32 {
-        6
-      } else if c == '"' || c == '\\' || c == '/' {
-        2
-      } else if code > 65535 {
-        2
-      } else {
-        1
-      },
-    )
+  // Count the quotes and existing UTF-16 units up front. Only ASCII
+  // escapes add units, so there is no need to decode surrogate pairs.
+  self.add(length + 2)
+  for i in 0..<length {
+    let unit = text[i]
+    if unit < 0x20 {
+      self.add(5)
+    } else if unit == 0x22 || unit == 0x2F || unit == 0x5C {
+      // Conservatively count a slash as escaped as well.
+      self.add(1)
+    }
   }
 }
 

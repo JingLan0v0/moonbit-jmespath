@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.22 - JSON string budget accounting
+
+- Count existing UTF-16 units once and add only escape overhead when
+  checking JSON strings and object keys. The byte transport limit and
+  conservative serialized-size budgets are unchanged.
+
 ## 0.1.21 - expression handling and CLI reliability
 
 ### Expression length checks
