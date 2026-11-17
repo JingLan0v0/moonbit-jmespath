@@ -1,5 +1,35 @@
 # MoonJMES acceptance evidence
 
+## Expression handling and CLI reliability (0.1.21)
+
+Release commit `e3667474bf9ff76ebfe4f543f7aa3efdbf00cb59` passed full local
+verification and [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/44021791293).
+Both debug and release passed 83 unit tests, 892 pinned official cases, and
+the CLI and adversarial suites. Windows CI also passed the PowerShell 5.1
+wrapper check. A clean extraction passed strict checking, both build modes,
+CLI integration, adversarial tests and the pinned suite.
+
+The lexer skips a separate scalar count when the UTF-16 length proves the
+expression fits. Tests verify exact limits for ASCII, supplementary Unicode
+characters and quoted escapes. On one Windows machine with Node 24.14.0,
+nine paired release runs of the existing `compile-large` workload
+(15,401 ASCII characters) had median compile times of 0.211 ms before the
+change and 0.170 ms after it. Each run contributes the median of its nine
+measured samples.
+
+Mooncakes returned 202 for preflight and 200 for formal publication. The
+90-file public archive matched the published ZIP byte for byte. Its files
+matched the release source after line-ending normalization; the archive
+excludes build output, credentials, local toolchains and downloaded vectors.
+SHA-256 `4e96bcbb28c13afa4785660d273c92c22dce1d73b296d249a1d10c988a58c6cd`.
+
+A fresh MoonBit consumer resolved and downloaded the exact version in HTTP
+registry mode. Its 90 installed files matched the public archive byte for byte.
+Strict checking and debug/release runs passed wide array indexes and slices,
+finite averages, stable sorting, literal error offsets, batch isolation,
+bounded serialization and Unicode expression length limits.
+[Mooncakes 0.1.21](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.21)
+
 ## Delivery recheck (0.1.20)
 
 GitHub main was public and matched `fb6cc50e41d9623809aff27106fe35c9cd97ce9f`

@@ -1,6 +1,18 @@
 # Project status and handoff
 
-## Current state (2026-11-12)
+## Current state (2026-11-17)
+
+Mooncakes 0.1.21 is published from `e366747`.
+It includes accurate JSON literal error offsets, wide array indexes and
+slices, finite averages after running-sum overflow, fewer allocations for
+expression-reference ordering, and PowerShell I/O fixes. Expression length
+checks skip a scan when UTF-16 length proves the query fits.
+
+Both Windows and Ubuntu CI passed for the release commit. A fresh consumer
+installed the exact version and passed in debug and release.
+[Release evidence](acceptance.md#expression-handling-and-cli-reliability-0121)
+
+## Earlier status (2026-11-12)
 
 ### Delivery recheck
 
