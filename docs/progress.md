@@ -2,6 +2,14 @@
 
 ## Current state (2026-11-17)
 
+Mooncakes 0.1.23 is available from release commit `947c893`.
+It reduces the cost of validating preserved numeric text and adds a
+serialization benchmark. The archive and a fresh installation passed
+debug and release checks.
+[Release evidence](acceptance.md#numeric-representation-validation-0123)
+
+### Earlier 0.1.22 release
+
 Mooncakes 0.1.22 is available from release commit `bb5a6b2`.
 It speeds up JSON string and key size checks while preserving the
 conservative output limits. The archive and a fresh installation passed

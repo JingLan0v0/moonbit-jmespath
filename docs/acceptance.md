@@ -1,5 +1,33 @@
 # MoonJMES acceptance evidence
 
+## Numeric representation validation (0.1.23)
+
+Release commit `947c893c5c6ea1e9178f214b1733b2b943c3cdda` passed full local verification
+and [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/44026663501).
+Both modes passed 84 unit tests and 892 pinned official cases.
+The independently extracted ZIP passed strict checking, both unit and
+conformance suites, and the new release benchmark.
+
+Direct string traversal removes per-character iterator overhead from the
+numeric character check. The same JSON parser still checks the full syntax
+and verifies that the parsed number agrees with the stored value. Regression
+cases include preserved large integers, exponents and negative zero, along
+with forged Unicode digits, embedded control characters, and mismatched values.
+
+Nine paired release runs with Node 24.14.0 on Windows measured median
+serialization time of 26.638 ms before and 25.368 ms after for 60,000
+preserved decimal and large-integer representations. Each process
+contributed its median of nine measured samples. The benchmark also checks
+that serialized output preserves the original numeric text.
+
+Mooncakes returned 202 for preflight and 200 for publication. All 91
+archive files matched the release commit after line-ending normalization.
+The public download matched the uploaded ZIP with SHA-256
+`334a7dee177f6cc57315b6b6e5187ad9ffcd07db8ab0cd2235008962223ca2dc`. A fresh consumer downloaded the exact version
+in HTTP registry mode. All 91 installed files matched the download, and
+debug and release verified preserved output, forged representations and
+query reuse after errors. [Mooncakes 0.1.23](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.23)
+
 ## JSON string budget accounting (0.1.22)
 
 Release commit `bb5a6b240e729a7d86368e08e76013658e6777d8` passed
