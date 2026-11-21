@@ -1,5 +1,39 @@
 # MoonJMES acceptance evidence
 
+## JSON value traversal (0.1.24)
+
+Published on 2026-11-21 from `a0e505f27cbcff19571234867a34801a4b831279`.
+The earlier full local verification passed on 2026-11-17 for that exact clean
+commit. [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/44866537780) passed
+on the release commit before publication, including the Windows PowerShell
+5.1 smoke check. Both modes passed 86 unit tests and 892 pinned official cases.
+Independent extraction on November 21 passed strict checking, both unit and
+conformance suites, JSON round trips and adversarial subprocess tests.
+
+The traversal keeps one cursor per open container and reuses it for siblings.
+Array width does not increase the traversal stack. Regressions verify exact
+compact and pretty estimates, batch nesting offsets, shared subtree expansion
+and the inclusive 1,000,000-node limit. Existing cycle and depth checks passed.
+
+Nine paired release runs on Windows with Node 24.14.0, recorded on November 17,
+gave these medians in milliseconds per operation. Each process contributed
+the median of its nine measured samples.
+
+| Workload | Before | After |
+| --- | ---: | ---: |
+| Validate and query 250,000 array elements | 4.400 | 1.261 |
+| Serialize 60,000 strings | 7.232 | 5.972 |
+| Serialize 60,000 preserved numeric representations | 25.580 | 23.819 |
+
+Mooncakes returned 202 for preflight and 200 for publication. The 91-file
+public archive matched the upload byte for byte and the release source
+after line-ending normalization. SHA-256
+`2ff33a572337f2174e7bb992b1ed7547a816c45bf4e04dadfa7cd599e7ebae9f`.
+A fresh consumer downloaded exact 0.1.24 in HTTP registry mode. All 91 installed
+files matched the public download. Debug and release passed the expanded-node
+boundary, mixed object/array serialization, cycle rejection and query reuse
+after resource errors. [Mooncakes 0.1.24](https://mooncakes.io/docs/JingLan0v0/jmespath@0.1.24)
+
 ## Numeric representation validation (0.1.23)
 
 Release commit `947c893c5c6ea1e9178f214b1733b2b943c3cdda` passed full local verification

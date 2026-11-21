@@ -1,6 +1,14 @@
 # Project status and handoff
 
-## Current state (2026-11-17)
+## Current state (2026-11-21)
+
+Mooncakes 0.1.24 is published from `a0e505f`.
+JSON value validation reuses a cursor per open container. Local and
+Windows/Ubuntu CI verification passed, and an independently downloaded
+package passed fresh-consumer checks in both modes.
+[Release evidence](acceptance.md#json-value-traversal-0124)
+
+## Earlier status (2026-11-17)
 
 Mooncakes 0.1.23 is available from release commit `947c893`.
 It reduces the cost of validating preserved numeric text and adds a

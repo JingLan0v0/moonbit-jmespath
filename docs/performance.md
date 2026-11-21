@@ -24,6 +24,8 @@ Save a copy of the report before running another version in the same mode.
 | Compiled filter | Three records | Search with a compiled expression, including JSON checks |
 | Large sort | 8,192 integers in a fixed permutation | Sort with a compiled expression |
 | Long string | 524,288 UTF-16 units containing ASCII, CJK and emoji | Search with compiled `length(@)` |
+| Wide array validation | 250,000 null elements | Validate input and search with compiled `length(@)` |
+| Preserved-number serialization | 60,000 decimal and large-integer representations | Bounded serialization and output length |
 | Compact serialization | 60,000 strings | Bounded serialization and output length |
 | Batch compile | 512 copies of the same expression | Compile each expression |
 | Batch repeated and distinct | 512 requests with equal-length expressions and identical results | Process the complete in-memory batch |
