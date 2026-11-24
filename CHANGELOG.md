@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - wide object verification
+
+- Add benchmarks for validation and serialization of 60,000-member objects
+  with Unicode and escaped punctuation in keys.
+- Check expanded-node accounting for shared objects and recovery after a
+  cyclic mutation in a wide object.
+
 ## 0.1.24 - JSON value traversal
 
 - Reuse a cursor for each open JSON container during size validation.

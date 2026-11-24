@@ -54,3 +54,24 @@ test "wide shared arrays stop after the inclusive expanded node limit" {
     Some(("limit_exceeded", "JSON value exceeds 1000000 expanded nodes")),
   )
 }
+
+///|
+test "shared object values count toward the inclusive expanded node limit" {
+  let shared = Json::object(Map([("a", Json::null())]))
+  let items = Array::make(499999, shared)
+  let root = Json::array(items)
+  assert_eq(measure_json(root, false).nodes, 999999)
+  items.push(Json::null())
+  assert_eq(measure_json(root, false).nodes, 1000000)
+  items.push(Json::null())
+  let diagnostic = try {
+    measure_json(root, false) |> ignore
+    None
+  } catch {
+    JmesPathError(d) => Some((d.code, d.message))
+  }
+  assert_eq(
+    diagnostic,
+    Some(("limit_exceeded", "JSON value exceeds 1000000 expanded nodes")),
+  )
+}

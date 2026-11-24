@@ -67,3 +67,34 @@ test "copying a deeply nested literal respects the existing JSON boundary" {
   let query = @jmespath.compile("`" + source + "`")
   assert_eq(@jmespath.stringify_bounded(query.search(Json::null())), source)
 }
+
+///|
+test "compiled queries revalidate wide object mutations and recover after a cycle" {
+  let entries : Map[String, Json] = Map([])
+  for i in 0..<4096 {
+    entries["月😀" + i.to_string()] = Json::null()
+  }
+  let data = Json::object(entries)
+  let query = @jmespath.compile("length(@)")
+  assert_eq(query.search(data), Json::number(4096.0))
+  entries["self"] = data
+  let code = try {
+    query.search(data) |> ignore
+    None
+  } catch {
+    @jmespath.JmesPathError(d) => Some((d.code, d.message))
+  }
+  assert_eq(
+    code,
+    Some(("limit_exceeded", "JSON value exceeds 1000000 expanded nodes")),
+  )
+  entries["self"] = Json::string("recovered")
+  assert_eq(query.search(data), Json::number(4097.0))
+  for pretty in [false, true] {
+    let decoded = @jmespath.parse_json_bounded(
+      @jmespath.stringify_bounded(data, pretty~),
+    )
+    assert_eq(@jmespath.search("self", decoded), Json::string("recovered"))
+    assert_eq(query.search(decoded), Json::number(4097.0))
+  }
+}

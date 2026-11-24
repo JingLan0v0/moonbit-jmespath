@@ -22,8 +22,8 @@ priv struct BenchCase {
 ///|
 let case_names : Array[String] = [
   "compile-small", "compile-large", "compiled-filter", "sort-large", "long-string",
-  "validate-wide-array", "serialize-large", "serialize-number-repr", "compile-batch",
-  "batch-repeated", "batch-distinct", "batch-large",
+  "validate-wide-array", "validate-wide-object", "serialize-wide-object", "serialize-large",
+  "serialize-number-repr", "compile-batch", "batch-repeated", "batch-distinct", "batch-large",
 ]
 
 ///|
@@ -157,6 +157,39 @@ fn make_case(name : String) -> BenchCase raise {
           guard query.search(data) is Number(length, ..) else { panic() }
           length.to_int()
         },
+      }
+    }
+    "validate-wide-object" | "serialize-wide-object" => {
+      let size = 60000
+      let entries : Map[String, Json] = Map([])
+      for i in 0..<size {
+        entries["月😀\\/\"" + i.to_string()] = Json::null()
+      }
+      let data = Json::object(entries)
+      let query = @jmes.compile("length(@)")
+      assert_eq(query.search(data), Json::number(size.to_double()))
+      if name == "validate-wide-object" {
+        {
+          input_size: size,
+          input_unit: "object members",
+          iterations: 3,
+          expected: size,
+          run: () => {
+            guard query.search(data) is Number(length, ..) else { panic() }
+            length.to_int()
+          },
+        }
+      } else {
+        let serialized = @jmes.stringify_bounded(data)
+        assert_eq(@json.parse(serialized), data)
+        let expected = serialized.length()
+        {
+          input_size: size,
+          input_unit: "object members",
+          iterations: 3,
+          expected,
+          run: () => @jmes.stringify_bounded(data).length(),
+        }
       }
     }
     "serialize-large" => {
