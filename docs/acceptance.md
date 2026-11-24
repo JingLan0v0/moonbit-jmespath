@@ -1,5 +1,31 @@
 # MoonJMES acceptance evidence
 
+## Wide object verification (2026-11-24)
+
+Source `b9985243d8df60af57ac3e1c65f311100f5d12fa` passed full local verification
+and [Windows and Ubuntu CI](https://github.com/JingLan0v0/moonbit-jmespath/actions/runs/45344709990).
+Each build mode passed 88 unit tests and 892 pinned official cases.
+The normal release benchmark command also passed all 17 cases.
+
+Added tests exercise a 4,096-member object after a cyclic mutation and
+after recovery. That object reaches the expanded-node limit before the
+depth limit, and the regression checks its actual diagnostic. Shared-object
+accounting is tested at 999,999, 1,000,000 and 1,000,001 expanded nodes.
+The new 60,000-member workloads include CJK, emoji, backslashes, slashes
+and quotes in keys. Serialization validates the decoded object before timing.
+
+An experimental key iterator followed by a map lookup was discarded after
+nine paired release runs on Windows with Node 24.14.0. Compared with the
+existing entry iterator, median validation was 2.333 ms versus 4.509 ms;
+serialization was 12.412 ms versus 16.544 ms. Each process contributed
+its median of nine samples, and paired workloads and checksums matched.
+The standard command on the retained implementation subsequently measured
+2.285 ms for validation and 11.527 ms for serialization in one run.
+These are host-specific measurements.
+
+This commit adds benchmarks, regression tests and documentation.
+The published library remains 0.1.24. No new registry release is needed.
+
 ## JSON value traversal (0.1.24)
 
 Published on 2026-11-21 from `a0e505f27cbcff19571234867a34801a4b831279`.

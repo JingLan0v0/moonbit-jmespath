@@ -1,6 +1,14 @@
 # Project status and handoff
 
-## Current state (2026-11-21)
+## Current state (2026-11-24)
+
+Wide-object validation and serialization now have reproducible workloads in
+the standard benchmark command. Added tests check shared-object accounting
+and recovery after a cyclic mutation. Full local verification and both
+platform CI jobs passed on `b998524`. Published library remains 0.1.24.
+[Verification evidence](acceptance.md#wide-object-verification-2026-11-24)
+
+## Earlier status (2026-11-21)
 
 Mooncakes 0.1.24 is published from `a0e505f`.
 JSON value validation reuses a cursor per open container. Local and
